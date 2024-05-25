@@ -1,14 +1,17 @@
 {
-    "name": "Eco Sim Game",
+    "name": "ecosim-game",
     "description": "",
     "version": "1.0.2",
+    "homepage": "https://alex-pixelpie.github.io/ecosim/",
     "repository": {
         "type": "git",
-        "url": ""
+        "url": "https://github.com/alex-pixelpie/ecosim"
     },
     "author": "Alex Tavor",
     "license": "MIT",
     "scripts": {
+        "predeploy": "npm run build",
+        "deploy": "gh-pages -d build",
         "dev": "vite --config vite/config.dev.mjs",
         "build": "vite build --config vite/config.prod.mjs"
     },
