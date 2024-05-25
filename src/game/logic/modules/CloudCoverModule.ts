@@ -62,9 +62,15 @@ export namespace CloudCoverModule {
         }
         
         updateWind(time: number, delta: number){
+            if (!this.config.windSize || !this.config.windStrength || !this.config.speedFactor) {
+                return;
+            }
+            
             let windNoise = MathUtils.remapNoiseToUnit(this.windNoise(time / this.config.windSize * this.config.speedFactor, 0));
-            this.windNoisePosition.setLength(this.config.windStrength * MathUtils.remapNoiseToUnit(this.windNoise(time / this.config.windSize* this.config.speedFactor, 0))* this.config.speedFactor);
-            this.windNoisePosition.rotate((windNoise * 180 * this.config.rotationSpeed * delta)* this.config.speedFactor);
+            this.windNoisePosition.setLength(this.config.windStrength * MathUtils.remapNoiseToUnit(this.windNoise(time / this.config.windSize * this.config.speedFactor, 0)) * this.config.speedFactor);
+            
+            if (this.config.rotationSpeed)
+                this.windNoisePosition.rotate((windNoise * 180 * this.config.rotationSpeed * delta)* this.config.speedFactor);
 
             this.offset.x += this.windNoisePosition.x;
             this.offset.y += this.windNoisePosition.y;
@@ -72,6 +78,10 @@ export namespace CloudCoverModule {
 
         public update(entities: Set<number>): void {
             this.updateWind(this.game.timeFromStart, this.game.secondsFromLastTick);
+            
+            if (!this.config.thicknessSize || !this.config.cloudsChangeSpeed || !this.config.speedFactor) {
+                return;
+            }
             
             entities.forEach(entity => {
                 const position = this.game.ecs.getComponent(entity, Position);
