@@ -27,7 +27,7 @@ const displayNames = {
 const eventEmitter = EventBus;
 
 const CloudCoverModuleControls = () => {
-    const [cloudsCoverConfig, setCloudsCoverConfig] = useState<CloudsCoverConfig | null>(new CloudsCoverConfig());
+    const [cloudsCoverConfig, setCloudsCoverConfig] = useState<CloudsCoverConfig | null>();
 
     useEffect(() => {
         // Listen for the WindConfigCreated event
@@ -39,13 +39,14 @@ const CloudCoverModuleControls = () => {
         };
     }, []);
 
+    useEffect(() => {
+        cloudsCoverConfig && eventEmitter.emit(UiEvents.WindConfigUpdated, cloudsCoverConfig);
+    }, [cloudsCoverConfig]);
+
+
     if (!cloudsCoverConfig) {
         return null; // Hide the component if there's no config
     }
-
-    useEffect(() => {
-        eventEmitter.emit(UiEvents.WindConfigUpdated, cloudsCoverConfig);
-    }, [cloudsCoverConfig]);
 
     const handleSliderChange = (property: keyof CloudsCoverConfig, value: number) => {
         setCloudsCoverConfig((prevConfig) => {

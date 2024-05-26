@@ -3,12 +3,11 @@ import {MathUtils} from "../../utils/Math.ts";
 import {GameLogic, GameLogicModule, GameSystem, ValueComponent} from "../GameLogic.ts";
 import {TilesModule} from "./TilesModule.ts";
 import {EventBus, UiEvents} from "../../EventBus.ts";
+import Position = TilesModule.Position;
+import Vector2 = Phaser.Math.Vector2;
+import Tile = TilesModule.Tile;
 
 export namespace CloudCoverModule {
-    import Position = TilesModule.Position;
-    import Vector2 = Phaser.Math.Vector2;
-    import Tile = TilesModule.Tile;
-
     export class TilesCloudCoverModule extends GameLogicModule {
         override init(game: GameLogic) {
             const entities = game.ecs.getEntitiesWithComponents([Tile]);
