@@ -41,7 +41,6 @@ export abstract class MinMaxValueComponent {
 
 export class GameLogic {
     ecs: ECS;
-    secondsFromLastTick: number = 0;
     timeFromStart: number = 0;
     config : any = {
         mapSize: MAP_SIZE,
@@ -56,8 +55,8 @@ export class GameLogic {
     }
     
     update(delta: number) {
-        this.secondsFromLastTick = delta/1000;
-        this.timeFromStart += this.secondsFromLastTick;
-        this.ecs.update();
+        const secondsDelta = delta/1000;
+        this.timeFromStart += secondsDelta;
+        this.ecs.update(secondsDelta);
     }
 }

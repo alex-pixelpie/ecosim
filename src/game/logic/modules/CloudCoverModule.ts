@@ -6,6 +6,7 @@ import {EventBus, UiEvents} from "../../EventBus.ts";
 import Position = TilesModule.Position;
 import Vector2 = Phaser.Math.Vector2;
 import Tile = TilesModule.Tile;
+import {Entity} from "../../core/ECS.ts";
 
 export namespace CloudCoverModule {
     export class TilesCloudCoverModule extends GameLogicModule {
@@ -75,8 +76,8 @@ export namespace CloudCoverModule {
             this.offset.y += this.windNoisePosition.y;
         }
 
-        public update(entities: Set<number>): void {
-            this.updateWind(this.game.timeFromStart, this.game.secondsFromLastTick);
+        public update(entities: Set<Entity>, delta: number): void {
+            this.updateWind(this.game.timeFromStart, delta);
             
             if (!this.config.thicknessSize || !this.config.cloudsChangeSpeed || !this.config.speedFactor) {
                 return;

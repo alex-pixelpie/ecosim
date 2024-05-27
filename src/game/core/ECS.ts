@@ -38,7 +38,7 @@ export abstract class System {
     /**
      * update() is called on the System every frame.
      */
-    public abstract update(entities: Set<Entity>): void
+    public abstract update(entities: Set<Entity>, delta: number): void
 
     /**
      * The ECS is given to all Systems. Systems contain most of the game
@@ -219,11 +219,11 @@ export class ECS {
      * updates all Systems, then destroys any Entities that were marked
      * for removal.
      */
-    public update(): void {
+    public update(delta:number): void {
         // Update all systems. (Later, we'll add a way to specify the
         // update order.)
         for (let [system, entities] of this.systems.entries()) {
-            system.update(entities)
+            system.update(entities, delta)
         }
 
         // Remove any entities that were marked for deletion during the

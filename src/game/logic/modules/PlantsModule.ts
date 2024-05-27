@@ -1,12 +1,12 @@
-import {Component} from "../../core/ECS.ts";
+import {Component, Entity} from "../../core/ECS.ts";
 import {GameLogic, GameLogicModule, GameSystem} from "../GameLogic.ts";
 import {TilesSurfaceMoistureModule} from "./TilesSurfaceMoistureModule.ts";
 import SurfaceMoisture = TilesSurfaceMoistureModule.SurfaceMoisture;
-import {Biochemistry} from "./BiochemistryModule.ts";
+import {BiochemistryModule} from "./BiochemistryModule.ts";
 
 export namespace PlantsModule {
-    import BiochemicalBalance = Biochemistry.BiochemicalBalance;
-    import ChemicalElement = Biochemistry.ChemicalElement;
+    import BiochemicalBalance = BiochemistryModule.BiochemicalBalance;
+    import ChemicalElement = BiochemistryModule.ChemicalElement;
 
     export enum PlantSpecies {
         Grass = 'Grass',
@@ -65,7 +65,7 @@ export namespace PlantsModule {
             this.game.ecs.addSystem(this);
         }
         
-        public update(entities: Set<number>): void {
+        public update(entities: Set<Entity>, delta: number): void {
             entities.forEach(entity => {
                 const plantBody = this.game.ecs.getComponent(entity, PlantBody);
                 const biochemicalBalance = this.game.ecs.getComponent(entity, BiochemicalBalance);

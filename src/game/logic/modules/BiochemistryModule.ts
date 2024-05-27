@@ -1,5 +1,5 @@
 import {GameLogic, GameLogicModule, GameSystem, ValueComponent} from "../GameLogic.ts";
-import {Component} from "../../core/ECS.ts";
+import {Component, Entity} from "../../core/ECS.ts";
 
 export namespace BiochemistryModule {
     export enum ChemicalElement {
@@ -22,11 +22,11 @@ export namespace BiochemistryModule {
             this.game.ecs.addSystem(this);
         }
 
-        public update(entities: Set<number>): void {
+        public update(entities: Set<Entity>, delta: number): void {
             entities.forEach(entity => {
                 const biochemicalBalance = this.game.ecs.getComponent(entity, BiochemicalBalance);
                 const photosynthesis = this.game.ecs.getComponent(entity, Photosynthesis);
-                let glucose = photosynthesis.value * this.game.secondsFromLastTick;
+                let glucose = photosynthesis.value * delta;
                 biochemicalBalance.balance[ChemicalElement.Glucose] += glucose;
 
                 // TODO - implement and consider sunlight / luminosity
