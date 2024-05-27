@@ -18,6 +18,8 @@ import {CloudCoverDisplayModule} from "../display/modules/CloudCoverDisplayModul
 import {CameraModule} from "../display/modules/CameraModule.ts";
 import {TileSurfaceMoistureDisplayModule} from "../display/modules/TileSurfaceMoistureDisplayModule.ts";
 import {TileSelectionModule} from "../display/modules/TileSelectionModule.ts";
+import {BiochemistryModule} from "../logic/modules/BiochemistryModule.ts";
+import Biochemistry = BiochemistryModule.BiochemistryModule;
 
 export class Game extends Scene
 {
@@ -46,6 +48,7 @@ export class Game extends Scene
             new Elevation(), 
             new SurfaceMoisture(), 
             new GroundMoisture(), 
+            new Biochemistry(),
             new CloudCover()
         ]);
         

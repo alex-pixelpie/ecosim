@@ -24,11 +24,26 @@ export abstract class ValueComponent extends Component {
     }
 }
 
+export abstract class MinMaxValueComponent {
+    private _value: number;
+    public get value() {
+        return this._value;
+    }
+    
+    public set value(value: number) {
+        this._value = Math.max(this.min, Math.min(this.max, value));
+    }
+    
+    public constructor(value: number, public min: number, public max: number) {
+        this._value = value;
+    }
+}
+
 export class GameLogic {
     ecs: ECS;
     secondsFromLastTick: number = 0;
     timeFromStart: number = 0;
-    config = {
+    config : any = {
         mapSize: MAP_SIZE,
         maxMoistureInTile: MAX_MOISTURE_IN_TILE,
         seaLevel: SEA_LEVEL,
