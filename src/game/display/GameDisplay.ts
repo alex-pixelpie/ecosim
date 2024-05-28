@@ -6,6 +6,7 @@ import {TilesSurfaceMoistureModule} from "../logic/modules/TilesSurfaceMoistureM
 import {TilesElevationModule} from "../logic/modules/TilesElevationModule.ts";
 import {CloudCoverModule} from "../logic/modules/CloudCoverModule.ts";
 import {MapDisplay} from "./MapDisplay.ts";
+import Tile = TilesModule.Tile;
 
 const MAP_SIZE = 120;
 
@@ -52,7 +53,7 @@ export class GameDisplay {
     }
     
     private updateTiles(){
-        const entities = this.ecs.getEntitiesWithComponent(Position);
+        const entities = this.ecs.getEntitiesWithComponent(Tile);
         entities.forEach(entity => {
             const position = this.ecs.getComponent(entity, Position);
             

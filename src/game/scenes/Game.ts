@@ -20,6 +20,8 @@ import {TileSurfaceMoistureDisplayModule} from "../display/modules/TileSurfaceMo
 import {TileSelectionModule} from "../display/modules/TileSelectionModule.ts";
 import {BiochemistryModule} from "../logic/modules/BiochemistryModule.ts";
 import Biochemistry = BiochemistryModule.BiochemistryModule;
+import {PlantsModule} from "../logic/modules/PlantsModule.ts";
+import Plants = PlantsModule.PlantsModule;
 
 export class Game extends Scene
 {
@@ -49,6 +51,7 @@ export class Game extends Scene
             new SurfaceMoisture(), 
             new GroundMoisture(), 
             new Biochemistry(),
+            new Plants(),
             new CloudCover()
         ]);
         
