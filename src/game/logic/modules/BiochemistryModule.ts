@@ -9,7 +9,6 @@ import {
 import {Component, Entity} from "../../core/ECS.ts";
 
 export namespace BiochemistryModule {
-
     export enum ChemicalElement {
         Glucose = 'Glucose',
     }
@@ -19,6 +18,8 @@ export namespace BiochemistryModule {
             super(value);
         }
     }
+    
+    export class ChanceOfDeath extends ValueComponent {}
 
     export class BiologicalAge extends ClampedValueComponent {}
 
@@ -54,11 +55,10 @@ export namespace BiochemistryModule {
                 // TODO - implement and consider sunlight / luminosity
                 // TODO - implement and consider H2O costs. Associated systems -> PlantWaterUptakeSystem
                 // TODO - consider shade and radius of plant at each level
-                // TODO - improve plant death system
             });
         }
     }
-    
+
     export class AgeSystem extends TimedGameSystem {
         public componentsRequired: Set<Function> = new Set([BiologicalAge]);
 
@@ -75,16 +75,32 @@ export namespace BiochemistryModule {
         }
     }
 
-    export class DeathByOldAgeSystem extends TimedGameSystem {
-        public componentsRequired: Set<Function> = new Set([BiologicalAge]);
-        
+    export class ChanceOfDeathResetSystem extends TimedGameSystem {
+        public componentsRequired: Set<Function> = new Set([ChanceOfDeath]);
+
+        protected init(): void {
+            this.componentsRequired = new Set([ChanceOfDeath]);
+            this.game.ecs.addSystem(this);
+        }
+
+        protected updateTimed(entities: Set<Entity>, _: number): void {
+            entities.forEach(entity => {
+                const chanceOfDeath = this.game.ecs.getComponent(entity, ChanceOfDeath);
+                chanceOfDeath.value = 0;
+            });
+        }
+    }
+
+    export class ChanceOfDeathByOldAgeSystem extends TimedGameSystem {
+        public componentsRequired: Set<Function> = new Set([BiologicalAge, ChanceOfDeath]);
+
         protected updateTimed(entities: Set<Entity>, _: number): void {
             entities.forEach(entity => {
                 const age = this.game.ecs.getComponent(entity, BiologicalAge);
-                const chanceOfDeath = age.value / age.max;
-                if (Math.random() < chanceOfDeath) {
-                    this.game.ecs.addComponent(entity, new Death('Old age'));
-                }
+                const normalizedAge = age.value / age.max;
+                const exponentialScale = Math.exp(deathChanceByAgeExponent * normalizedAge) - 1;
+                const normalizedChanceOfDeath = exponentialScale / (Math.exp(deathChanceByAgeExponent) - 1);
+                this.game.ecs.getComponent(entity, ChanceOfDeath).value += normalizedChanceOfDeath;
             });
         }
 
@@ -94,18 +110,45 @@ export namespace BiochemistryModule {
         }
     }
 
-    const lifecycleUpdateInterval = 10;
+    export class DeathSystem extends TimedGameSystem {
+        public componentsRequired: Set<Function> = new Set([ChanceOfDeath]);
+
+        protected updateTimed(entities: Set<Entity>, _: number): void {
+            entities.forEach(entity => {
+                const chanceOfDeath = this.game.ecs.getComponent(entity, ChanceOfDeath);
+                if (Math.random() < chanceOfDeath.value) {
+                    this.game.ecs.addComponent(entity, new Death('Natural death'));
+                }
+            });
+        }
+
+        protected init(): void {
+            this.componentsRequired = new Set([ChanceOfDeath]);
+            this.game.ecs.addSystem(this);
+        }
+    }
+
     
+    const lifecycleUpdateInterval = 1;
+    const deathChanceByAgeExponent = 10; // Adjust this value to control the steepness of the curve
+    // TODO - add biochemistry configs and put deathChanceByAgeExponent in the config
+
     export class BiochemistryModule extends GameLogicModule {
         override init(game: GameLogic) {
+            const chanceOfDeathResetSystem = new ChanceOfDeathResetSystem(game, lifecycleUpdateInterval);
+            game.ecs.addSystem(chanceOfDeathResetSystem);
+            
             const photosynthesisSystem = new PhotosynthesisSystem(game);
             game.ecs.addSystem(photosynthesisSystem);
             
             const ageSystem = new AgeSystem(game, lifecycleUpdateInterval);
             game.ecs.addSystem(ageSystem);
-            
-            const deathByOldAgeSystem = new DeathByOldAgeSystem(game, lifecycleUpdateInterval);
+
+            const deathByOldAgeSystem = new ChanceOfDeathByOldAgeSystem(game, lifecycleUpdateInterval);
             game.ecs.addSystem(deathByOldAgeSystem);
+            
+            const deathSystem = new DeathSystem(game, lifecycleUpdateInterval);
+            game.ecs.addSystem(deathSystem);
         }
     }
 }

@@ -24,6 +24,7 @@ type PlantGrowthStage = {
 
 export namespace PlantsModule {
     import Position = PhysicsModule.Position;
+    import ChanceOfDeath = BiochemistryModule.ChanceOfDeath;
 
     export enum PlantSpecies {
         Grass = 'Grass',
@@ -52,8 +53,8 @@ export namespace PlantsModule {
             {radii: [10], age: 0},
         ],
         growthRate: 1,
-        maxAge: Number.MAX_VALUE,
-        photosynthesisEfficiency: 100
+        maxAge: 10,
+        photosynthesisEfficiency: 10
     }
     
     const seaweedConfig:PlantSpeciesConfig = {
@@ -69,8 +70,8 @@ export namespace PlantsModule {
             {radii: [10, 10], age: 40},
             {radii: [5], age: 0},
         ],
-        maxAge: 100,
-        photosynthesisEfficiency: 100
+        maxAge: 10,
+        photosynthesisEfficiency: 10
     }
     
     const plantsConfigs: Record<PlantSpecies, PlantSpeciesConfig> = {
@@ -219,9 +220,10 @@ export namespace PlantsModule {
             game.ecs.addComponent(plantEntity, new PlantBody(config));
             game.ecs.addComponent(plantEntity, new BiologicalAge(0, 0, config.maxAge));
             game.ecs.addComponent(plantEntity, new Photosynthesis(config.photosynthesisEfficiency))
-
-            // Give the seed enough glucose to grow to 10th of its volume in the first layer
-            const startingBiochemicalBalance = {[ChemicalElement.Glucose]: 1000};
+            game.ecs.addComponent(plantEntity, new ChanceOfDeath(0));
+            
+            // Give the seed enough glucose to grow a bit
+            const startingBiochemicalBalance = {[ChemicalElement.Glucose]: 10};
             game.ecs.addComponent(plantEntity, new BiochemicalBalance(startingBiochemicalBalance));
         }
     }

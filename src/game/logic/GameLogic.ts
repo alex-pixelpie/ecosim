@@ -44,16 +44,20 @@ export abstract class ValueComponent extends Component {
 
 export abstract class ClampedValueComponent {
     private _value: number;
+    public unclampedValue: number;
+    
     public get value() {
         return this._value;
     }
     
     public set value(value: number) {
         this._value = Math.max(this.min, Math.min(this.max, value));
+        this.unclampedValue = value;
     }
     
     public constructor(value: number, public min: number = Number.MIN_VALUE, public max: number = Number.MAX_VALUE) {
         this._value = value;
+        this.unclampedValue = value;
     }
 }
 
