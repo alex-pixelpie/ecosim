@@ -54,16 +54,22 @@ export namespace BiochemistryModule {
                 let glucose = photosynthesis.value * delta;
                 biochemicalBalance.balance[ChemicalElement.Glucose] += glucose;
                 
-                //  TODO - implement seeds and reproduction
+                // TODO - implement seeds and reproduction
+                // TODO - use white art and tint to show plant status
                 
-                // TODO - implement and consider sunlight / luminosity
-                // TODO - consider shade and radius of plant at each level
                 // TODO - implement wind
                 // TODO - implement clouds
-                
-                
-                // TODO - implement and consider H2O costs. Associated systems -> PlantWaterUptakeSystem
+
+                // TODO - implement and consider sunlight / luminosity
+
                 // TODO - implement rain
+                // TODO - implement super simple drainage
+                //      - if have surface moisture, and any neighbor has less elevation, move moisture to that neighbor
+                // TODO - implement super simple evaporation
+                // TODO - implement super simple diffusion
+                // TODO - implement and consider H2O costs. Associated systems -> PlantWaterUptakeSystem
+
+                // TODO - consider shade and radius of plant at each level
             });
         }
     }

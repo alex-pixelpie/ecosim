@@ -44,10 +44,8 @@ export namespace PlantsDisplayModule {
                 }
                 
                 if (plant.vitality == 'Dead') {
-                    image.setTint(0x000000);
-                } else {
-                    image.clearTint();
-                }
+                    image.setAlpha(0.5);
+                } 
 
                 image.scale = (plant.radius as number) / 10;
                 

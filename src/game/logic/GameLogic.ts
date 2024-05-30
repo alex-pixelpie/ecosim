@@ -2,7 +2,7 @@ import {Component, ECS, Entity, System} from "../core/ECS.ts";
 
 const MAX_MOISTURE_IN_TILE = 1000;
 const SEA_LEVEL = 2;
-const MAP_SIZE = 12;
+const MAP_SIZE = 64;
 
 export abstract class GameSystem extends System {
     public constructor(public game: GameLogic) {

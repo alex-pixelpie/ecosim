@@ -2,8 +2,8 @@ import {DisplayModule, GameDisplay} from "../GameDisplay.ts";
 
 class ControlledCamera {
     static maxTimeBetweenClicks = 200;
-    static maxZoom = 4 * 10;
-    static minZoom = 0.14 * 10;
+    static maxZoom = 4 * 2;
+    static minZoom = 0.14 * 2;
 
     private scene: Phaser.Scene;
     private camera: Phaser.Cameras.Scene2D.Camera;
@@ -92,8 +92,8 @@ class ControlledCamera {
             return;
         }
 
-        this.dragInertia.x -= this.dragInertia.x * this.dragInertiaLossPerSecond * delta / 1000;
-        this.dragInertia.y -= this.dragInertia.y * this.dragInertiaLossPerSecond * delta / 1000;
+        this.dragInertia.x -= this.dragInertia.x * this.dragInertiaLossPerSecond * delta;
+        this.dragInertia.y -= this.dragInertia.y * this.dragInertiaLossPerSecond * delta;
 
         if (this.isDown){
             return;
