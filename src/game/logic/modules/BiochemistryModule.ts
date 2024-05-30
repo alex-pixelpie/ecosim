@@ -20,9 +20,13 @@ export namespace BiochemistryModule {
     export class ChanceOfDeath extends ValueComponent {}
 
     export class BiologicalAge extends ClampedValueComponent {}
+    
+    export class DeathReport {
+        public constructor(public reason: string, public biochemicalBalance:BiochemicalBalance, public age:BiologicalAge) {}
+    }
 
     export class Death extends Component {
-        public constructor(public reason: string) {
+        public constructor(public deathReport: DeathReport) {
             super();
         }
     }
@@ -114,7 +118,7 @@ export namespace BiochemistryModule {
             this.game.ecs.addSystem(this);
         }
     }
-
+    
     export class DeathSystem extends TimedGameSystem {
         public componentsRequired: Set<Function> = new Set([ChanceOfDeath]);
 
@@ -122,13 +126,19 @@ export namespace BiochemistryModule {
             entities.forEach(entity => {
                 const chanceOfDeath = this.game.ecs.getComponent(entity, ChanceOfDeath);
                 if (Math.random() < chanceOfDeath.value) {
-                    this.game.ecs.addComponent(entity, new Death('Natural death'));
+                    this.game.ecs.addComponent(entity, new Death(this.makeDeathReport(entity)));
                     this.game.ecs.removeComponent(entity, ChanceOfDeath);
                     this.game.ecs.removeComponent(entity, BiologicalAge);
                     this.game.ecs.removeComponent(entity, BiochemicalBalance);
                     this.game.ecs.removeComponent(entity, Photosynthesis);
                 }
             });
+        }
+        
+        private makeDeathReport(entity: Entity): DeathReport {
+            const b = this.game.ecs.getComponent(entity, BiochemicalBalance);
+            const a = this.game.ecs.getComponent(entity, BiologicalAge);
+            return new DeathReport('Natural causes', new BiochemicalBalance((b? {...b.balance} : {}) as Record<ChemicalElement, number>), new BiologicalAge(a?.min || 0, a?.max || 0, a?.value || 0));
         }
 
         protected init(): void {

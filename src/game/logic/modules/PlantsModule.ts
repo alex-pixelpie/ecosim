@@ -56,9 +56,9 @@ export namespace PlantsModule {
             {radii: [10], age: 0},
         ],
         growthRate: 1,
-        maxAge: 50,
+        maxAge: 500,
         photosynthesisEfficiency: 1,
-        density: 1
+        density: 0.5
     }
     
     const seaweedConfig:PlantSpeciesConfig = {
@@ -74,9 +74,9 @@ export namespace PlantsModule {
             {radii: [10, 10], age: 10/2},
             {radii: [5], age: 0},
         ],
-        maxAge: 50,
+        maxAge: 500,
         photosynthesisEfficiency: 1,
-        density: 2
+        density: 1
     }
     
     const plantsConfigs: Record<PlantSpecies, PlantSpeciesConfig> = {
@@ -99,14 +99,14 @@ export namespace PlantsModule {
             super();
         }
     }
-    
+
     export class PlantBiomassUpdateSystem extends GameSystem {
         public componentsRequired: Set<Function> = new Set([PlantBody, BiochemicalBalance, Biomass]);
         protected init(): void {
             this.componentsRequired = new Set([PlantBody, BiochemicalBalance, Biomass]);
             this.game.ecs.addSystem(this);
         }
-        
+
         public update(entities: Set<number>, _: number): void {
             entities.forEach(entity => {
                 const plantBody = this.game.ecs.getComponent(entity, PlantBody);
@@ -115,6 +115,23 @@ export namespace PlantsModule {
             });
         }
     }
+
+    export class PlantPhotosynthesisUpdateSystem extends GameSystem {
+        public componentsRequired: Set<Function> = new Set([PlantBody, Photosynthesis]);
+        protected init(): void {
+            this.componentsRequired = new Set([PlantBody, Photosynthesis]);
+            this.game.ecs.addSystem(this);
+        }
+
+        public update(entities: Set<number>, _: number): void {
+            entities.forEach(entity => {
+                const plantBody = this.game.ecs.getComponent(entity, PlantBody);
+                const photosynthesis = this.game.ecs.getComponent(entity, Photosynthesis);
+                photosynthesis.value = plantBody.photosynthesisSurface * plantBody.config.photosynthesisEfficiency;
+            });
+        }
+    }
+
     export class PlantGrowSystem extends GameSystem {
         public componentsRequired: Set<Function> = new Set([PlantBody]);
         

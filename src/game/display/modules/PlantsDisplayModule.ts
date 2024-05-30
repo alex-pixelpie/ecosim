@@ -44,7 +44,7 @@ export namespace PlantsDisplayModule {
                 }
                 
                 if (plant.vitality == 'Dead') {
-                    image.setTint(0xffff00);
+                    image.setTint(0x000000);
                 } else {
                     image.clearTint();
                 }

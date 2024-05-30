@@ -100,17 +100,15 @@ export class GameDisplay {
             const biomass = this.ecs.getComponent(entity, Biomass);
             const plant = this.ecs.getComponent(entity, PlantBody);
             const worldPosition = this.mapDisplay.map.tileToWorldXY(position.x / 10, position.y / 10)!;
-            let age:number | string = this.ecs.getComponent(entity, BiologicalAge)?.value;
-            if (isNaN(age)){
-                age = 'N/A';
-            } else {
-                age = Math.floor(age);
-            }
+            const death = this.ecs.getComponent(entity, Death);
+            
+            const age:number = Math.floor(this.ecs.getComponent(entity, BiologicalAge)?.value || death?.deathReport.age.value || 0);
+            const glucoseAvailable = Math.floor(this.ecs.getComponent(entity, BiochemicalBalance)?.balance[ChemicalElement.Glucose] || death.deathReport.biochemicalBalance.balance[ChemicalElement.Glucose] || 0);
             
             return {
                 age,
-                glucoseAvailable: Math.floor(this.ecs.getComponent(entity, BiochemicalBalance)?.balance[ChemicalElement.Glucose] || 0),
-                vitality: this.ecs.getComponent(entity, Death) ? 'Dead' : 'Alive',
+                glucoseAvailable,
+                vitality: death ? 'Dead' : 'Alive',
                 maxAge: plant.config.maxAge == Number.MAX_VALUE ? '∞' : Math.floor(plant.config.maxAge),
                 position: worldPosition,
                 type: plant.config.type.toString(),
