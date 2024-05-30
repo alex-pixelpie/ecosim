@@ -40,7 +40,7 @@ export class PlantDisplayData {
     public vitality: string;
     public glucoseAvailable: number| string;
     public radius: number| string;
-    public id: number| string;
+    public id: number;
 }
 
 const WHITE_TILE : number = 8;
@@ -116,7 +116,7 @@ export class GameDisplay {
                 type: plant.config.type.toString(),
                 radius: (plant.radiiByHeight?.[0] || 0).toFixed(2),
                 id: entity,
-                biomass: biomass?.value || 0,
+                biomass: Math.ceil(biomass?.value || 0),
             };
         });
     }

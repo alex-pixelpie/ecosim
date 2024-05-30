@@ -56,7 +56,7 @@ export namespace PlantsModule {
             {radii: [10], age: 0},
         ],
         growthRate: 1,
-        maxAge: 5,
+        maxAge: 50,
         photosynthesisEfficiency: 1,
         density: 1
     }
@@ -74,7 +74,7 @@ export namespace PlantsModule {
             {radii: [10, 10], age: 10/2},
             {radii: [5], age: 0},
         ],
-        maxAge: 5,
+        maxAge: 50,
         photosynthesisEfficiency: 1,
         density: 2
     }

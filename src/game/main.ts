@@ -19,7 +19,10 @@ const config: Phaser.Types.Core.GameConfig = {
         MainMenu,
         MainGame,
         GameOver
-    ]
+    ],
+    render: {
+        pixelArt: true
+    }
 };
 
 const StartGame = (parent: string) => {

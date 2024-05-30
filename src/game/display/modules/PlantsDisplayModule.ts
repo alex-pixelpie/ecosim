@@ -1,53 +1,62 @@
 import {DisplayModule, GameDisplay, PlantDisplayData} from "../GameDisplay.ts";
 import {EventBus, UiEvents} from "../../EventBus.ts";
+import Image = Phaser.GameObjects.Image;
+
+const typeToTextureMap = {
+    'Grass': 'Grass',
+    'Seaweed': 'Seaweed'
+} as {[key: string]: string};
 
 export namespace PlantsDisplayModule {
-    import Vector2 = Phaser.Math.Vector2;
-
     export class PlantsDisplayModule extends DisplayModule {
         private display: GameDisplay;
-        private graphics: Phaser.GameObjects.Graphics;
         private selected: PlantDisplayData | undefined;
+        private images = new Map<number, Phaser.GameObjects.Image>();
+        private selectedImage: Image | undefined;
+        
         public init(display: GameDisplay): void {
             this.display = display;
-            this.graphics = this.display.scene.add.graphics();
         }
         
         public update(_: number): void {
-            const graphics= this.graphics;
-            graphics.clear();
-
-            this.display.plants.forEach(plant => {
-                if (plant.vitality == 'Dead') {
-                    graphics.fillStyle(0xcccccc); // Gray for dead plants
-                } else {
-                    graphics.fillStyle(0x00ff00); // Green for alive plants
+            this.images.forEach((image, entity) => {
+                if (!this.display.plants.find(plant => plant.id === entity)) {
+                    image.destroy();
+                    this.images.delete(entity);
                 }
-
-                if (this.selected?.id === plant.id) {
-                    this.selected = plant;
-                    graphics.fillStyle(0xff0000);
-                }
-                
-                graphics.fillCircle(plant.position.x, plant.position.y, Number(plant.radius));
             });
             
-            const worldPoint = this.display.scene.input.activePointer.positionToCamera(this.display.scene.cameras.main) as Vector2;
-
-            if (this.display.scene.input.manager.activePointer.leftButtonDown())
-            {
-
-                const selected = this.display.plants.find(plant => {
-                    return Math.hypot(plant.position.x - worldPoint.x, plant.position.y - worldPoint.y) < Number(plant.radius);
-                });
+            this.display.plants.forEach(plant => {
+                const texture = typeToTextureMap[plant.type];
+                let image = this.images.get(plant.id);
+                if (!image) {
+                    image = this.display.scene.add.image(plant.position.x, plant.position.y, texture);
+                    image.setInteractive();
+                    image.on('pointerdown', ()=> {
+                        if (this.selectedImage){
+                            this.selectedImage.clearTint();
+                        }
+                        this.selectedImage = image;
+                        this.selected = plant;
+                        image!.setTint(0x00ff00);
+                    });
+                    this.images.set(plant.id, image);
+                }
                 
-                this.selected = selected;
-            }
+                if (plant.vitality == 'Dead') {
+                    image.setTint(0xffff00);
+                } else {
+                    image.clearTint();
+                }
 
-            this.selected = this.selected || this.display.plants?.[0];
-
-            graphics.stroke();
-
+                image.scale = (plant.radius as number) / 10;
+                
+                // Update content
+                if (this.selected?.id === plant.id) {
+                    this.selected = plant;
+                }
+            });
+            
             EventBus.emit(UiEvents.PlantSelected, this.selected);
         }
     }
