@@ -15,6 +15,7 @@ import ChemicalElement = BiochemistryModule.ChemicalElement;
 import Death = BiochemistryModule.Death;
 import {PhysicsModule} from "../logic/modules/PhysicsModule.ts";
 import Position = PhysicsModule.Position;
+import Biomass = BiochemistryModule.Biomass;
 
 const MAP_SIZE = 120;
 
@@ -96,18 +97,26 @@ export class GameDisplay {
         
         this.plants = entities.map(entity => {
             const position = this.ecs.getComponent(entity, Position);
+            const biomass = this.ecs.getComponent(entity, Biomass);
             const plant = this.ecs.getComponent(entity, PlantBody);
             const worldPosition = this.mapDisplay.map.tileToWorldXY(position.x / 10, position.y / 10)!;
+            let age:number | string = this.ecs.getComponent(entity, BiologicalAge)?.value;
+            if (isNaN(age)){
+                age = 'N/A';
+            } else {
+                age = Math.floor(age);
+            }
             
             return {
-                age: Math.floor(this.ecs.getComponent(entity, BiologicalAge).value),
-                glucoseAvailable: Math.floor(this.ecs.getComponent(entity, BiochemicalBalance).balance[ChemicalElement.Glucose] || 0),
+                age,
+                glucoseAvailable: Math.floor(this.ecs.getComponent(entity, BiochemicalBalance)?.balance[ChemicalElement.Glucose] || 0),
                 vitality: this.ecs.getComponent(entity, Death) ? 'Dead' : 'Alive',
                 maxAge: plant.config.maxAge == Number.MAX_VALUE ? '∞' : Math.floor(plant.config.maxAge),
                 position: worldPosition,
                 type: plant.config.type.toString(),
                 radius: (plant.radiiByHeight?.[0] || 0).toFixed(2),
-                id: entity
+                id: entity,
+                biomass: biomass?.value || 0,
             };
         });
     }

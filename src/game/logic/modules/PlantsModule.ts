@@ -8,6 +8,8 @@ import BiologicalAge = BiochemistryModule.BiologicalAge;
 import Photosynthesis = BiochemistryModule.Photosynthesis;
 import ChemicalElement = BiochemistryModule.ChemicalElement;
 import BiochemicalBalance = BiochemistryModule.BiochemicalBalance;
+import Biomass = BiochemistryModule.Biomass;
+
 import {PhysicsModule} from "./PhysicsModule.ts";
 
 type ComponentGetter = (game:GameLogic, entity:Entity)=>ValueComponent;
@@ -31,7 +33,7 @@ export namespace PlantsModule {
         Seaweed = 'Seaweed',
     }
     
-    class PlantSpeciesConfig {
+    export class PlantSpeciesConfig {
         type: PlantSpecies;
         tileConditions: TileCondition[];
         costToGrow: {element: ChemicalElement, cost: number}[];
@@ -39,6 +41,7 @@ export namespace PlantsModule {
         growthRate: number;
         maxAge: number;
         photosynthesisEfficiency: number;
+        density: number;
     }
     
     const grassConfig:PlantSpeciesConfig = {
@@ -53,8 +56,9 @@ export namespace PlantsModule {
             {radii: [10], age: 0},
         ],
         growthRate: 1,
-        maxAge: 10,
-        photosynthesisEfficiency: 10
+        maxAge: 5,
+        photosynthesisEfficiency: 1,
+        density: 1
     }
     
     const seaweedConfig:PlantSpeciesConfig = {
@@ -67,11 +71,12 @@ export namespace PlantsModule {
             element: ChemicalElement.Glucose, cost: 1000
         }],
         plantGrowthPlan: [
-            {radii: [10, 10], age: 40},
+            {radii: [10, 10], age: 10/2},
             {radii: [5], age: 0},
         ],
-        maxAge: 10,
-        photosynthesisEfficiency: 10
+        maxAge: 5,
+        photosynthesisEfficiency: 1,
+        density: 2
     }
     
     const plantsConfigs: Record<PlantSpecies, PlantSpeciesConfig> = {
@@ -95,11 +100,26 @@ export namespace PlantsModule {
         }
     }
     
+    export class PlantBiomassUpdateSystem extends GameSystem {
+        public componentsRequired: Set<Function> = new Set([PlantBody, BiochemicalBalance, Biomass]);
+        protected init(): void {
+            this.componentsRequired = new Set([PlantBody, BiochemicalBalance, Biomass]);
+            this.game.ecs.addSystem(this);
+        }
+        
+        public update(entities: Set<number>, _: number): void {
+            entities.forEach(entity => {
+                const plantBody = this.game.ecs.getComponent(entity, PlantBody);
+                const biomass = this.game.ecs.getComponent(entity, Biomass);
+                biomass.value = plantBody.volume * plantBody.config.density;
+            });
+        }
+    }
     export class PlantGrowSystem extends GameSystem {
-        public componentsRequired: Set<Function> = new Set([PlantBody, BiochemicalBalance, Position, BiologicalAge]);
+        public componentsRequired: Set<Function> = new Set([PlantBody]);
         
         protected init(): void {
-            this.componentsRequired = new Set([PlantBody, BiochemicalBalance, Position, BiologicalAge]);
+            this.componentsRequired = new Set([PlantBody]);
             this.game.ecs.addSystem(this);
         }
         
@@ -109,6 +129,10 @@ export namespace PlantsModule {
                 
                 // Get growth stage
                 const age = this.game.ecs.getComponent(entity, BiologicalAge);
+                if (!age) {
+                    return;
+                }
+                
                 const growthStage = plantBody.config.plantGrowthPlan.find(stage => stage.age <= age.value);
                 if (!growthStage) {
                     return;
@@ -116,10 +140,12 @@ export namespace PlantsModule {
 
                 // Check tile conditions
                 const position = this.game.ecs.getComponent(entity, Position);
-                const tile = this.game.mapPositionToTile(position);
+                if (!position) {
+                    return;
+                }
                 
+                const tile = this.game.mapPositionToTile(position);
                 if (tile==null) {
-                    console.error(`Plant without tile at position ${position.x}, ${position.y}`);
                     return;
                 }
                 
@@ -148,17 +174,19 @@ export namespace PlantsModule {
 
                 // Pay costs
                 const biochemicalBalance = this.game.ecs.getComponent(entity, BiochemicalBalance);
-
+                if (!biochemicalBalance) {
+                    return;
+                }
+                
                 const costs = plantBody.config.costToGrow.map(({element, cost}) => {
                     return {
                         element,
                         available: biochemicalBalance.balance[element],
-                        cost: cost * volumeNeeded * delta
+                        cost: cost * volumeNeeded * plantBody.config.density * delta
                     }
                 });
 
                 const anyCostNotMet = costs.some(cost => cost.available < cost.cost);
-
                 if (anyCostNotMet) {
                     return;
                 }
@@ -186,6 +214,9 @@ export namespace PlantsModule {
 
             const plantGrowSystem = new PlantGrowSystem(game);
             game.ecs.addSystem(plantGrowSystem);
+            
+            const plantBiomassUpdateSystem = new PlantBiomassUpdateSystem(game);
+            game.ecs.addSystem(plantBiomassUpdateSystem);
             
             this.createStartingPlants();
         }
@@ -221,6 +252,7 @@ export namespace PlantsModule {
             game.ecs.addComponent(plantEntity, new BiologicalAge(0, 0, config.maxAge));
             game.ecs.addComponent(plantEntity, new Photosynthesis(config.photosynthesisEfficiency))
             game.ecs.addComponent(plantEntity, new ChanceOfDeath(0));
+            game.ecs.addComponent(plantEntity, new Biomass(0));
             
             // Give the seed enough glucose to grow a bit
             const startingBiochemicalBalance = {[ChemicalElement.Glucose]: 10};

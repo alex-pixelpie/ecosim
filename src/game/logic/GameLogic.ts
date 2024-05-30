@@ -67,17 +67,21 @@ export type GameLogicConfig = {
     seaLevel: number,
     maxElevation: number,
     tileSize: number,
+    biologicalDecayRatePerSecond: number,
+    plants: any
 }
 
 export class GameLogic {
     ecs: ECS;
     timeFromStart: number = 0;
-    config : any = {
+    config : GameLogicConfig = {
         tilesInMapSide: MAP_SIZE,
         maxMoistureInTile: MAX_MOISTURE_IN_TILE,
         seaLevel: SEA_LEVEL,
         maxElevation: 5,
         tileSize: 10,
+        biologicalDecayRatePerSecond : 1,
+        plants: {},
     };
     
     // @ts-ignore - this is initialized in tiles system

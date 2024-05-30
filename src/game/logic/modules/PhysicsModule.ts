@@ -5,8 +5,6 @@ export namespace PhysicsModule {
     export class PhysicalObject extends Component {}
     
     export class Illumination extends ValueComponent{}
-    
-    export class Temperature extends ValueComponent{}
 
     export class Position extends Component {
         constructor(public x: number,
@@ -34,7 +32,6 @@ export namespace PhysicsModule {
     export function addPhysicalComponents(ecs:ECS, entity:Entity, position: {x: number, y: number} = {x: 0, y: 0}) {
         ecs.addComponent(entity, new PhysicalObject());
         ecs.addComponent(entity, new Illumination(0));
-        ecs.addComponent(entity, new Temperature(0));
         ecs.addComponent(entity, new Position(position.x, position.y));
     }
     

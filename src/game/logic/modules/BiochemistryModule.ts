@@ -13,11 +13,9 @@ export namespace BiochemistryModule {
         Glucose = 'Glucose',
     }
 
-    export class Photosynthesis extends ValueComponent {
-        public constructor(public value: number) {
-            super(value);
-        }
-    }
+    export class Photosynthesis extends ValueComponent {}
+
+    export class Biomass extends ValueComponent {}
     
     export class ChanceOfDeath extends ValueComponent {}
 
@@ -51,10 +49,17 @@ export namespace BiochemistryModule {
                 const photosynthesis = this.game.ecs.getComponent(entity, Photosynthesis);
                 let glucose = photosynthesis.value * delta;
                 biochemicalBalance.balance[ChemicalElement.Glucose] += glucose;
-
+                
+                //  TODO - implement seeds and reproduction
+                
                 // TODO - implement and consider sunlight / luminosity
-                // TODO - implement and consider H2O costs. Associated systems -> PlantWaterUptakeSystem
                 // TODO - consider shade and radius of plant at each level
+                // TODO - implement wind
+                // TODO - implement clouds
+                
+                
+                // TODO - implement and consider H2O costs. Associated systems -> PlantWaterUptakeSystem
+                // TODO - implement rain
             });
         }
     }
@@ -118,6 +123,10 @@ export namespace BiochemistryModule {
                 const chanceOfDeath = this.game.ecs.getComponent(entity, ChanceOfDeath);
                 if (Math.random() < chanceOfDeath.value) {
                     this.game.ecs.addComponent(entity, new Death('Natural death'));
+                    this.game.ecs.removeComponent(entity, ChanceOfDeath);
+                    this.game.ecs.removeComponent(entity, BiologicalAge);
+                    this.game.ecs.removeComponent(entity, BiochemicalBalance);
+                    this.game.ecs.removeComponent(entity, Photosynthesis);
                 }
             });
         }
@@ -128,7 +137,26 @@ export namespace BiochemistryModule {
         }
     }
 
-    
+    export class DecaySystem extends TimedGameSystem {
+        public componentsRequired: Set<Function> = new Set([Death, Biomass]);
+
+        protected updateTimed(entities: Set<Entity>, delta: number): void {
+            entities.forEach(entity => {
+                const biomass = this.game.ecs.getComponent(entity, Biomass);
+                biomass.value -= this.game.config.biologicalDecayRatePerSecond * delta;
+                if (biomass.value <= 0) {
+                    this.game.ecs.removeEntity(entity);
+                }
+            });
+        }
+
+        protected init(): void {
+            this.componentsRequired = new Set([Death, Biomass]);
+            this.game.ecs.addSystem(this);
+        }
+    }
+
+
     const lifecycleUpdateInterval = 1;
     const deathChanceByAgeExponent = 10; // Adjust this value to control the steepness of the curve
     // TODO - add biochemistry configs and put deathChanceByAgeExponent in the config
@@ -149,6 +177,9 @@ export namespace BiochemistryModule {
             
             const deathSystem = new DeathSystem(game, lifecycleUpdateInterval);
             game.ecs.addSystem(deathSystem);
+            
+            const decaySystem = new DecaySystem(game, lifecycleUpdateInterval);
+            game.ecs.addSystem(decaySystem);
         }
     }
 }
