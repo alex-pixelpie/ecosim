@@ -10,4 +10,5 @@ export const enum UiEvents {
     GameUpdate = 'game-update',
     WindConfigCreated = 'wind-config-created',
     WindConfigUpdated = 'wind-config-updated',
+    PlantSelected = 'plant-selected',
 }

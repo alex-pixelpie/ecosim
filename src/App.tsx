@@ -2,6 +2,7 @@ import React, { useRef } from 'react';
 import { IRefPhaserGame, PhaserGame } from './game/PhaserGame';
 import TileInfoDisplay from "./game/ui/TileInfoDisplay.tsx";
 import CloudCoverModuleControls from "./game/ui/CloudCoverModuleControls.tsx";
+import PlantInfoDisplay from "./game/ui/PlantInfoDisplay.tsx";
 
 function App()
 {
@@ -15,8 +16,11 @@ function App()
                 <div style={{ marginBottom: '10px' }}>
                     <CloudCoverModuleControls />
                 </div>
-                <div>
+                <div style={{ marginBottom: '10px' }}>
                     <TileInfoDisplay />
+                </div>
+                <div style={{ marginBottom: '10px' }}>
+                    <PlantInfoDisplay/>
                 </div>
             </div>
         </div>

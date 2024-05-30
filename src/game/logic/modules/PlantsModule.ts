@@ -3,9 +3,12 @@ import {GameLogic, GameLogicModule, GameSystem, ValueComponent} from "../GameLog
 import {TilesSurfaceMoistureModule} from "./TilesSurfaceMoistureModule.ts";
 import SurfaceMoisture = TilesSurfaceMoistureModule.SurfaceMoisture;
 import {BiochemistryModule} from "./BiochemistryModule.ts";
-import BiochemicalBalance = BiochemistryModule.BiochemicalBalance;
+
+import BiologicalAge = BiochemistryModule.BiologicalAge;
+import Photosynthesis = BiochemistryModule.Photosynthesis;
 import ChemicalElement = BiochemistryModule.ChemicalElement;
-import {TilesModule} from "./TilesModule.ts";
+import BiochemicalBalance = BiochemistryModule.BiochemicalBalance;
+import {PhysicsModule} from "./PhysicsModule.ts";
 
 type ComponentGetter = (game:GameLogic, entity:Entity)=>ValueComponent;
 type TileCondition = {valueComponentName: string, min: number, max: number};
@@ -14,17 +17,13 @@ const componentGetters:Record<string, ComponentGetter> = {
     [SurfaceMoisture.name]: (game, entity) => game.ecs.getComponent(entity, TilesSurfaceMoistureModule.SurfaceMoisture),
 }
 
-const secondsInYear = 365 * 24 * 60 * 60;
-
 type PlantGrowthStage = {
     radii: number[]; // radii of each layer
     age: number; // age of the plant
 }
 
 export namespace PlantsModule {
-    import Position = TilesModule.Position;
-    import BiologicalAge = BiochemistryModule.Age;
-    import Photosynthesis = BiochemistryModule.Photosynthesis;
+    import Position = PhysicsModule.Position;
 
     export enum PlantSpecies {
         Grass = 'Grass',
@@ -36,6 +35,7 @@ export namespace PlantsModule {
         tileConditions: TileCondition[];
         costToGrow: {element: ChemicalElement, cost: number}[];
         plantGrowthPlan: PlantGrowthStage[]; // ordered by age desc
+        growthRate: number;
         maxAge: number;
         photosynthesisEfficiency: number;
     }
@@ -46,29 +46,31 @@ export namespace PlantsModule {
             valueComponentName: SurfaceMoisture.name, min: 0, max: 0
         }],
         costToGrow: [{
-            element: ChemicalElement.Glucose, cost: 1
+            element: ChemicalElement.Glucose, cost: 1000
         }],
         plantGrowthPlan: [
             {radii: [10], age: 0},
         ],
+        growthRate: 1,
         maxAge: Number.MAX_VALUE,
-        photosynthesisEfficiency: 1
+        photosynthesisEfficiency: 100
     }
     
     const seaweedConfig:PlantSpeciesConfig = {
         type: PlantSpecies.Seaweed,
+        growthRate: 1,
         tileConditions: [{
             valueComponentName: SurfaceMoisture.name, min: 1000, max: 3000
         }],
         costToGrow: [{
-            element: ChemicalElement.Glucose, cost: 0.5
+            element: ChemicalElement.Glucose, cost: 1000
         }],
         plantGrowthPlan: [
-            {radii: [10, 10], age: secondsInYear / 6},
+            {radii: [10, 10], age: 40},
             {radii: [5], age: 0},
         ],
-        maxAge: secondsInYear,
-        photosynthesisEfficiency: 1
+        maxAge: 100,
+        photosynthesisEfficiency: 100
     }
     
     const plantsConfigs: Record<PlantSpecies, PlantSpeciesConfig> = {
@@ -80,9 +82,12 @@ export namespace PlantsModule {
 
     export class PlantBody extends Component {
         public radiiByHeight: number[] = [];
-        public volume = this.radiiByHeight.reduce((acc, r) => acc + r*r, 0);
-        public height = this.radiiByHeight.length;
-        public groundSize = this.radiiByHeight?.[0] ?? 0;
+        get volume(){return this.radiiByHeight.reduce((acc, r) => acc + r*r, 0)};
+        get height(){return this.radiiByHeight.length};
+        get groundSize(){return this.radiiByHeight?.[0] ?? 0};
+        get photosynthesisSurface(){
+            return this.radiiByHeight.reduce((acc, r) => acc + r, 0);
+        }
         
         constructor(public config: PlantSpeciesConfig) {
             super();
@@ -123,59 +128,54 @@ export namespace PlantsModule {
                     const component = components[i];
                     return component.value < condition.min || component.value > condition.max;
                 });
+                
                 if (anyConditionNotMet) {
                     return;
                 }
-                
-                // Prepare to pay costs by considering volume needed (how much biomass are we adding), the conditions factor (how comfortable is the environment) and seconds delta
-                const volumeNeeded = growthStage.radii.reduce((acc, r) => acc + r*r, 0) * delta;
 
-                if (volumeNeeded==0) {
+                const bodyVolume = plantBody.volume;
+                const growthRate = plantBody.config.growthRate * Math.max(1, bodyVolume);
+
+                // Prepare to pay costs by considering volume needed (how much biomass are we adding) and seconds delta
+                const maxVolumeNeeded = parseFloat((growthStage.radii.reduce((acc, r) => acc + r*r, 0)-bodyVolume).toPrecision(5));
+
+                const volumeNeeded = Math.min(maxVolumeNeeded, growthRate * delta);
+                
+                if (volumeNeeded<=0) {
                     return;
                 }
-                
-                const conditionsFactor = components.reduce((acc, component, i) => {
-                    const {min, max} = conditions[i];
-                    return acc + Math.max(0, Math.min(1, (component.value - min) / (max - min)));
-                }, 0) / conditions.length;
 
                 // Pay costs
                 const biochemicalBalance = this.game.ecs.getComponent(entity, BiochemicalBalance);
 
-                if (!this.PayPlanGrowthCosts(biochemicalBalance, plantBody, volumeNeeded, conditionsFactor, delta)) {
+                const costs = plantBody.config.costToGrow.map(({element, cost}) => {
+                    return {
+                        element,
+                        available: biochemicalBalance.balance[element],
+                        cost: cost * volumeNeeded * delta
+                    }
+                });
+
+                const anyCostNotMet = costs.some(cost => cost.available < cost.cost);
+
+                if (anyCostNotMet) {
                     return;
                 }
+
+                costs.forEach(cost => biochemicalBalance.balance[cost.element] -= cost.cost);
                 
-                // Grow plant
+                // Grow plant considering volume needed and seconds delta
                 growthStage.radii.forEach((r, i) => {
-                    const currentRadius = plantBody.radiiByHeight[i] ?? 0;
-                    plantBody.radiiByHeight[i] = Math.min(r, currentRadius + r * delta);
+                    if (isNaN(plantBody.radiiByHeight[i])){
+                        plantBody.radiiByHeight[i] = 0;
+                    }
+                    const currentRadius = plantBody.radiiByHeight[i];
+                    plantBody.radiiByHeight[i] += Math.min(growthRate, (r-currentRadius)) * delta;
                 });
-                
             });
-        }
-        
-        private PayPlanGrowthCosts(biochemicalBalance:BiochemicalBalance, plantBody:PlantBody, volumeNeeded:number, conditionsFactor:number, delta:number) : boolean {
-            const costs = plantBody.config.costToGrow.map(({element, cost}) => {
-                return {
-                    element,
-                    available: biochemicalBalance.balance[element],
-                    cost: cost * volumeNeeded * conditionsFactor * delta
-                }
-            });
-
-            const anyCostNotMet = costs.some(cost => cost.available < cost.cost);
-
-            if (anyCostNotMet) {
-                return false;
-            }
-
-            costs.forEach(cost => biochemicalBalance.balance[cost.element] -= cost.cost);
-
-            return true;
         }
     }
-    
+
     export class PlantsModule extends GameLogicModule {
         private game: GameLogic;
         override init(game: GameLogic) {
@@ -183,8 +183,8 @@ export namespace PlantsModule {
             
             game.config.plants = plantsConfigs;
 
-            const system = new PlantGrowSystem(game);
-            game.ecs.addSystem(system);
+            const plantGrowSystem = new PlantGrowSystem(game);
+            game.ecs.addSystem(plantGrowSystem);
             
             this.createStartingPlants();
         }
@@ -198,6 +198,7 @@ export namespace PlantsModule {
                 }
             }));
         }
+        
         private createPlant(tileEntity:Entity) {
             const game = this.game;
             
@@ -207,8 +208,9 @@ export namespace PlantsModule {
             
             // Position plant randomly in the tile
             const tilePosition = game.ecs.getComponent(tileEntity, Position);
-            const plantX = tilePosition.x + Math.random() * game.config.tileSize;
-            const plantY = tilePosition.y + Math.random() * game.config.tileSize;
+            const plantX = tilePosition.x * game.config.tileSize + Math.random() * game.config.tileSize;
+            const plantY = tilePosition.y * game.config.tileSize + Math.random() * game.config.tileSize;
+            
             game.ecs.addComponent(plantEntity, new Position(plantX, plantY));
 
             // Random plant species
@@ -218,12 +220,8 @@ export namespace PlantsModule {
             game.ecs.addComponent(plantEntity, new BiologicalAge(0, 0, config.maxAge));
             game.ecs.addComponent(plantEntity, new Photosynthesis(config.photosynthesisEfficiency))
 
-            // Give the seed enough glucose to grow to half of its volume in the first layer
-            const startingBiochemicalBalance = config.costToGrow.reduce((acc, {element, cost}) => {
-                acc[element] = cost * config.plantGrowthPlan[config.plantGrowthPlan.length-1].radii.reduce((acc, r) => acc + r*r, 0) / 2;
-                return acc;
-            }, {} as Record<ChemicalElement, number>);
-
+            // Give the seed enough glucose to grow to 10th of its volume in the first layer
+            const startingBiochemicalBalance = {[ChemicalElement.Glucose]: 1000};
             game.ecs.addComponent(plantEntity, new BiochemicalBalance(startingBiochemicalBalance));
         }
     }

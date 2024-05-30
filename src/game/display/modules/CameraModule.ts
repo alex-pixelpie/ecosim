@@ -2,8 +2,8 @@ import {DisplayModule, GameDisplay} from "../GameDisplay.ts";
 
 class ControlledCamera {
     static maxTimeBetweenClicks = 200;
-    static maxZoom = 4;
-    static minZoom = 0.14;
+    static maxZoom = 4 * 10;
+    static minZoom = 0.14 * 10;
 
     private scene: Phaser.Scene;
     private camera: Phaser.Cameras.Scene2D.Camera;

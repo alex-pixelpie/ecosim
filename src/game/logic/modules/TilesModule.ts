@@ -1,13 +1,10 @@
 import {GameLogic, GameLogicModule} from "../GameLogic.ts";
 import {Component} from "../../core/ECS.ts";
+import {PhysicsModule} from "./PhysicsModule.ts";
+import addPhysicalComponents = PhysicsModule.addPhysicalComponents;
 
 export namespace TilesModule {
-    export class Position extends Component {
-        constructor(public x: number,
-                    public y: number){
-            super();
-        }
-    }
+
     export class Tile extends Component {}
     
     export class TilesModule extends GameLogicModule {
@@ -18,7 +15,7 @@ export namespace TilesModule {
                 for (let row = 0; row < size; row++) {
                     const entity = game.ecs.addEntity();
                     game.ecs.addComponent(entity, new Tile());
-                    game.ecs.addComponent(entity, new Position(row, column));
+                    addPhysicalComponents(game.ecs, entity, {x: row, y: column});
                     game.tiles[row][column] = entity;
                 }
             }

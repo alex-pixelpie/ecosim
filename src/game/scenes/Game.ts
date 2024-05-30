@@ -22,6 +22,10 @@ import {BiochemistryModule} from "../logic/modules/BiochemistryModule.ts";
 import Biochemistry = BiochemistryModule.BiochemistryModule;
 import {PlantsModule} from "../logic/modules/PlantsModule.ts";
 import Plants = PlantsModule.PlantsModule;
+import {PlantsDisplayModule} from "../display/modules/PlantsDisplayModule.ts";
+import PlantsDisplay = PlantsDisplayModule.PlantsDisplayModule;
+import {PhysicsModule} from "../logic/modules/PhysicsModule.ts";
+import Physics = PhysicsModule.PhysicsModule;
 
 export class Game extends Scene
 {
@@ -46,18 +50,20 @@ export class Game extends Scene
         const ecs = new ECS();
         
         this.gameLogic = new GameLogic( ecs, [
-            new Tiles(), 
+            new Physics(),
+            new Tiles(),
+            new Biochemistry(),
             new Elevation(), 
             new SurfaceMoisture(), 
-            new GroundMoisture(), 
-            new Biochemistry(),
+            new GroundMoisture(),
             new Plants(),
-            new CloudCover()
+            // new CloudCover()
         ]);
         
         this.gameDisplay = new GameDisplay(this, ecs, [
             new CameraModule(), 
-            new GroundMoistureLayerDisplayModule(), 
+            new GroundMoistureLayerDisplayModule(),
+            new PlantsDisplay(),
             new TileSurfaceMoistureDisplayModule(),
             new CloudCoverDisplayModule(),
             new TileSelectionModule()

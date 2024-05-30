@@ -2,7 +2,7 @@ import {Component, ECS, Entity, System} from "../core/ECS.ts";
 
 const MAX_MOISTURE_IN_TILE = 1000;
 const SEA_LEVEL = 2;
-const MAP_SIZE = 120;
+const MAP_SIZE = 12;
 
 export abstract class GameSystem extends System {
     public constructor(public game: GameLogic) {
@@ -57,6 +57,14 @@ export abstract class ClampedValueComponent {
     }
 }
 
+export type GameLogicConfig = {
+    tilesInMapSide: number,
+    maxMoistureInTile: number,
+    seaLevel: number,
+    maxElevation: number,
+    tileSize: number,
+}
+
 export class GameLogic {
     ecs: ECS;
     timeFromStart: number = 0;
@@ -81,9 +89,8 @@ export class GameLogic {
     }
     
     update(delta: number) {
-        const secondsDelta = delta/1000;
-        this.timeFromStart += secondsDelta;
-        this.ecs.update(secondsDelta);
+        this.timeFromStart += delta;
+        this.ecs.update(delta);
     }
 
     mapPositionToTile(position: {x:number, y:number}): Entity | null{

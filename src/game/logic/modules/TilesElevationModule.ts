@@ -3,11 +3,13 @@ import {MathUtils} from "../../utils/Math.ts";
 import {GameLogic, GameLogicModule, ValueComponent} from "../GameLogic.ts";
 import {TilesModule} from "./TilesModule.ts";
 import Tile = TilesModule.Tile;
-import Position = TilesModule.Position;
+import {PhysicsModule} from "./PhysicsModule.ts";
 
 const DEFAULT_NOISE_SIZE = 50;
 
 export namespace TilesElevationModule {
+    import Position = PhysicsModule.Position;
+
     export class Elevation extends ValueComponent{}
 
     export class TilesElevationModule extends GameLogicModule {
@@ -21,5 +23,4 @@ export namespace TilesElevationModule {
             });
         }
     }
-
 }

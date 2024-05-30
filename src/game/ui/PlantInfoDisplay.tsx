@@ -1,37 +1,35 @@
 import React, { useEffect, useState } from 'react';
 import {EventBus, UiEvents} from "../EventBus.ts";
-import {TileDisplayData} from "../display/GameDisplay.ts";
+import {PlantDisplayData} from "../display/GameDisplay.ts";
 import Collapsible from "./components/CollapsibleTitle.tsx";
 
 const eventEmitter = EventBus;
 
-const TileInfoDisplay = () => {
-    const [selectedTile, setSelectedTile] = useState<TileDisplayData | null>(null);
+const PlantInfoDisplay = () => {
+    const [selectedPlant, setSelectedPlant] = useState<PlantDisplayData | null>(null);
 
     useEffect(() => {
-        // Listen for the "tile-selected" event
-        eventEmitter.on(UiEvents.TileSelected, setSelectedTile);
+        eventEmitter.on(UiEvents.PlantSelected, setSelectedPlant);
 
-        // Cleanup listener on component unmount
         return () => {
-            eventEmitter.off(UiEvents.TileSelected, setSelectedTile);
+            eventEmitter.off(UiEvents.PlantSelected, setSelectedPlant);
         };
     }, [eventEmitter]);
 
-    if (!selectedTile) {
-        return null; // Hide the component if no tile is selected
+    if (!selectedPlant) {
+        return null; // Hide the component if no plant is selectedå
     }
 
     return (
-        <Collapsible title="Tile Information">
+        <Collapsible title="Plant Information">
             <div className="tile-layers" style={styles.tileLayers}>
-                <p>Coordinates: ({selectedTile.position.x}, {selectedTile.position.y})</p>
-                {Object.keys(selectedTile).map((layer, index) => {
+                <p>Coordinates: ({Math.floor(selectedPlant.position.x)}, {Math.floor(selectedPlant.position.y)})</p>
+                {Object.keys(selectedPlant).map((layer, index) => {
                     if (!layer) return null;
-                    if (typeof selectedTile[layer] === 'object') return null;
+                    if (typeof selectedPlant[layer] === 'object') return null;
                     
                     return <div key={index} className="tile-layer" style={styles.tileLayer}>
-                        <p>{layer} : {selectedTile[layer]}</p>
+                        <p>{layer} : {selectedPlant[layer]}</p>
                     </div>
                 })}
             </div>
@@ -62,4 +60,4 @@ const styles = {
     }
 };
 
-export default TileInfoDisplay;
+export default PlantInfoDisplay;

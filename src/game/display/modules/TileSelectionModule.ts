@@ -60,6 +60,9 @@ export class TileSelectionModule extends DisplayModule {
     private updateSelectedTile() {
         if (this.selectedTile != null) {
             const pos = this.selectedTile.position;
+            if (!pos){
+                return;
+            }
             this.selectedTile = this.game.tiles[pos.x][pos.y];
         }
         
