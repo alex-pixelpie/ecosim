@@ -1,4 +1,5 @@
-import {DisplayModule, GameDisplay} from "../GameDisplay.ts";
+import {EcoSimDisplay} from "./EcoSimDisplay.ts";
+import {DisplayModule} from "../DisplayModule.ts";
 
 class ControlledCamera {
     static maxTimeBetweenClicks = 200;
@@ -118,10 +119,10 @@ class ControlledCamera {
         this.resetZoom();
     }
 }
-export class CameraModule extends DisplayModule {
+export class CameraModule extends DisplayModule<EcoSimDisplay> {
     public Camera: ControlledCamera;
 
-    override init(display: GameDisplay) {
+    override init(display: EcoSimDisplay) {
         this.Camera = new ControlledCamera(display.scene, display.mapDisplay.map.widthInPixels, display.mapDisplay.map.heightInPixels);
     }
 

@@ -12,28 +12,28 @@ import {TilesGroundMoistureModule} from "../logic/modules/TilesGroundMoistureMod
 import GroundMoisture = TilesGroundMoistureModule.TilesGroundMoistureModule;
 import {CloudCoverModule} from "../logic/modules/CloudCoverModule.ts";
 import CloudCover = CloudCoverModule.TilesCloudCoverModule;
-import {GameDisplay} from "../display/GameDisplay.ts";
-import {GroundMoistureLayerDisplayModule} from "../display/modules/GroundMoistureLayerDisplayModule.ts";
-import {CloudCoverDisplayModule} from "../display/modules/CloudCoverDisplayModule.ts";
-import {CameraModule} from "../display/modules/CameraModule.ts";
-import {TileSurfaceMoistureDisplayModule} from "../display/modules/TileSurfaceMoistureDisplayModule.ts";
-import {TileSelectionModule} from "../display/modules/TileSelectionModule.ts";
+import {EcoSimDisplay} from "../display/ecosim/EcoSimDisplay.ts";
+import {GroundMoistureLayerDisplayModule} from "../display/ecosim/GroundMoistureLayerDisplayModule.ts";
+import {CloudCoverDisplayModule} from "../display/ecosim/CloudCoverDisplayModule.ts";
+import {CameraModule} from "../display/ecosim/CameraModule.ts";
+import {TileSurfaceMoistureDisplayModule} from "../display/ecosim/TileSurfaceMoistureDisplayModule.ts";
+import {TileSelectionModule} from "../display/ecosim/TileSelectionModule.ts";
 import {BiochemistryModule} from "../logic/modules/BiochemistryModule.ts";
 import Biochemistry = BiochemistryModule.BiochemistryModule;
 import {PlantsModule} from "../logic/modules/PlantsModule.ts";
 import Plants = PlantsModule.PlantsModule;
-import {PlantsDisplayModule} from "../display/modules/PlantsDisplayModule.ts";
+import {PlantsDisplayModule} from "../display/ecosim/PlantsDisplayModule.ts";
 import PlantsDisplay = PlantsDisplayModule.PlantsDisplayModule;
 import {PhysicsModule} from "../logic/modules/PhysicsModule.ts";
 import Physics = PhysicsModule.PhysicsModule;
 
-export class Game extends Scene
+export class EcoSim extends Scene
 {
     private gameLogic: GameLogic;
-    private gameDisplay: GameDisplay;
+    private gameDisplay: EcoSimDisplay;
     
     constructor () {
-        super('Game');
+        super('EcoSim');
     }
 
     update(time: number, delta: number) {
@@ -49,7 +49,7 @@ export class Game extends Scene
     create () {
         const ecs = new ECS();
         
-        this.gameLogic = new GameLogic( ecs, [
+        this.gameLogic = new GameLogic( ecs, this,[
             new Physics(),
             new Tiles(),
             new Biochemistry(),
@@ -57,10 +57,10 @@ export class Game extends Scene
             new SurfaceMoisture(), 
             new GroundMoisture(),
             new Plants(),
-            // new CloudCover()
+            new CloudCover()
         ]);
         
-        this.gameDisplay = new GameDisplay(this, ecs, [
+        this.gameDisplay = new EcoSimDisplay(this, ecs, [
             new CameraModule(), 
             new GroundMoistureLayerDisplayModule(),
             new PlantsDisplay(),

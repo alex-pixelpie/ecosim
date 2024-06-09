@@ -1,6 +1,7 @@
-import {DisplayModule, GameDisplay, PlantDisplayData} from "../GameDisplay.ts";
+import {EcoSimDisplay, PlantDisplayData} from "./EcoSimDisplay.ts";
 import {EventBus, UiEvents} from "../../EventBus.ts";
 import Image = Phaser.GameObjects.Image;
+import {DisplayModule} from "../DisplayModule.ts";
 
 const typeToTextureMap = {
     'Grass': 'Grass',
@@ -8,13 +9,13 @@ const typeToTextureMap = {
 } as {[key: string]: string};
 
 export namespace PlantsDisplayModule {
-    export class PlantsDisplayModule extends DisplayModule {
-        private display: GameDisplay;
+    export class PlantsDisplayModule extends DisplayModule<EcoSimDisplay> {
+        private display: EcoSimDisplay;
         private selected: PlantDisplayData | undefined;
         private images = new Map<number, Phaser.GameObjects.Image>();
         private selectedImage: Image | undefined;
         
-        public init(display: GameDisplay): void {
+        public init(display: EcoSimDisplay): void {
             this.display = display;
         }
         

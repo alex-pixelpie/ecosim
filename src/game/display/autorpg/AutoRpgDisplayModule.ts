@@ -1,10 +1,10 @@
-import {DisplayModule, GameDisplay, TileDisplayData} from "../GameDisplay.ts";
+import {AutoRpgDisplay, TileDisplayData} from "./AutoRpgDisplay.ts";
 
-export abstract class LayerDisplayModule extends DisplayModule {
+export abstract class AutoRpgDisplayModule extends DisplayModule {
     protected layer: Phaser.Tilemaps.TilemapLayer;
-    protected display: GameDisplay;
+    protected display: AutoRpgDisplay;
 
-    public init(display: GameDisplay): void {
+    public init(display: AutoRpgDisplay): void {
         this.display = display;
         this.layer = display.mapDisplay.map.createBlankLayer(this.constructor.name, display.mapDisplay.tileset, 0, 0)!;
 

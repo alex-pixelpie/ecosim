@@ -1,3 +1,5 @@
+interface Pos {x:number; y:number}
+
 export class MathUtils {
     static weightedRand(weightedValues: { [key: number]: number }): number {
         // Calculate the total weight
@@ -23,5 +25,10 @@ export class MathUtils {
 
     static remapNoiseToUnit(value: number): number {
         return (value + 1) / 2;
+    }
+    
+    static distance(pos1: Pos, pos2: Pos): number {
+        // Simple Euclidean distance calculation
+        return Math.sqrt(Math.pow(pos2.x - pos1.x, 2) + Math.pow(pos2.y - pos1.y, 2));
     }
 }

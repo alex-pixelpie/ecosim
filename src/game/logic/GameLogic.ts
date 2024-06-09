@@ -1,4 +1,5 @@
 import {Component, ECS, Entity, System} from "../core/ECS.ts";
+import {Scene} from "phaser";
 
 const MAX_MOISTURE_IN_TILE = 1000;
 const SEA_LEVEL = 2;
@@ -10,8 +11,10 @@ export abstract class GameSystem extends System {
         this.game = game;
         this.init();
     }
-    
-    protected abstract init() : void;
+
+    protected abstract init(): void;
+
+    public abstract update(entities: Set<Entity>, delta: number): void;
 }
 
 export abstract class TimedGameSystem extends GameSystem {
@@ -61,7 +64,7 @@ export abstract class ClampedValueComponent {
     }
 }
 
-export type GameLogicConfig = {
+export type EcoSimLogicConfig = {
     tilesInMapSide: number,
     maxMoistureInTile: number,
     seaLevel: number,
@@ -73,8 +76,9 @@ export type GameLogicConfig = {
 
 export class GameLogic {
     ecs: ECS;
+    scene: Phaser.Scene;
     timeFromStart: number = 0;
-    config : GameLogicConfig = {
+    config : EcoSimLogicConfig = {
         tilesInMapSide: MAP_SIZE,
         maxMoistureInTile: MAX_MOISTURE_IN_TILE,
         seaLevel: SEA_LEVEL,
@@ -83,6 +87,13 @@ export class GameLogic {
         biologicalDecayRatePerSecond : 1,
         plants: {},
     };
+    mobs: Set<number> = new Set();
+
+    // Populated by the PhaserPhysicsModule
+    addPhysicalComponents:(entity: number, x: number, y: number, radius:number)=>void = () => {};
+
+    // Populated by the PhaserPhysicsModule
+    removePhysicalComponents:(entity: number)=>void = () => {};
     
     // @ts-ignore - this is initialized in tiles system
     tiles: Entity[][] = Array.from({length: MAP_SIZE}, () => Array.from({length: MAP_SIZE}, () => null));
@@ -91,7 +102,8 @@ export class GameLogic {
         return this.config.tilesInMapSide * this.config.tileSize;
     }
     
-    constructor(ecs: ECS, modules: GameLogicModule[]) {
+    constructor(ecs: ECS, scene:Scene, modules: GameLogicModule[]) {
+        this.scene = scene;
         this.ecs = ecs;
         modules.forEach(module => module.init(this));
     }

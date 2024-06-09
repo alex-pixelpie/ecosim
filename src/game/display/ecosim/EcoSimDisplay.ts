@@ -1,28 +1,24 @@
-import {ECS} from "../core/ECS.ts";
-import {TilesModule} from "../logic/modules/TilesModule.ts";
-import {TilesGroundMoistureModule} from "../logic/modules/TilesGroundMoistureModule.ts";
-import {TilesSurfaceMoistureModule} from "../logic/modules/TilesSurfaceMoistureModule.ts";
-import {TilesElevationModule} from "../logic/modules/TilesElevationModule.ts";
-import {CloudCoverModule} from "../logic/modules/CloudCoverModule.ts";
-import {MapDisplay} from "./MapDisplay.ts";
+import {ECS} from "../../core/ECS.ts";
+import {TilesModule} from "../../logic/modules/TilesModule.ts";
+import {TilesGroundMoistureModule} from "../../logic/modules/TilesGroundMoistureModule.ts";
+import {TilesSurfaceMoistureModule} from "../../logic/modules/TilesSurfaceMoistureModule.ts";
+import {TilesElevationModule} from "../../logic/modules/TilesElevationModule.ts";
+import {CloudCoverModule} from "../../logic/modules/CloudCoverModule.ts";
+import {MapDisplay} from "./../MapDisplay.ts";
 import Tile = TilesModule.Tile;
-import {BiochemistryModule} from "../logic/modules/BiochemistryModule.ts";
+import {BiochemistryModule} from "../../logic/modules/BiochemistryModule.ts";
 import BiochemicalBalance = BiochemistryModule.BiochemicalBalance;
-import {PlantsModule} from "../logic/modules/PlantsModule.ts";
+import {PlantsModule} from "../../logic/modules/PlantsModule.ts";
 import PlantBody = PlantsModule.PlantBody;
 import BiologicalAge = BiochemistryModule.BiologicalAge;
 import ChemicalElement = BiochemistryModule.ChemicalElement;
 import Death = BiochemistryModule.Death;
-import {PhysicsModule} from "../logic/modules/PhysicsModule.ts";
+import {PhysicsModule} from "../../logic/modules/PhysicsModule.ts";
 import Position = PhysicsModule.Position;
 import Biomass = BiochemistryModule.Biomass;
+import {DisplayModule} from "../DisplayModule.ts";
 
 const MAP_SIZE = 120;
-
-export abstract class DisplayModule {
-    public abstract init(display: GameDisplay): void;
-    public abstract update(delta: number): void;
-}
 
 export class TileDisplayData {
     public groundMoisture: string|number;
@@ -45,21 +41,21 @@ export class PlantDisplayData {
 
 const WHITE_TILE : number = 8;
 
-export class GameDisplayConfig {
+export class EcoSimGameDisplayConfig {
     whiteTile: number = WHITE_TILE;
     maxMoistureInTile: number = 1000;
 }
 
-export class GameDisplay {
+export class EcoSimDisplay {
     mapDisplay: MapDisplay;
-    modules: DisplayModule[];
+    modules: DisplayModule<EcoSimDisplay>[];
     scene: Phaser.Scene;
     ecs: ECS;
     tiles: TileDisplayData[][];
     plants: PlantDisplayData[] = [];
     
-    config:GameDisplayConfig  = new GameDisplayConfig();
-    constructor(scene: Phaser.Scene, ecs:ECS, modules: DisplayModule[]) {
+    config:EcoSimGameDisplayConfig  = new EcoSimGameDisplayConfig();
+    constructor(scene: Phaser.Scene, ecs:ECS, modules: DisplayModule<EcoSimDisplay>[]) {
         this.ecs = ecs;
         this.scene = scene;
         this.modules = modules;

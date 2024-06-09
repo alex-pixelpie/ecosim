@@ -1,7 +1,7 @@
-import {LayerDisplayModule} from "./LayerDisplayModule.ts";
-import {TileDisplayData} from "../GameDisplay.ts";
+import {EcoSimDisplayModule} from "./EcoSimDisplayModule.ts";
+import {TileDisplayData} from "./EcoSimDisplay.ts";
 
-export class TileSurfaceMoistureDisplayModule extends LayerDisplayModule {
+export class TileSurfaceMoistureDisplayModule extends EcoSimDisplayModule {
     mult = 0.6;
 
     protected tileProcessor(tile:TileDisplayData, x: number, y: number): void {

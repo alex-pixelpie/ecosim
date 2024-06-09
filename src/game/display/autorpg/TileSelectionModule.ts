@@ -1,17 +1,18 @@
-import {DisplayModule, GameDisplay, TileDisplayData} from "../GameDisplay.ts";
 import Vector2 = Phaser.Math.Vector2;
 import {MapDisplay} from "../MapDisplay.ts";
 import {EventBus, UiEvents} from "../../EventBus.ts";
+import {DisplayModule} from "../DisplayModule.ts";
+import {AutoRpgDisplay, TileDisplayData} from "./AutoRpgDisplay.ts";
 
-export class TileSelectionModule extends DisplayModule {
+export class TileSelectionModule extends DisplayModule<AutoRpgDisplay> {
     private hoverMarker: Phaser.GameObjects.Graphics;
     private selectedMarker: Phaser.GameObjects.Graphics;
     private scene : Phaser.Scene;
     private mapDisplay: MapDisplay;
-    private game: GameDisplay;
+    private game: AutoRpgDisplay;
     private selectedTile: TileDisplayData | null = null;
 
-    override init(game: GameDisplay) {
+    override init(game: AutoRpgDisplay) {
         this.scene = game.scene;
         this.mapDisplay = game.mapDisplay;
         this.game = game;

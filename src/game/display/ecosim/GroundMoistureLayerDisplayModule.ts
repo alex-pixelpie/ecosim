@@ -1,5 +1,5 @@
-import {LayerDisplayModule} from "./LayerDisplayModule.ts";
-import {TileDisplayData} from "../GameDisplay.ts";
+import {EcoSimDisplayModule} from "./EcoSimDisplayModule.ts";
+import {TileDisplayData} from "./EcoSimDisplay.ts";
 
 enum GroundVisualState {
     None = -1,
@@ -8,7 +8,7 @@ enum GroundVisualState {
     Rich = 2
 }
 
-export class GroundMoistureLayerDisplayModule extends LayerDisplayModule {
+export class GroundMoistureLayerDisplayModule extends EcoSimDisplayModule {
     groundRateCutoff = [[200 , GroundVisualState.Dry], [800, GroundVisualState.Normal], [1000, GroundVisualState.Rich]];
 
     protected tileProcessor(tile:TileDisplayData, x: number, y: number): void {

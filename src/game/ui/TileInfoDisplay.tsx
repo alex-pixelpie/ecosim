@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import {EventBus, UiEvents} from "../EventBus.ts";
-import {TileDisplayData} from "../display/GameDisplay.ts";
+import {TileDisplayData} from "../display/EcoSimDisplay.ts";
 import Collapsible from "./components/CollapsibleTitle.tsx";
 
 const eventEmitter = EventBus;
