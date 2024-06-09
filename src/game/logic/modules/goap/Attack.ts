@@ -7,6 +7,7 @@ import {MobGoapStateComponent} from "./MobGoapStateComponent.ts";
 import {PhysicsModule} from "../PhysicsModule.ts";
 import Position = PhysicsModule.Position;
 import {MathUtils} from "../../../utils/Math.ts";
+import {FrameLog} from "./FrameLog.ts";
 
 export class AttackAction implements Action {
     preconditions = {[MobGoapState.hasTarget]: true, [MobGoapState.inRange]: true};
@@ -49,16 +50,28 @@ export class Health extends Component {
 }
 
 export class WeaponConfig {
-    damage: number; 
+    damageMin:number;
+    damageMax:number;
     cooldownSeconds: number;
     range: number; 
     swingSeconds: number;
     attackDuration: number;
+    criticalChance: number;
+    criticalMultiplier: number;
 }
 
 export class Weapon extends Component {
     public lastAttackTime: number = 0;
     public causedDamage: boolean = false;
+    
+    public get damage(): number {
+        const damageRange = this.config.damageMax - this.config.damageMin;
+        return this.config.damageMin + Math.floor(Math.random() * damageRange);
+    }
+    
+    public get criticalDamage() : number {
+        return Math.random() < this.config.criticalChance ? this.config.criticalMultiplier : 1;
+    }
     
     constructor(public config: WeaponConfig) {
         super();
@@ -173,6 +186,9 @@ export class AttackSystem extends GameSystem {
             return;
         }
 
+        const ownLog = game.ecs.getComponent(entity, FrameLog.FrameLog);
+        ownLog?.logs.push({type: FrameLog.FrameLogType.Attack, value: weaponComponent.damage, timestamp: game.timeFromStart});
+
         if (weaponComponent.isSwinging(game.timeFromStart)){
             return;
         }
@@ -181,7 +197,14 @@ export class AttackSystem extends GameSystem {
             return;
         }
         
-        health.value -= weaponComponent.config.damage;
+        const damage = weaponComponent.damage;
+        const crit = weaponComponent.criticalDamage;
+        const totalDamage = damage * crit;
+        health.value -= totalDamage;
         weaponComponent.causedDamage = true;
+        
+        const targetLog = game.ecs.getComponent(target, FrameLog.FrameLog);
+        targetLog?.logs.push({type: FrameLog.FrameLogType.TakeDamage, value: totalDamage, timestamp: game.timeFromStart});
+        crit > 1 && targetLog?.logs.push({type: FrameLog.FrameLogType.TakeCriticalDamage, value: crit, timestamp: game.timeFromStart});
     }
 }

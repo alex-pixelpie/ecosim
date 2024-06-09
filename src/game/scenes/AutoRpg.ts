@@ -14,6 +14,7 @@ import {PhaserPhysicsModule} from "../logic/modules/PhaserPhysicsModule.ts";
 import {MobsModule} from "../logic/modules/MobsModule.ts";
 import {GOAP} from "../logic/modules/goap/GoapModule.ts";
 import {FloatingNumbersDisplay} from "../display/autorpg/FloatingNumbersDisplay.ts";
+import {FrameLog} from "../logic/modules/goap/FrameLog.ts";
 
 export class AutoRpg extends Scene
 {
@@ -38,6 +39,7 @@ export class AutoRpg extends Scene
         const ecs = new ECS();
         
         this.gameLogic = new GameLogic( ecs, this, [
+            new FrameLog.FrameLogModule(),
             new Tiles(),
             new PhaserPhysicsModule.PhaserPhysicsModule(),
             new MobsModule.MobsModule(),

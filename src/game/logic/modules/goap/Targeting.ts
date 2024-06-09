@@ -84,7 +84,7 @@ export class TargetSelectionSystem extends TimedGameSystem {
             return null;
         }
 
-        const potentialTargets = [...entities].filter(e => e !== entity);
+        const potentialTargets = [...entities].filter(e => e !== entity && e !== null);
         
         if (potentialTargets.length === 0) {
             return null;
@@ -100,7 +100,7 @@ export class TargetSelectionSystem extends TimedGameSystem {
                 entity: e,
                 distance: MathUtils.distance(position, targetPosition)
             };
-        }).sort((a, b) => a.distance - b.distance);
+        }).filter(v=>v).sort((a, b) => (a?.distance ?? 0) - (b?.distance ?? 0));
         
         return targetsByDistance[0]!.entity;
     }

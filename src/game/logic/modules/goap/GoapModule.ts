@@ -76,7 +76,7 @@ export namespace GOAP {
             this.actions = actions;
         }
     }
-    
+
     class ActionSystem extends GameSystem {
         public componentsRequired: Set<Function> = new Set([ActionComponent, MobGoapStateComponent, GoalsComponent]);
         private planner: Planner;

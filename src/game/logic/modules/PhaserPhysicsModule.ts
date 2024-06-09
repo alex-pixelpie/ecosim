@@ -1,12 +1,13 @@
 import {GameLogic, GameLogicModule, GameSystem} from "../GameLogic.ts";
 import {Component} from "../../core/ECS.ts";
 import {PhysicsModule} from "./PhysicsModule.ts";
+import {GameObjects} from "phaser";
 
 export namespace PhaserPhysicsModule {
     import Position = PhysicsModule.Position;
 
     export class PhysicsBody extends Component {
-        public constructor(public body: Phaser.Physics.Arcade.Body) {
+        public constructor(public body: Phaser.Physics.Arcade.Body, public container: GameObjects.Container) {
             super();
         }
     }
@@ -33,7 +34,6 @@ export namespace PhaserPhysicsModule {
         }
     }
         
-        
     export class PhaserPhysicsModule extends GameLogicModule {
         mobsGroup: Phaser.Physics.Arcade.Group;
         private game: GameLogic;
@@ -50,14 +50,19 @@ export namespace PhaserPhysicsModule {
         }
 
         private addPhysicalComponents(entity: number, x: number, y: number, radius: number = 16) {
-            let body = this.mobsGroup.create(x, y).body as Phaser.Physics.Arcade.Body;
+            const bodyContainer = this.mobsGroup.create(x, y) as GameObjects.Container;
+            bodyContainer.setVisible(false);
+            const body = bodyContainer.body as Phaser.Physics.Arcade.Body;
             body.setCircle(radius, 0, 0);
-            this.game.ecs.addComponent(entity, new PhysicsBody(body));
+            
+            this.game.ecs.addComponent(entity, new PhysicsBody(body, bodyContainer));
         }
 
         private removePhysicalComponents(entity: number) {
             const body = this.game.ecs.getComponent<PhysicsBody>(entity, PhysicsBody);
+            
             if (body) {
+                body.container.destroy();
                 body.body.destroy();
             }
         }

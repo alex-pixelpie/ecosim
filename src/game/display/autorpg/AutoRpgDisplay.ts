@@ -9,7 +9,8 @@ import {MobsModule} from "../../logic/modules/MobsModule.ts";
 import Mob = MobsModule.Mob;
 import {PhaserPhysicsModule} from "../../logic/modules/PhaserPhysicsModule.ts";
 import {TargetSelection} from "../../logic/modules/goap/Targeting.ts";
-import {Health, Weapon} from "../../logic/modules/goap/Attack.ts";
+import {Health} from "../../logic/modules/goap/Attack.ts";
+import {FrameLog} from "../../logic/modules/goap/FrameLog.ts";
 
 const MAP_SIZE = 64;
 const WHITE_TILE : number = 8;
@@ -28,6 +29,7 @@ export type MobData = {
         direction: number;
         moving: boolean;
         damage?: number;
+        criticalMultiplier?: number;
     },
     health: number | string;
     type: string;
@@ -50,7 +52,8 @@ export class AutoRpgDisplay {
     config:AutoRpgDisplayConfig  = new AutoRpgDisplayConfig();
     
     // Layers
-    uiLayer: Phaser.GameObjects.Container;
+    mobUi: Phaser.GameObjects.Container;
+    overlayUi: Phaser.GameObjects.Container;
     mobsLayer: Phaser.GameObjects.Container;
     timeFromStart: number = 0;
     
@@ -64,7 +67,8 @@ export class AutoRpgDisplay {
         modules.forEach(module => module.init(this));
 
         this.mobsLayer = scene.add.container();
-        this.uiLayer = scene.add.container();
+        this.mobUi = scene.add.container();
+        this.overlayUi = scene.add.container();
     }
  
     update(delta: number) {
@@ -88,15 +92,13 @@ export class AutoRpgDisplay {
 
     private updateMobs() {
         const entities = this.ecs.getEntitiesWithComponent(Mob);
-
+        
         const mobs = entities.map(entity => {
-            const oldMob = this.mobs.find(mob => mob.id === entity);
-            
             const body = this.ecs.getComponent(entity, PhaserPhysicsModule.PhysicsBody)?.body;
             const mob = this.ecs.getComponent(entity, Mob);
             const targeting = this.ecs.getComponent(entity, TargetSelection);
             const health = this.ecs.getComponent(entity, Health);
-            const weapon = this.ecs.getComponent(entity, Weapon);
+            const log = this.ecs.getComponent(entity, FrameLog.FrameLog);
             
             let direction = 1;
             
@@ -110,8 +112,9 @@ export class AutoRpgDisplay {
                 direction = dx > 0 ? 1 : -1;
             }
             
-            const attacking = hasTarget && weapon?.isAttacking(this.timeFromStart);
-            const damage = (Number(oldMob?.health) || 0) - (health?.value || 0);
+            const attacking = log?.logs.some(log => log.type === FrameLog.FrameLogType.Attack);
+            const damage = log?.logs.reduce((acc, log) => log.type === FrameLog.FrameLogType.TakeDamage ? acc + log.value : acc, 0);
+            const criticalMultiplier = log?.logs.reduce((acc, log) => log.type === FrameLog.FrameLogType.TakeCriticalDamage ? log.value : acc, 0);
             
             return {
                 id: entity,
@@ -119,7 +122,8 @@ export class AutoRpgDisplay {
                     direction,
                     moving: body?.velocity.x !== 0 || body?.velocity.y !== 0,
                     attacking,
-                    damage
+                    damage,
+                    criticalMultiplier
                 },
                 health: health?.value || 'N/A',
                 type: mob?.type || 'skeleton',
@@ -127,7 +131,7 @@ export class AutoRpgDisplay {
                 y: body?.y || 0
             };
         });
-        
+
         this.mobs = mobs;
     }
 }

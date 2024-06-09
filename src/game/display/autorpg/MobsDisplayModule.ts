@@ -7,8 +7,8 @@ export namespace MobsDisplayModule {
         public constructor(public display: AutoRpgDisplay, public id: number, x: number = 0, y: number = 0) {
             this.init(x, y);
         }
-        
-        abstract init(x: number, y: number): void;
+
+        protected abstract init(x: number, y: number): void;
         
         abstract update(mob: MobData, display: AutoRpgDisplay): void;
 
@@ -25,8 +25,8 @@ export namespace MobsDisplayModule {
     class SkeletonView extends MobView {
         sprites: Map<SkeletonAnimationState, Phaser.GameObjects.Sprite>;
         healthBar: Phaser.GameObjects.Graphics;
-        
-        public init(x: number, y: number): void {
+
+        protected init(x: number, y: number): void {
             if (this.sprites) {
                 return;
             }
@@ -40,11 +40,10 @@ export namespace MobsDisplayModule {
                 this.display.mobsLayer.add(sprite);
             });
             
-            
             // Initialize health bar
             this.healthBar = this.display.scene.add.graphics();
 
-            this.display.uiLayer.add(this.healthBar);
+            this.display.mobUi.add(this.healthBar);
         }
 
         destroy(): void {
@@ -81,7 +80,7 @@ export namespace MobsDisplayModule {
                 // Indicate damage with a brief red flash
                 this.sprite.setTint(0xff0000);
                 this.display.scene.time.delayedCall(100, () => {
-                    this.sprite.clearTint();
+                    this.sprites.forEach(sprite => sprite.clearTint());
                 });
             }
 

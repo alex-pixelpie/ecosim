@@ -10,10 +10,11 @@ export class FloatingNumbersDisplay extends DisplayModule<AutoRpgDisplay> {
         this.display = display;
 
     }
-    private showFloatingDamage(damage: number, x: number, y: number): void {
+    private showFloatingDamage(damage: number, x: number, y: number, criticalMultiplier:number): void {
         const floatingText = this.getFloatingText();
         
         floatingText.setText(`-${damage}`);
+        floatingText.setStroke(criticalMultiplier? '#ffff00' : '#ff0000', criticalMultiplier? 5 : 3);
         floatingText.setPosition(x, y - 20);
         floatingText.setVisible(true);
         this.display.scene.add.tween({
@@ -48,14 +49,14 @@ export class FloatingNumbersDisplay extends DisplayModule<AutoRpgDisplay> {
             stroke: '#000000',
             strokeThickness: 3
         }).setVisible(false);
-        display.uiLayer.add(text);
+        display.overlayUi.add(text);
         return text;
     }
     
     public update(_: number): void {
         this.display.mobs.forEach(mob => {
             if (mob.state.damage) {
-                this.showFloatingDamage(mob.state.damage, mob.x, mob.y);
+                this.showFloatingDamage(mob.state.damage, mob.x, mob.y, mob.state.criticalMultiplier || 0);
             }
         });
     }
