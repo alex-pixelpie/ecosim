@@ -42,6 +42,7 @@ export class CorpsesDisplayModule extends DisplayModule<AutoRpgDisplay> {
                 const anim = DeathKeys[corpse.type  as any as keyof typeof DeathKeys];
                 view.sprite.play(anim, true);
                 this.corpses.set(corpse.id, view);
+                view.sprite.scaleX = Math.random() > 0.5 ? 1 : -1;
             }
             view.sprite.setAlpha(corpse.rotFactor)
         });

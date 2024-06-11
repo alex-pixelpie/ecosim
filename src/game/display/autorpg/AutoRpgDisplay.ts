@@ -7,7 +7,7 @@ import Position = PhysicsModule.Position;
 import {DisplayModule} from "../DisplayModule.ts";
 import {PhaserPhysicsModule} from "../../logic/modules/PhaserPhysicsModule.ts";
 import {Corpse, Health} from "../../logic/modules/weapons/Attack.ts";
-import {TargetSelection} from "../../logic/modules/Targeting.ts";
+import {Group, TargetSelection} from "../../logic/modules/Targeting.ts";
 import {FrameLog} from "../../logic/modules/FrameLog.ts";
 import {Mob} from "../../logic/modules/MobsModule.ts";
 
@@ -44,8 +44,9 @@ export type MobData = {
     type: string;
     x: number;
     y: number;
+    group:number;
+    rotationToTarget: number;
 }
-
 
 export class AutoRpgDisplayConfig {
     whiteTile: number = WHITE_TILE;
@@ -66,6 +67,7 @@ export class AutoRpgDisplay {
     overlayUi: Phaser.GameObjects.Container;
     mobsLayer: Phaser.GameObjects.Container;
     corpsesLayer: Phaser.GameObjects.Container;
+    groundUi: Phaser.GameObjects.Container;
     timeFromStart: number = 0;
     
     constructor(scene: Phaser.Scene, ecs:ECS, modules: AutoRpgDisplayModule[]) {
@@ -78,6 +80,7 @@ export class AutoRpgDisplay {
         modules.forEach(module => module.init(this));
 
         this.corpsesLayer = scene.add.container();
+        this.groundUi = scene.add.container();
         this.mobsLayer = scene.add.container();
         this.mobUi = scene.add.container();
         this.overlayUi = scene.add.container();
@@ -115,17 +118,20 @@ export class AutoRpgDisplay {
             const targeting = this.ecs.getComponent(entity, TargetSelection);
             const health = this.ecs.getComponent(entity, Health);
             const log = this.ecs.getComponent(entity, FrameLog.FrameLog);
+            const group = this.ecs.getComponent(entity, Group);
             
             let direction = 1;
             
             const target = targeting?.target;
             const hasTarget = target != null;
+            let rotationToTarget = 0;
             
             if (hasTarget) {
                 const targetPosition = this.ecs.getComponent(target, Position);
                 const mobPosition = this.ecs.getComponent(entity, Position);
                 const dx = (targetPosition?.x || 0) - (mobPosition?.x || 0);
                 direction = dx > 0 ? 1 : -1;
+                rotationToTarget = Math.atan2((targetPosition?.y || 0) - (mobPosition?.y || 0), dx);
             }
             
             const attacking = log?.logs.some(log => log.type === FrameLog.FrameLogType.Attack);
@@ -145,7 +151,9 @@ export class AutoRpgDisplay {
                 maxHealth: health?.maxValue,
                 type: mob?.type || 'skeleton',
                 x: body?.x || 0,
-                y: body?.y || 0
+                y: body?.y || 0,
+                group: group?.id || 0,
+                rotationToTarget
             };
         });
 

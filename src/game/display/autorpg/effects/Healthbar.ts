@@ -19,7 +19,6 @@ export class Healthbar {
 
     update(mob: MobData, sprite:Sprite): void {
         if (!this.healthBar) {
-        
             return;
         }
         

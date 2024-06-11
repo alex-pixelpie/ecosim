@@ -8,10 +8,18 @@ export class TargetSelection implements Component {
     target: number | null = null;
     x: number = 0;
     y: number = 0;
+    
+    constructor(public targetGroups: Set<number>) {}
 }
 
 export class Targeted implements Component {
     targetedBy: number[] = [];
+}
+
+export class Group extends Component {
+    public constructor(public id: number) {
+        super();
+    }
 }
 
 export class RangeFromTarget extends Component {
@@ -80,12 +88,25 @@ export class TargetSelectionSystem extends GameSystem {
 
     static selectTarget(game:GameLogic, entity: number, entities: Set<number>): number | null {
         const position = game.ecs.getComponent<Position>(entity, Position);
-        if (!position) {
+        const targetSelection = game.ecs.getComponent<TargetSelection>(entity, TargetSelection);
+
+        if (!position || !targetSelection) {
             return null;
         }
 
-        const potentialTargets = [...entities].filter(e => e !== entity && e !== null);
+        const potentialTargets = [...entities].filter(e => {
+            if (e === entity || e == null) {
+                return false;
+            }
+            
+            const targetGroup = game.ecs.getComponent(e, Group);
+            if (!targetGroup) {
+                return false;
+            }
 
+            return targetSelection.targetGroups.has(targetGroup.id);
+        });
+        
         if (potentialTargets.length === 0) {
             return null;
         }

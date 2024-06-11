@@ -6,7 +6,7 @@ import {Health} from "./weapons/Attack.ts";
 import {Weapon, WeaponConfig, WeaponEffect} from "./weapons/Weapons.ts";
 import {Steering} from "./SteeringModule.ts";
 import {FrameLog} from "./FrameLog.ts";
-import {RangeFromTarget, Targeted, TargetSelection} from "./Targeting.ts";
+import {Group, RangeFromTarget, Targeted, TargetSelection} from "./Targeting.ts";
 import {GlideLocomotion} from "./Locomotion.ts";
 import {GetTargetAction} from "./goap/actions/GetTargetAction.ts";
 import {MoveAction} from "./goap/actions/MoveAction.ts";
@@ -19,8 +19,16 @@ import {Action} from "./goap/actions/Action.ts";
 import {EscapeOverwhelmAction} from "./goap/actions/EscapeOverwhelmAction.ts";
 import {EscapeOverwhelmGoal} from "./goap/goals/EscapeOverwhelmGoal.ts";
 import {OverwhelmComponent} from "./OverwhelmModule.ts";
+import Goal = GOAP.Goal;
 
 const numberOfMobs = 200;
+
+enum GroupType {
+    Red = 0,
+    Green = 1
+}
+
+const groupTypeValues = Object.values(GroupType) as number[];
 
 export enum MobType {
     Skeleton = 'Skeleton',
@@ -40,8 +48,6 @@ export class MobsCounter extends Component {
 }
 
 export namespace MobsModule {
-    import Goal = GOAP.Goal;
-
     const skeletonSaberConfig = {
         damageMax: 20,
         damageMin: 10,
@@ -76,10 +82,14 @@ export namespace MobsModule {
             
             while (this.game.mobs.size < mobsCounter.count) {
                 const random = Math.random();
+                const x = Math.floor(200 + Math.random() * 1000);
+                const y = Math.floor(200 + Math.random() * 1000);
+                const group:number = Math.random() > 0.5 ? 1 : 0;
+
                 if (random < 0.5) {
-                    this.makeSkeleton(Math.floor(200 + Math.random() * 1000), Math.floor(200 + Math.random() * 1000));
+                    this.makeSkeleton(x, y, group);
                 } else {
-                    this.makeElfArcher(Math.floor(200 + Math.random() * 1000), Math.floor(200 + Math.random() * 1000));
+                    this.makeElfArcher(x, y, group);
                 }
             }
         }
@@ -96,8 +106,9 @@ export namespace MobsModule {
             game.ecs.addComponent(entity, new ActionComponent());
         }
 
-        static addTargeting(game: GameLogic, entity: number){
-            game.ecs.addComponent(entity, new TargetSelection());
+        static addTargeting(game: GameLogic, entity: number, ownGroup: number){
+            // Targeting all groups except own
+            game.ecs.addComponent(entity, new TargetSelection(groupTypeValues.filter(group => group !== ownGroup).reduce((acc, group) => acc.add(group), new Set<number>()) as Set<number>));
             game.ecs.addComponent(entity, new Targeted());
             game.ecs.addComponent(entity, new RangeFromTarget(0));
         }
@@ -116,18 +127,25 @@ export namespace MobsModule {
             game.addPhysicalComponents(entity, x, y, size);
             game.mobs.add(entity);
         }
+        
+        static addCommonComponents(game: GameLogic, entity: number, group:number){
+            game.ecs.addComponent(entity, new FrameLog.FrameLog());
+            game.ecs.addComponent(entity, new Group(group));
+        }
             
-        public makeSkeleton(x:number, y:number){
+        public makeSkeleton(x: number, y: number, group: number){
             const game = this.game;
             const entity = game.ecs.addEntity();
             game.ecs.addComponent(entity, new Mob(MobType.Skeleton));
-            game.ecs.addComponent(entity, new FrameLog.FrameLog());
+            
+            // Common
+            MobSpawnSystem.addCommonComponents(game, entity, group);
             
             // GOAP
             MobSpawnSystem.addGoap(game, entity, [new GetTargetAction(), new MoveAction(), new AttackAction()], [new KillEnemiesGoal()]);
             
             // Targeting
-            MobSpawnSystem.addTargeting(game, entity);
+            MobSpawnSystem.addTargeting(game, entity, group);
             
             // Movement
             MobSpawnSystem.addMovement(game, entity, 200);
@@ -139,11 +157,13 @@ export namespace MobsModule {
             MobSpawnSystem.addPhysics(game, entity, x, y, 16);
         }
         
-        public makeElfArcher(x:number, y:number){
+        public makeElfArcher(x: number, y: number, group: number){
             const game = this.game;
             const entity = game.ecs.addEntity();
             game.ecs.addComponent(entity, new Mob(MobType.ElfArcher));
-            game.ecs.addComponent(entity, new FrameLog.FrameLog());
+            
+            // Common
+            MobSpawnSystem.addCommonComponents(game, entity, group);
 
             // GOAP
             MobSpawnSystem.addGoap(game, entity, [new GetTargetAction(), new MoveAction(), new AttackAction(), new EscapeOverwhelmAction()], [new KillEnemiesGoal(), new EscapeOverwhelmGoal()]);
@@ -152,7 +172,7 @@ export namespace MobsModule {
             game.ecs.addComponent(entity, new OverwhelmComponent(2));
 
             // Targeting
-            MobSpawnSystem.addTargeting(game, entity);
+            MobSpawnSystem.addTargeting(game, entity, group);
 
             // Movement
             MobSpawnSystem.addMovement(game, entity, 300);

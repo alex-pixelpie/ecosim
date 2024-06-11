@@ -32,20 +32,20 @@ export class Preloader extends Scene
         this.load.image('Seaweed', 'Seaweed.png');
         this.load.image('grassland-tiles', 'grassland-tiles.png');
         
+        this.load.image('group-ring', 'group-ring.png');
+        this.load.image('castle', 'castle.png');
+        
         // Skeleton
         this.load.spritesheet('skeleton-idle', './characters/skeleton/idle.png', { frameWidth: 150, frameHeight: 150 });
         this.load.spritesheet('skeleton-walk', './characters/skeleton/walk.png', { frameWidth: 150, frameHeight: 150 });
         this.load.spritesheet('skeleton-attack', './characters/skeleton/attack.png', { frameWidth: 150, frameHeight: 150 });
         this.load.spritesheet('skeleton-death', './characters/skeleton/death.png', { frameWidth: 150, frameHeight: 150 });
 
+        // Elf Archer
         this.load.spritesheet('elf-archer-idle', './characters/elf-archer/idle.png', { frameWidth: 100, frameHeight: 100 });
         this.load.spritesheet('elf-archer-walk', './characters/elf-archer/walk.png', { frameWidth: 100, frameHeight: 100 });
         this.load.spritesheet('elf-archer-attack', './characters/elf-archer/attack.png', { frameWidth: 100, frameHeight: 100 });
         this.load.spritesheet('elf-archer-death', './characters/elf-archer/death.png', { frameWidth: 100, frameHeight: 100 });
-
-        // this.load.spritesheet('skeleton-death', './characters/skeleton/death.png', { frameWidth: 150, frameHeight: 150 });
-        // this.load.spritesheet('skeleton-shield', './characters/skeleton/shield.png', { frameWidth: 150, frameHeight: 150 });
-        // this.load.spritesheet('skeleton-take-hit', './characters/skeleton/take-hit.png', { frameWidth: 150, frameHeight: 150 });
     }
 
     create ()

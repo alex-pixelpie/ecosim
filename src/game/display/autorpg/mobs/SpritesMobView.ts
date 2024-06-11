@@ -1,10 +1,12 @@
 import {MobView} from "./MobView.ts";
 import {Healthbar} from "../effects/Healthbar.ts";
 import {MobData} from "../AutoRpgDisplay.ts";
+import { GroupRing } from "../effects/GroupRing.ts";
 
 export class SpritesMobView extends MobView {
     sprites: Map<string, Phaser.GameObjects.Sprite>;
     healthbar:Healthbar;
+    groupRing:GroupRing;
     walkAnimName: string;
     attackAnimName: string;
     idleAnimName: string;
@@ -25,12 +27,16 @@ export class SpritesMobView extends MobView {
 
         // Initialize health bar
         this.healthbar = new Healthbar(this.display);
+        
+        // Initialize group ring
+        this.groupRing = new GroupRing(this.display);
     }
 
     destroy(): void {
         this.sprites.forEach(sprite => sprite.destroy());
         this.sprites.clear();
         this.healthbar.destroy();
+        this.groupRing.destroy();
     }
 
     public update(mob: MobData): void {
@@ -66,7 +72,8 @@ export class SpritesMobView extends MobView {
         }
 
         this.healthbar.update(mob, this.sprite);
-
+        this.groupRing.update(mob, this.sprite);
+        
         this.sprite.x = mob.x + 20; // Offset can be adjusted as needed
         this.sprite.y = mob.y;
         this.sprite.scaleX = mob.state.direction;

@@ -6,7 +6,6 @@ import {ElfArcherView} from "./mobs/ElfArcherView.ts";
 import {MobType} from "../../logic/modules/MobsModule.ts";
 
 export namespace MobsDisplayModule {
-
     export class MobsDisplayModule extends DisplayModule<AutoRpgDisplay> {
         private display: AutoRpgDisplay;
         private mobs = new Map<number, MobView>();
