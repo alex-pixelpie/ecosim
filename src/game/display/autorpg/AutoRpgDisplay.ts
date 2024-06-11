@@ -8,9 +8,9 @@ import {DisplayModule} from "../DisplayModule.ts";
 import {MobsModule} from "../../logic/modules/MobsModule.ts";
 import Mob = MobsModule.Mob;
 import {PhaserPhysicsModule} from "../../logic/modules/PhaserPhysicsModule.ts";
-import {TargetSelection} from "../../logic/modules/goap/Targeting.ts";
-import {Health} from "../../logic/modules/goap/Attack.ts";
-import {FrameLog} from "../../logic/modules/goap/FrameLog.ts";
+import {Health} from "../../logic/modules/weapons/Attack.ts";
+import {TargetSelection} from "../../logic/modules/Targeting.ts";
+import {FrameLog} from "../../logic/modules/FrameLog.ts";
 
 const MAP_SIZE = 64;
 const WHITE_TILE : number = 8;
@@ -32,6 +32,7 @@ export type MobData = {
         criticalMultiplier?: number;
     },
     health: number | string;
+    maxHealth?: number;
     type: string;
     x: number;
     y: number;
@@ -126,6 +127,7 @@ export class AutoRpgDisplay {
                     criticalMultiplier
                 },
                 health: health?.value || 'N/A',
+                maxHealth: health?.maxValue,
                 type: mob?.type || 'skeleton',
                 x: body?.x || 0,
                 y: body?.y || 0

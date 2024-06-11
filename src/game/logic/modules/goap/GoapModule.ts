@@ -1,11 +1,9 @@
 import {GameLogic, GameLogicModule, GameSystem} from "../../GameLogic.ts";
 import {Component} from "../../../core/ECS.ts";
-import {TargetSelectionSystem} from "./Targeting.ts";
+import {TargetSelectionSystem} from "./../Targeting.ts";
 import {MobGoapStateComponent} from "./MobGoapStateComponent.ts";
 import {Action} from "./Action.ts";
 import {MobGoapState} from "./MobGoapState.ts";
-import {GlideLocomotionSystem} from "./Locomotion.ts";
-import {AttackSystem, DeathSystem} from "./Attack.ts";
 
 export namespace GOAP {
     class Planner {
@@ -88,9 +86,9 @@ export namespace GOAP {
         
         public update(entities: Set<number>, _: number): void {
             entities.forEach(entity => {
-                const actionComponent = this.game.ecs.getComponent<ActionComponent>(entity, ActionComponent);
-                const stateComponent = this.game.ecs.getComponent<MobGoapStateComponent>(entity, MobGoapStateComponent);
-                const goalsComponent = this.game.ecs.getComponent<GoalsComponent>(entity, GoalsComponent);
+                const actionComponent = this.game.ecs.getComponent(entity, ActionComponent);
+                const stateComponent = this.game.ecs.getComponent(entity, MobGoapStateComponent);
+                const goalsComponent = this.game.ecs.getComponent(entity, GoalsComponent);
                 
                 goalsComponent.updatePriorities(stateComponent.state);
 
@@ -134,15 +132,6 @@ export namespace GOAP {
             
             const targetingSystem = new TargetSelectionSystem(game, interval);
             game.ecs.addSystem(targetingSystem);
-            
-            const glideLocomotionSystem = new GlideLocomotionSystem(game);
-            game.ecs.addSystem(glideLocomotionSystem);
-            
-            const attackSystem = new AttackSystem(game);
-            game.ecs.addSystem(attackSystem);
-            
-            const deathSystem = new DeathSystem(game);
-            game.ecs.addSystem(deathSystem);
         }
     }
 }

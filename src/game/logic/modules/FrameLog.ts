@@ -1,5 +1,5 @@
-import {Component} from "../../../core/ECS.ts";
-import {GameLogic, GameLogicModule, GameSystem} from "../../GameLogic.ts";
+import {Component} from "../../core/ECS.ts";
+import {GameLogic, GameLogicModule, GameSystem} from "../GameLogic.ts";
 
 export namespace FrameLog {
     export enum FrameLogType {

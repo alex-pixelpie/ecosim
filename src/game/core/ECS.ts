@@ -119,7 +119,7 @@ export class ECS {
     private systems = new Map<System, Set<Entity>>();
 
     // Bookkeeping for entities.
-    private nextEntityID = 0
+    private nextEntityID = 1
     private entitiesToDestroy = new Array<Entity>()
 
     // API: Entities

@@ -1,7 +1,7 @@
 import {EcoSimDisplay} from "./EcoSimDisplay.ts";
 import {DisplayModule} from "../DisplayModule.ts";
 
-class ControlledCamera {
+export class ControlledCamera {
     static maxTimeBetweenClicks = 200;
     static maxZoom = 4 * 2;
     static minZoom = 0.14 * 2;

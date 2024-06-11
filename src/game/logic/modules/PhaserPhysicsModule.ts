@@ -36,17 +36,26 @@ export namespace PhaserPhysicsModule {
         
     export class PhaserPhysicsModule extends GameLogicModule {
         mobsGroup: Phaser.Physics.Arcade.Group;
+        borderGroup: Phaser.Physics.Arcade.StaticGroup;
+
         private game: GameLogic;
-        
+
         public init(game:GameLogic): void {
             this.game = game;
             this.mobsGroup = game.scene.physics.add.group();
+            this.borderGroup = game.scene.physics.add.staticGroup();
+
             game.scene.physics.add.collider(this.mobsGroup, this.mobsGroup);
+            game.scene.physics.add.collider(this.mobsGroup, this.borderGroup);
+            
             this.game.addPhysicalComponents = this.addPhysicalComponents.bind(this);
             this.game.removePhysicalComponents = this.removePhysicalComponents.bind(this);
             
             const positionSynchronizationSystem = new PhysicsPositionSynchronizationSystem(game);
             game.ecs.addSystem(positionSynchronizationSystem);
+            
+            const size = game.config.tilesInMapSide * 32; // TODO - get value from config
+            this.createCollidableBorders(size, size);
         }
 
         private addPhysicalComponents(entity: number, x: number, y: number, radius: number = 16) {
@@ -65,6 +74,16 @@ export namespace PhaserPhysicsModule {
                 body.container.destroy();
                 body.body.destroy();
             }
+        }
+
+        private createCollidableBorders(worldWidth:number, worldHeight:number) {
+            const bordersGroup = this.borderGroup;
+            
+            bordersGroup.create(worldWidth / 2, 0).setSize(worldWidth, 1);
+            bordersGroup.create(worldWidth / 2, worldHeight).setSize(worldWidth, 1);
+            bordersGroup.create(0, worldHeight / 2).setSize(1, worldHeight);
+            bordersGroup.create(worldWidth, worldHeight / 2).setSize(1, worldHeight);
+            // bordersGroup.setVisible(false);
         }
     }
 }

@@ -14,7 +14,12 @@ import {PhaserPhysicsModule} from "../logic/modules/PhaserPhysicsModule.ts";
 import {MobsModule} from "../logic/modules/MobsModule.ts";
 import {GOAP} from "../logic/modules/goap/GoapModule.ts";
 import {FloatingNumbersDisplay} from "../display/autorpg/FloatingNumbersDisplay.ts";
-import {FrameLog} from "../logic/modules/goap/FrameLog.ts";
+import {AttackModule} from "../logic/modules/weapons/Attack.ts";
+import {SteeringModule} from "../logic/modules/SteeringModule.ts";
+import {TargetingModule} from "../logic/modules/Targeting.ts";
+import {FrameLog} from "../logic/modules/FrameLog.ts";
+import {LocomotionModule} from "../logic/modules/Locomotion.ts";
+import {GoapConnectorModule} from "../logic/modules/GoapConnectorModule.ts";
 
 export class AutoRpg extends Scene
 {
@@ -41,9 +46,14 @@ export class AutoRpg extends Scene
         this.gameLogic = new GameLogic( ecs, this, [
             new FrameLog.FrameLogModule(),
             new Tiles(),
+            new LocomotionModule(),
+            new TargetingModule(),
             new PhaserPhysicsModule.PhaserPhysicsModule(),
             new MobsModule.MobsModule(),
-            new GOAP.GoapModule()
+            new AttackModule(),
+            new SteeringModule(),
+            new GOAP.GoapModule(),
+            new GoapConnectorModule()
         ]);
         
         this.gameDisplay = new AutoRpgDisplay(this, ecs, [

@@ -85,7 +85,7 @@ export class GameLogic {
         maxElevation: 5,
         tileSize: 10,
         biologicalDecayRatePerSecond : 1,
-        plants: {},
+        plants: {}
     };
     mobs: Set<number> = new Set();
 
