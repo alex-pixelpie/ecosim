@@ -1,6 +1,6 @@
 import {Component} from "../../core/ECS.ts";
 import {MathUtils, Pos} from "../../utils/Math.ts";
-import {GameLogic, GameLogicModule, GameSystem} from "../GameLogic.ts";
+import {GameLogic, GameLogicModule, GameSystem, TimedGameSystem} from "../GameLogic.ts";
 import {PhysicsModule} from "./PhysicsModule.ts";
 import Position = PhysicsModule.Position;
 
@@ -53,7 +53,7 @@ export class TargetSelectionSystem extends GameSystem {
 
             // If we don't have a target, select one
             if (!targetSelection.target) {
-                targetSelection.target = this.selectTarget(entity, entities);
+                targetSelection.target = TargetSelectionSystem.selectTarget(this.game, entity, entities);
             }
             
             const target = targetSelection.target;
@@ -78,8 +78,8 @@ export class TargetSelectionSystem extends GameSystem {
         });
     }
 
-    private selectTarget(entity: number, entities: Set<number>): number | null {
-        const position = this.game.ecs.getComponent<Position>(entity, Position);
+    static selectTarget(game:GameLogic, entity: number, entities: Set<number>): number | null {
+        const position = game.ecs.getComponent<Position>(entity, Position);
         if (!position) {
             return null;
         }
@@ -91,7 +91,7 @@ export class TargetSelectionSystem extends GameSystem {
         }
 
         const targetsByDistance = potentialTargets.map(e => {
-            const targetPosition = this.game.ecs.getComponent<Position>(e, Position);
+            const targetPosition = game.ecs.getComponent<Position>(e, Position);
             if (!targetPosition) {
                 return null;
             }
@@ -125,6 +125,23 @@ class TargetedResetSystem extends GameSystem {
     }
 }
 
+class TargetReselectionSystem extends TimedGameSystem {
+    public componentsRequired: Set<Function> = new Set([TargetSelection]);
+
+    protected init(): void {
+        this.componentsRequired = new Set([TargetSelection]);
+    }
+
+    public updateTimed(entities: Set<number>, _: number): void {
+        entities.forEach(entity => {
+            const targetSelection = this.game.ecs.getComponent<TargetSelection>(entity, TargetSelection);
+            targetSelection.target = TargetSelectionSystem.selectTarget(this.game, entity, entities);
+        });
+    }
+}
+
+const reselectionInterval = 3;
+
 export class TargetingModule extends GameLogicModule {
     public init(game: GameLogic): void {
         const targetedResetSystem = new TargetedResetSystem(game);
@@ -132,5 +149,8 @@ export class TargetingModule extends GameLogicModule {
         
         const targetSelectionSystem = new TargetSelectionSystem(game);
         game.ecs.addSystem(targetSelectionSystem);
+        
+        const targetReselectionSystem = new TargetReselectionSystem(game, reselectionInterval);
+        game.ecs.addSystem(targetReselectionSystem);
     }
 }

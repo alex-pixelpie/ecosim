@@ -3,7 +3,7 @@ import {GameLogic, GameLogicModule, GameSystem} from "../GameLogic.ts";
 import {Pos} from "../../utils/Math.ts";
 
 export class Steering extends Component {
-    desires: Pos[] = [];
+    impulses: Pos[] = [];
 }
 
 export class SteeringResetSystem extends GameSystem {
@@ -20,7 +20,7 @@ export class SteeringResetSystem extends GameSystem {
                 return;
             }
 
-            steering.desires = [];
+            steering.impulses = [];
         });
     }
 }

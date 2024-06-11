@@ -26,7 +26,7 @@ export class GlideLocomotionSystem extends GameSystem {
             }
 
             const moveDesires = this.game.ecs.getComponent(entity, Steering);
-            if (!moveDesires || moveDesires.desires.length === 0) {
+            if (!moveDesires || moveDesires.impulses.length === 0) {
                 body.body.setVelocity(0, 0);
                 return;
             }
@@ -37,7 +37,7 @@ export class GlideLocomotionSystem extends GameSystem {
                 return;
             }
             
-            const directions = moveDesires.desires.reduce((acc, desire) => {
+            const directions = moveDesires.impulses.reduce((acc, desire) => {
                 const normalized = desire;
                 acc.x += normalized.x;
                 acc.y += normalized.y;

@@ -20,7 +20,7 @@ import {EscapeOverwhelmAction} from "./goap/actions/EscapeOverwhelmAction.ts";
 import {EscapeOverwhelmGoal} from "./goap/goals/EscapeOverwhelmGoal.ts";
 import {OverwhelmComponent} from "./OverwhelmModule.ts";
 
-const numberOfMobs = 20;
+const numberOfMobs = 200;
 
 export namespace MobsModule {
     import Goal = GOAP.Goal;

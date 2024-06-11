@@ -58,17 +58,17 @@ class GoapToSteeringDesiresSystem extends GameSystem {
                 y: position.y - enemyPosition.y
             }), this.intensity);
             
-            moveDesires.desires.push(dir);
+            moveDesires.impulses.push(dir);
         });
     }
-        
+
     private processMoveAction(entity: number): void {
-        const moveDesires = this.game.ecs.getComponent<Steering>(entity, Steering);
+        const steering = this.game.ecs.getComponent<Steering>(entity, Steering);
         const rangeFromTarget = this.game.ecs.getComponent<RangeFromTarget>(entity, RangeFromTarget);
         const position = this.game.ecs.getComponent<Position>(entity, Position);
         const targetSelection = this.game.ecs.getComponent<TargetSelection>(entity, TargetSelection);
 
-        if (!moveDesires || !rangeFromTarget || !position || !targetSelection?.target) {
+        if (!steering || !rangeFromTarget || !position || !targetSelection?.target) {
             return;
         }
 
@@ -80,13 +80,60 @@ class GoapToSteeringDesiresSystem extends GameSystem {
                 x: position.x - targetSelection.x,
                 y: position.y - targetSelection.y
             }), this.intensity);
-            moveDesires.desires.push(dir);
+            steering.impulses.push(dir);
         } else if (tooFar) {
             const dir = MathUtils.multiply(MathUtils.normalize({
                 x: targetSelection.x - position.x,
                 y: targetSelection.y - position.y
             }), this.intensity);
-            moveDesires.desires.push(dir);
+            steering.impulses.push(dir);
+        }
+        
+        this.avoidWalls(steering, position);
+    }
+    
+    private avoidWalls(steering: Steering, position: PhysicsModule.Position) {
+        // Add wall avoidance
+        const avoidanceIntensity = 1; // Adjust this value based on desired avoidance strength
+        const wallProximityThreshold = 500; // Adjust this value based on how close is "too close" to a wall
+
+        const size = this.game.config.tilesInMapSide * 32; // TODO - get value from config
+
+        const worldWidth = size - 100; // Replace with actual world width
+        const worldHeight = size - 100; // Replace with actual world height
+
+        // Calculate nearest point on each wall
+        const nearestPointToLeftWall = { x: 0, y: position.y };
+        const nearestPointToRightWall = { x: worldWidth, y: position.y };
+        const nearestPointToTopWall = { x: position.x, y: 0 };
+        const nearestPointToBottomWall = { x: position.x, y: worldHeight };
+
+        // Calculate distances to the nearest point on each wall
+        const distanceToLeftWall = Math.hypot(position.x - nearestPointToLeftWall.x, position.y - nearestPointToLeftWall.y);
+        const distanceToRightWall = Math.hypot(position.x - nearestPointToRightWall.x, position.y - nearestPointToRightWall.y);
+        const distanceToTopWall = Math.hypot(position.x - nearestPointToTopWall.x, position.y - nearestPointToTopWall.y);
+        const distanceToBottomWall = Math.hypot(position.x - nearestPointToBottomWall.x, position.y - nearestPointToBottomWall.y);
+
+        // Calculate avoidance impulses based on proximity to nearest point on walls
+        if (distanceToLeftWall < wallProximityThreshold) {
+            const intensity = avoidanceIntensity * (1 - distanceToLeftWall / wallProximityThreshold);
+            const impulse = { x: intensity, y: 0 };
+            steering.impulses.push(impulse);
+        }
+        if (distanceToRightWall < wallProximityThreshold) {
+            const intensity = avoidanceIntensity * (1 - distanceToRightWall / wallProximityThreshold);
+            const impulse = { x: -intensity, y: 0 };
+            steering.impulses.push(impulse);
+        }
+        if (distanceToTopWall < wallProximityThreshold) {
+            const intensity = avoidanceIntensity * (1 - distanceToTopWall / wallProximityThreshold);
+            const impulse = { x: 0, y: intensity };
+            steering.impulses.push(impulse);
+        }
+        if (distanceToBottomWall < wallProximityThreshold) {
+            const intensity = avoidanceIntensity * (1 - distanceToBottomWall / wallProximityThreshold);
+            const impulse = { x: 0, y: -intensity };
+            steering.impulses.push(impulse);
         }
     }
 }
