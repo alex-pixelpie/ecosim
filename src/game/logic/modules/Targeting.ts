@@ -67,7 +67,7 @@ export class TargetSelectionSystem extends GameSystem {
                 targeted.targetedBy.push(entity);
             }
             
-            // If we have a target, track its position
+            // Track the target's position
             const targetPosition = this.game.ecs.getComponent(target, Position);
 
             if (targetPosition) {

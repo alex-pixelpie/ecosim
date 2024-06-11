@@ -22,23 +22,25 @@ import {OverwhelmComponent} from "./OverwhelmModule.ts";
 
 const numberOfMobs = 200;
 
+export enum MobType {
+    Skeleton = 'Skeleton',
+    ElfArcher = 'ElfArcher'
+}
+
+export class Mob extends Component {
+    public constructor(public type: MobType) {
+        super();
+    }
+}
+
+export class MobsCounter extends Component {
+    public constructor(public count: number) {
+        super();
+    }
+}
+
 export namespace MobsModule {
     import Goal = GOAP.Goal;
-
-    export enum MobType {
-        Skeleton = 'Skeleton',
-        ElfArcher = 'ElfArcher'
-    }
-    export class Mob extends Component {
-        public constructor(public type: MobType) {
-            super();
-        }
-    }
-    export class MobsCounter extends Component {
-        public constructor(public count: number) {
-            super();
-        }
-    }
 
     const skeletonSaberConfig = {
         damageMax: 20,
@@ -153,7 +155,7 @@ export namespace MobsModule {
             MobSpawnSystem.addTargeting(game, entity);
 
             // Movement
-            MobSpawnSystem.addMovement(game, entity, 220);
+            MobSpawnSystem.addMovement(game, entity, 300);
 
             // Combat
             MobSpawnSystem.addCombat(game, entity, 100, elfArcherBowConfig);

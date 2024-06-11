@@ -21,6 +21,7 @@ import {FrameLog} from "../logic/modules/FrameLog.ts";
 import {LocomotionModule} from "../logic/modules/Locomotion.ts";
 import {GoapConnectorModule} from "../logic/modules/GoapConnectorModule.ts";
 import {OverwhelmModule} from "../logic/modules/OverwhelmModule.ts";
+import {CorpsesDisplayModule} from "../display/autorpg/CorpsesDisplayModule.ts";
 
 export class AutoRpg extends Scene
 {
@@ -62,6 +63,7 @@ export class AutoRpg extends Scene
             new CameraModule(),
             new DungeonFloorDisplayModule(),
             new MobsDisplay(),
+            new CorpsesDisplayModule(),
             new TileSelectionModule(),
             new FloatingNumbersDisplay()
         ]);

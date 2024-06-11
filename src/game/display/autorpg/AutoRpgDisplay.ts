@@ -5,12 +5,11 @@ import Tile = TilesModule.Tile;
 import {PhysicsModule} from "../../logic/modules/PhysicsModule.ts";
 import Position = PhysicsModule.Position;
 import {DisplayModule} from "../DisplayModule.ts";
-import {MobsModule} from "../../logic/modules/MobsModule.ts";
-import Mob = MobsModule.Mob;
 import {PhaserPhysicsModule} from "../../logic/modules/PhaserPhysicsModule.ts";
-import {Health} from "../../logic/modules/weapons/Attack.ts";
+import {Corpse, Health} from "../../logic/modules/weapons/Attack.ts";
 import {TargetSelection} from "../../logic/modules/Targeting.ts";
 import {FrameLog} from "../../logic/modules/FrameLog.ts";
+import {Mob} from "../../logic/modules/MobsModule.ts";
 
 const MAP_SIZE = 64;
 const WHITE_TILE : number = 8;
@@ -21,6 +20,15 @@ export class TileDisplayData {
     public position: {x: number, y: number};
 }
 
+export type CorpseData = {
+    rotFactor: number;
+    id: number;
+    x: number;
+    y: number;
+    type: string;
+    damage?: number;
+    criticalMultiplier?: number;
+}
 
 export type MobData = {
     id: number;
@@ -50,12 +58,14 @@ export class AutoRpgDisplay {
     ecs: ECS;
     tiles: TileDisplayData[][];
     mobs: MobData[] = [];
+    corpses: CorpseData[] = [];
     config:AutoRpgDisplayConfig  = new AutoRpgDisplayConfig();
     
     // Layers
     mobUi: Phaser.GameObjects.Container;
     overlayUi: Phaser.GameObjects.Container;
     mobsLayer: Phaser.GameObjects.Container;
+    corpsesLayer: Phaser.GameObjects.Container;
     timeFromStart: number = 0;
     
     constructor(scene: Phaser.Scene, ecs:ECS, modules: AutoRpgDisplayModule[]) {
@@ -67,6 +77,7 @@ export class AutoRpgDisplay {
         this.tiles = Array.from({length: MAP_SIZE}, () => Array.from({length: MAP_SIZE}, () => new TileDisplayData()));
         modules.forEach(module => module.init(this));
 
+        this.corpsesLayer = scene.add.container();
         this.mobsLayer = scene.add.container();
         this.mobUi = scene.add.container();
         this.overlayUi = scene.add.container();
@@ -76,6 +87,7 @@ export class AutoRpgDisplay {
         this.timeFromStart += delta;
         this.updateTiles();
         this.updateMobs();
+        this.updateCorpses();
         this.modules.forEach(module => module.update(delta));
 
         this.mobsLayer.sort('y');
@@ -138,5 +150,33 @@ export class AutoRpgDisplay {
         });
 
         this.mobs = mobs;
+    }
+
+    private updateCorpses() {
+        const entities = this.ecs.getEntitiesWithComponent(Corpse);
+        
+        const corpses = entities.map(entity => {
+            const corpse = this.ecs.getComponent(entity, Corpse);
+            const log = this.ecs.getComponent(entity, FrameLog.FrameLog);
+            
+            const damage = log?.logs.reduce((acc, log) => log.type === FrameLog.FrameLogType.TakeDamage ? acc + log.value : acc, 0);
+            const criticalMultiplier = log?.logs.reduce((acc, log) => log.type === FrameLog.FrameLogType.TakeCriticalDamage ? log.value : acc, 0);
+            
+            const currentAge = corpse.age;
+            const maxAge = corpse.maxAge;
+            const rotFactor = 1 - (currentAge / maxAge); 
+            
+            return {
+                id: entity,
+                x: corpse?.x || 0,
+                y: corpse?.y || 0,
+                type: corpse?.type || 'skeleton',
+                damage,
+                criticalMultiplier,
+                rotFactor
+            };
+        });
+        
+        this.corpses = corpses;
     }
 }

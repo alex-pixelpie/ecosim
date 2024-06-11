@@ -3,6 +3,9 @@ import {GameLogic, GameLogicModule, GameSystem} from "../../GameLogic.ts";
 import {Weapon} from "./Weapons.ts";
 import {RangeFromTarget, TargetSelection} from "../Targeting.ts";
 import {FrameLog} from "../FrameLog.ts";
+import {Mob, MobType} from "../MobsModule.ts";
+import {PhysicsModule} from "../PhysicsModule.ts";
+import Position = PhysicsModule.Position;
 
 export class Health extends Component {
     maxValue: number;
@@ -11,6 +14,38 @@ export class Health extends Component {
         super();
         this.maxValue = value;
     }
+}
+
+export class Corpse extends Component {
+    public maxAge = 30;
+    public age = 0;
+    
+    constructor(public type: MobType, public x: number, public y: number) {
+        super();
+    }
+}
+
+class CorpseRotSystem extends GameSystem {
+    public componentsRequired: Set<Function> = new Set([Corpse]);
+
+    protected init(): void {
+        this.componentsRequired = new Set([Corpse]);
+    }
+    
+    update(entities: Set<number>, delta:number): void {
+        for (const entity of entities) {
+            const corpse = this.game.ecs.getComponent(entity, Corpse);
+            if (!corpse){
+                continue;
+            }
+            
+            corpse.age+=delta;
+            if (corpse.age > corpse.maxAge){
+                this.game.ecs.removeEntity(entity);
+            }
+        }
+    }
+
 }
 
 class DeathSystem extends GameSystem {
@@ -29,10 +64,29 @@ class DeathSystem extends GameSystem {
             if (!health || health.value > 0) {
                 continue;
             }
+            
+            // Move Mob and MobMobType away from MobsModule
+            this.dropCorpse(game, entity);
 
             game.removePhysicalComponents(entity);
             game.mobs.delete(entity);
             game.ecs.removeEntity(entity);
+        }
+    }
+
+    private dropCorpse(game: GameLogic, entity: number) {
+        const position = game.ecs.getComponent(entity, Position);
+        const mob = game.ecs.getComponent(entity, Mob);
+        const frameLog = game.ecs.getComponent(entity, FrameLog.FrameLog);
+        
+        if (position && mob && frameLog){
+            const corpseEntity = game.ecs.addEntity();
+            game.ecs.addComponent(corpseEntity, new Corpse(mob.type, position.x, position.y));
+            
+            // Copy the frame log to the corpse
+            const log = new FrameLog.FrameLog();
+            log.logs = [...frameLog.logs];
+            game.ecs.addComponent(corpseEntity, log);
         }
     }
 }
@@ -109,5 +163,8 @@ export class AttackModule extends GameLogicModule {
         
         const deathSystem = new DeathSystem(game);
         game.ecs.addSystem(deathSystem);
+        
+        const corpseRotSystem = new CorpseRotSystem(game);
+        game.ecs.addSystem(corpseRotSystem);
     }
 }
