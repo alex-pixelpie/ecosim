@@ -77,6 +77,9 @@ export class AutoRpgDisplay {
         this.updateTiles();
         this.updateMobs();
         this.modules.forEach(module => module.update(delta));
+
+        this.mobsLayer.sort('y');
+
     }
     
     private updateTiles(){

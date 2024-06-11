@@ -20,6 +20,7 @@ import {TargetingModule} from "../logic/modules/Targeting.ts";
 import {FrameLog} from "../logic/modules/FrameLog.ts";
 import {LocomotionModule} from "../logic/modules/Locomotion.ts";
 import {GoapConnectorModule} from "../logic/modules/GoapConnectorModule.ts";
+import {OverwhelmModule} from "../logic/modules/OverwhelmModule.ts";
 
 export class AutoRpg extends Scene
 {
@@ -47,13 +48,14 @@ export class AutoRpg extends Scene
             new FrameLog.FrameLogModule(),
             new Tiles(),
             new LocomotionModule(),
-            new TargetingModule(),
             new PhaserPhysicsModule.PhaserPhysicsModule(),
             new MobsModule.MobsModule(),
             new AttackModule(),
+            new OverwhelmModule(),
             new SteeringModule(),
             new GOAP.GoapModule(),
-            new GoapConnectorModule()
+            new GoapConnectorModule(),
+            new TargetingModule()
         ]);
         
         this.gameDisplay = new AutoRpgDisplay(this, ecs, [

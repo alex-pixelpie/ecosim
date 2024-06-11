@@ -1,6 +1,6 @@
 import {Component} from "../../core/ECS.ts";
 import {MathUtils, Pos} from "../../utils/Math.ts";
-import {GameLogic, GameLogicModule, TimedGameSystem} from "../GameLogic.ts";
+import {GameLogic, GameLogicModule, GameSystem} from "../GameLogic.ts";
 import {PhysicsModule} from "./PhysicsModule.ts";
 import Position = PhysicsModule.Position;
 
@@ -8,6 +8,10 @@ export class TargetSelection implements Component {
     target: number | null = null;
     x: number = 0;
     y: number = 0;
+}
+
+export class Targeted implements Component {
+    targetedBy: number[] = [];
 }
 
 export class RangeFromTarget extends Component {
@@ -31,14 +35,14 @@ export class RangeFromTarget extends Component {
     }
 }
 
-export class TargetSelectionSystem extends TimedGameSystem {
+export class TargetSelectionSystem extends GameSystem {
     public componentsRequired: Set<Function> = new Set([TargetSelection]);
 
     protected init(): void {
         this.componentsRequired = new Set([TargetSelection]);
     }
 
-    public updateTimed(entities: Set<number>, _: number): void {
+    public update(entities: Set<number>, _: number): void {
         entities.forEach(entity => {
             const targetSelection = this.game.ecs.getComponent<TargetSelection>(entity, TargetSelection);
 
@@ -52,15 +56,24 @@ export class TargetSelectionSystem extends TimedGameSystem {
                 targetSelection.target = this.selectTarget(entity, entities);
             }
             
+            const target = targetSelection.target;
+            if (!target) {
+                return;
+            }
+            
+            // Track that we are targeting this entity
+            const targeted = this.game.ecs.getComponent<Targeted>(target, Targeted);
+            if (targeted) {
+                targeted.targetedBy.push(entity);
+            }
+            
             // If we have a target, track its position
-            if (targetSelection.target) {
-                const targetPosition = this.game.ecs.getComponent<Position>(targetSelection.target, Position);
+            const targetPosition = this.game.ecs.getComponent(target, Position);
 
-                if (targetPosition) {
-                    targetSelection.x = targetPosition.x;
-                    targetSelection.y = targetPosition.y;
-                    return;
-                }
+            if (targetPosition) {
+                targetSelection.x = targetPosition.x;
+                targetSelection.y = targetPosition.y;
+                return;
             }
         });
     }
@@ -97,11 +110,27 @@ export class TargetSelectionSystem extends TimedGameSystem {
     }
 }
 
-const updateInterval = 1;
+class TargetedResetSystem extends GameSystem {
+    public componentsRequired: Set<Function> = new Set([Targeted]);
+
+    protected init(): void {
+        this.componentsRequired = new Set([Targeted]);
+    }
+
+    public update(entities: Set<number>, _: number): void {
+        entities.forEach(entity => {
+            const targeted = this.game.ecs.getComponent<Targeted>(entity, Targeted);
+            targeted.targetedBy = [];
+        });
+    }
+}
 
 export class TargetingModule extends GameLogicModule {
     public init(game: GameLogic): void {
-        const targetSelectionSystem = new TargetSelectionSystem(game, updateInterval);
-        game.ecs.addSystem(targetSelectionSystem);    
+        const targetedResetSystem = new TargetedResetSystem(game);
+        game.ecs.addSystem(targetedResetSystem);
+        
+        const targetSelectionSystem = new TargetSelectionSystem(game);
+        game.ecs.addSystem(targetSelectionSystem);
     }
 }

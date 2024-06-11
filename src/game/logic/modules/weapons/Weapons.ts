@@ -88,6 +88,14 @@ export class Weapon extends Component {
     public lastAttackTime: number = 0;
     public appliedEffectThisAttack: boolean = false;
 
+    public get dps(): number {
+        return this.averageDamage / this.config.attackDuration;
+    }
+    
+    public get averageDamage(): number {
+        return (this.config.damageMin + this.config.damageMax) / 2;
+    }
+    
     public get damage(): number {
         const damageRange = this.config.damageMax - this.config.damageMin;
         return this.config.damageMin + Math.floor(Math.random() * damageRange);

@@ -78,11 +78,12 @@ export namespace PhaserPhysicsModule {
 
         private createCollidableBorders(worldWidth:number, worldHeight:number) {
             const bordersGroup = this.borderGroup;
+            const offset = 50;
             
-            bordersGroup.create(worldWidth / 2, 0).setSize(worldWidth, 1);
-            bordersGroup.create(worldWidth / 2, worldHeight).setSize(worldWidth, 1);
-            bordersGroup.create(0, worldHeight / 2).setSize(1, worldHeight);
-            bordersGroup.create(worldWidth, worldHeight / 2).setSize(1, worldHeight);
+            bordersGroup.create(worldWidth / 2, offset).setSize(worldWidth, 1);
+            bordersGroup.create(worldWidth / 2, worldHeight - offset).setSize(worldWidth, 1);
+            bordersGroup.create(offset, worldHeight / 2).setSize(1, worldHeight);
+            bordersGroup.create(worldWidth - offset, worldHeight / 2).setSize(1, worldHeight);
             // bordersGroup.setVisible(false);
         }
     }

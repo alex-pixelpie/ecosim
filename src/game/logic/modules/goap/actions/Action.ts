@@ -1,4 +1,4 @@
-import {GameLogic} from "../../GameLogic.ts";
+import {GameLogic} from "../../../GameLogic.ts";
 
 export interface Action {
     preconditions: Record<string, boolean>;

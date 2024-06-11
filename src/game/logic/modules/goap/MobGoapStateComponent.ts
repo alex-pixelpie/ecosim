@@ -1,9 +1,15 @@
 import {Component} from "../../../core/ECS.ts";
 
-export class MobGoapStateComponent implements Component {
-    state: Record<string, boolean>;
+export enum GoapState {
+    hasTarget = "hasTarget",
+    inRange = "inRange",
+    overwhelmed = "overwhelmed"
+}
 
-    constructor(state: Record<string, boolean>) {
+export class MobGoapStateComponent implements Component {
+    state: Record<GoapState, boolean>;
+
+    constructor(state: Record<GoapState, boolean>) {
         this.state = state;
     }
 }

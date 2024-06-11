@@ -1,9 +1,7 @@
 import {GameLogic, GameLogicModule, GameSystem} from "../../GameLogic.ts";
 import {Component} from "../../../core/ECS.ts";
-import {TargetSelectionSystem} from "./../Targeting.ts";
 import {MobGoapStateComponent} from "./MobGoapStateComponent.ts";
-import {Action} from "./Action.ts";
-import {MobGoapState} from "./MobGoapState.ts";
+import {Action} from "./actions/Action.ts";
 
 export namespace GOAP {
     class Planner {
@@ -41,15 +39,6 @@ export namespace GOAP {
         updatePriority(state: Record<string, boolean>): void;
     }
 
-    export class KillEnemiesGoal implements Goal {
-        desiredState = { [MobGoapState.hasTarget]: false, [MobGoapState.inRange]: true };
-        priority = 1;
-
-        updatePriority(_: Record<string, boolean>): void {
-            this.priority = 1000;
-        }
-    }
-
     export class GoalsComponent implements Component {
         goals: Goal[];
 
@@ -78,6 +67,7 @@ export namespace GOAP {
     class ActionSystem extends GameSystem {
         public componentsRequired: Set<Function> = new Set([ActionComponent, MobGoapStateComponent, GoalsComponent]);
         private planner: Planner;
+        private goal: GOAP.Goal;
 
         protected init(): void {
             this.componentsRequired = new Set([ActionComponent, MobGoapStateComponent, GoalsComponent]);
@@ -92,6 +82,11 @@ export namespace GOAP {
                 
                 goalsComponent.updatePriorities(stateComponent.state);
 
+                const goals = goalsComponent.goals.sort((a, b) => a.priority - b.priority);
+                if (goals[0] !== this.goal) {
+                    this.createPlan(entity);
+                }
+                
                 if (actionComponent.currentAction && !actionComponent.currentAction.hasCompleted(entity, this.game)) {
                     return;
                 }
@@ -116,22 +111,17 @@ export namespace GOAP {
             const goalsComponent = this.game.ecs.getComponent<GoalsComponent>(entity, GoalsComponent);
             const availableActionsComponent = this.game.ecs.getComponent<AvailableActionsComponent>(entity, AvailableActionsComponent);
 
-            let goals = goalsComponent.goals.sort((a, b) => a.priority - b.priority);
-            let goal = goals[0];
+            const goals = goalsComponent.goals.sort((a, b) => a.priority - b.priority);
+            this.goal = goals[0];
 
-            actionComponent.plan = this.planner.plan(availableActionsComponent.actions, goal, stateComponent.state);
+            actionComponent.plan = this.planner.plan(availableActionsComponent.actions, this.goal, stateComponent.state);
         }
     }
-    
-    const interval:number = 0.3;
     
     export class GoapModule extends GameLogicModule {
         public init(game: GameLogic): void {
             const actionSystem = new ActionSystem(game);
             game.ecs.addSystem(actionSystem);
-            
-            const targetingSystem = new TargetSelectionSystem(game, interval);
-            game.ecs.addSystem(targetingSystem);
         }
     }
 }
