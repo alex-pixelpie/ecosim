@@ -28,7 +28,7 @@ export class Healthbar {
         }
 
         this.maxWidth = this.calculateWidth(healthData.maxHealth);
-        const spriteBottomY = sprite.y + sprite.displayHeight / 2 + this.offsetBottom;
+        const spriteBottomY = this.onTop ? sprite.y - sprite.displayHeight / 2 + this.offsetBottom : sprite.y + sprite.displayHeight / 2 + this.offsetBottom;
         const healthBarX = sprite.x - this.maxWidth / 2;
 
         this.healthBar.clear();

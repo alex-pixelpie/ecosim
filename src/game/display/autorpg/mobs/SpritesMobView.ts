@@ -26,7 +26,7 @@ export class SpritesMobView extends MobView {
         });
 
         // Initialize health bar
-        this.healthbar = new Healthbar(this.display);
+        this.healthbar = new Healthbar(this.display, true);
         
         // Initialize group ring
         this.groupRing = new GroupRing(this.display);
