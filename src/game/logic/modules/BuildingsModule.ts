@@ -1,7 +1,7 @@
 import {GameLogic, GameLogicModule, GameSystem} from "../GameLogic.ts";
 import {Component} from "../../core/ECS.ts";
 import {Group, Targetable} from "./Targeting.ts";
-import {Health} from "./DeathModule.ts";
+import {Dead, DieAndDrop, DropType, Health} from "./DeathModule.ts";
 import {EventBus, GameEvents} from "../../EventBus.ts";
 import {FrameLog} from "./FrameLog.ts";
 
@@ -27,11 +27,10 @@ class BuildingsDeathSystem extends GameSystem {
             const health = this.game.ecs.getComponent<Health>(entity, Health);
              
             if (health.value <= 0){
-                // TODO - replace with death effects by type
+                this.game.ecs.addComponent(entity, new Dead());
+
                 const group = this.game.ecs.getComponent(entity, Group);
                 const victory = !!(group.id === 0 ? 1 : 0);
-                
-                this.game.ecs.removeEntity(entity);
                 
                 EventBus.emit(GameEvents.GameOver, {victory});
             }
@@ -51,6 +50,7 @@ export class BuildingsModule extends GameLogicModule {
         
         const enemyBase = game.ecs.addEntity();
         game.ecs.addComponent(enemyBase, new Building());
+        game.ecs.addComponent(enemyBase, new DieAndDrop([{type: DropType.Ruin}]));
         game.ecs.addComponent(enemyBase, new Health(1000));
         game.ecs.addComponent(enemyBase, new Group(0));
         game.ecs.addComponent(enemyBase, new Targetable());
@@ -59,6 +59,7 @@ export class BuildingsModule extends GameLogicModule {
 
         const playerBase = game.ecs.addEntity();
         game.ecs.addComponent(playerBase, new Building());
+        game.ecs.addComponent(playerBase, new DieAndDrop([{type: DropType.Ruin}]));
         game.ecs.addComponent(playerBase, new Health(1000));
         game.ecs.addComponent(playerBase, new Group(1));
         game.ecs.addComponent(playerBase, new Targetable());

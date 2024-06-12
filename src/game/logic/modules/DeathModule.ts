@@ -4,6 +4,7 @@ import {GameLogic, GameLogicModule, GameSystem} from "../GameLogic.ts";
 import {FrameLog} from "./FrameLog.ts";
 import {PhysicsModule} from "./PhysicsModule.ts";
 import Position = PhysicsModule.Position;
+import {Building, BuildingType} from "./BuildingsModule.ts";
 
 export class Health extends Component {
     maxValue: number;
@@ -21,6 +22,12 @@ export class Corpse extends Component {
     public age = 0;
 
     constructor(public type: MobType, public x: number, public y: number) {
+        super();
+    }
+}
+
+export class Ruin extends Component {
+    public constructor(public type:BuildingType = BuildingType.Base, public x:number, public y:number) {
         super();
     }
 }
@@ -49,7 +56,7 @@ class CorpseRotSystem extends GameSystem {
 
 export enum DropType {
     Corpse = 1,
-    Coin = 2,
+    Ruin = 2,
 }
 
 export interface DropDefinition {
@@ -61,6 +68,80 @@ export interface DropDefinition {
 export class DieAndDrop extends Component {
     public constructor(public drops: DropDefinition[] = []) {
         super();
+    }
+}
+
+export class Dead extends Component {}
+
+class DeadRemovalSystem extends GameSystem {
+    public componentsRequired: Set<Function> = new Set([Dead]);
+
+    protected init(): void {
+        this.componentsRequired = new Set([Dead]);
+    }
+
+    update(entities: Set<number>, _:number): void {
+        for (const entity of entities) {
+            this.game.ecs.removeEntity(entity);
+        }
+    }
+}
+
+class DropsSystem extends GameSystem {
+    public componentsRequired: Set<Function> = new Set([Dead, DieAndDrop]);
+
+    protected init(): void {
+        this.componentsRequired = new Set([Dead, DieAndDrop]);
+    }
+
+    update(entities: Set<number>, _:number): void {
+        for (const entity of entities) {
+            const drops = this.game.ecs.getComponent(entity, DieAndDrop);
+            for (const drop of drops.drops) {
+                if (!drop.chance || Math.random() < drop.chance) {
+                    switch (drop.type) {
+                        case DropType.Corpse:
+                            this.dropCorpse(entity);
+                            break;
+                        case DropType.Ruin:
+                            this.dropRuin(entity);
+                            break;
+                    }
+                }
+            }
+        }
+    }
+
+    private dropCorpse(entity: number) {
+        const position = this.game.ecs.getComponent(entity, Position);
+        const mob = this.game.ecs.getComponent(entity, Mob);
+        const frameLog = this.game.ecs.getComponent(entity, FrameLog.FrameLog);
+
+        if (position && mob && frameLog){
+            const corpseEntity = this.game.ecs.addEntity();
+            this.game.ecs.addComponent(corpseEntity, new Corpse(mob.type, position.x, position.y));
+
+            // Copy the frame log to the corpse
+            const log = new FrameLog.FrameLog();
+            log.logs = [...frameLog.logs];
+            this.game.ecs.addComponent(corpseEntity, log);
+        }
+    }
+
+    private dropRuin(entity: number) {
+        const position = this.game.ecs.getComponent(entity, Position);
+        const building = this.game.ecs.getComponent(entity, Building);
+        const frameLog = this.game.ecs.getComponent(entity, FrameLog.FrameLog);
+
+        if (position && building && frameLog){
+            const ruinEntity = this.game.ecs.addEntity();
+            this.game.ecs.addComponent(ruinEntity, new Ruin(building.type, position.x, position.y));
+
+            // Copy the frame log to the ruin
+            const log = new FrameLog.FrameLog();
+            log.logs = [...frameLog.logs];
+            this.game.ecs.addComponent(ruinEntity, log);
+        }
     }
 }
 
@@ -81,54 +162,23 @@ class DeathSystem extends GameSystem {
                 continue;
             }
 
-            const drops = game.ecs.getComponent(entity, DieAndDrop);
-            if (drops){
-                this.dropItems(game, entity, drops);
-            }
-
-            game.removePhysicalComponents(entity);
-            game.mobs.delete(entity);
-            game.ecs.removeEntity(entity);
-        }
-    }
-
-    private dropCorpse(game: GameLogic, entity: number) {
-        const position = game.ecs.getComponent(entity, Position);
-        const mob = game.ecs.getComponent(entity, Mob);
-        const frameLog = game.ecs.getComponent(entity, FrameLog.FrameLog);
-
-        if (position && mob && frameLog){
-            const corpseEntity = game.ecs.addEntity();
-            game.ecs.addComponent(corpseEntity, new Corpse(mob.type, position.x, position.y));
-
-            // Copy the frame log to the corpse
-            const log = new FrameLog.FrameLog();
-            log.logs = [...frameLog.logs];
-            game.ecs.addComponent(corpseEntity, log);
-        }
-    }
-
-    private dropItems(game: GameLogic, entity: number, drops: DieAndDrop) {
-        for (const drop of drops.drops) {
-            if (!drop.chance || Math.random() < drop.chance) {
-                switch (drop.type) {
-                    case DropType.Corpse:
-                        this.dropCorpse(game, entity);
-                        break;
-                    case DropType.Coin:
-                        console.log("Dropping coins not implemented");
-                        break;
-                }
-            }
+            game.ecs.addComponent(entity, new Dead());
+            game.ecs.removeComponent(entity, Mortality);
         }
     }
 }
 
 export class DeathModule extends GameLogicModule {
     public init(game: GameLogic): void {
+        const deadRemovalSystem = new DeadRemovalSystem(game);
+        game.ecs.addSystem(deadRemovalSystem);
+        
         const deathSystem = new DeathSystem(game);
         game.ecs.addSystem(deathSystem);
 
+        const dropsSystem = new DropsSystem(game);
+        game.ecs.addSystem(dropsSystem);
+        
         const corpseRotSystem = new CorpseRotSystem(game);
         game.ecs.addSystem(corpseRotSystem);
     }

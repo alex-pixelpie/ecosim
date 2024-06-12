@@ -33,8 +33,8 @@ export class Preloader extends Scene
         this.load.image('grassland-tiles', 'grassland-tiles.png');
         
         this.load.image('group-ring', 'group-ring.png');
-        this.load.image('castle', 'castle.png');
-        
+        this.load.spritesheet('castle', 'castle.png', { frameWidth: 256, frameHeight: 256 });
+
         // Skeleton
         this.load.spritesheet('skeleton-idle', './characters/skeleton/idle.png', { frameWidth: 150, frameHeight: 150 });
         this.load.spritesheet('skeleton-walk', './characters/skeleton/walk.png', { frameWidth: 150, frameHeight: 150 });

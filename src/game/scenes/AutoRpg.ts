@@ -25,6 +25,7 @@ import {CorpsesDisplayModule} from "../display/autorpg/CorpsesDisplayModule.ts";
 import {DeathModule} from "../logic/modules/DeathModule.ts";
 import {BuildingsModule} from "../logic/modules/BuildingsModule.ts";
 import {BuildingsDisplayModule} from "../display/autorpg/BuildingsDisplayModule.ts";
+import {RuinsDisplayModule} from "../display/autorpg/RuinsDisplayModule.ts";
 
 export class AutoRpg extends Scene
 {
@@ -70,6 +71,7 @@ export class AutoRpg extends Scene
             new CameraModule(),
             new DungeonFloorDisplayModule(),
             new MobsDisplay(),
+            new RuinsDisplayModule(),
             new BuildingsDisplayModule(),
             new CorpsesDisplayModule(),
             new TileSelectionModule(),

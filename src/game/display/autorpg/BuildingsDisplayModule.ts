@@ -33,6 +33,8 @@ enum BuildingKeys {
     Base = "castle"
 }
 
+const destructionStages = 3; // TODO - config this shit
+
 export class BuildingsDisplayModule extends DisplayModule<AutoRpgDisplay> {
     private display: AutoRpgDisplay;
     private buildings = new Map<number, BuildingView>();
@@ -57,6 +59,8 @@ export class BuildingsDisplayModule extends DisplayModule<AutoRpgDisplay> {
             }
             view.healthbar.update(building as HealthData, view.sprite);
             view.groupRing.update(building, view.sprite);
+            const destructionFactor = 1 - (building.health as number) / (building.maxHealth as number);
+            view.sprite.setFrame(Math.floor(destructionFactor * destructionStages));
         });
     }
 }

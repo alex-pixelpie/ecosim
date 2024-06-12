@@ -9,7 +9,7 @@ import {PhaserPhysicsModule} from "../../logic/modules/PhaserPhysicsModule.ts";
 import {Group, TargetSelection} from "../../logic/modules/Targeting.ts";
 import {FrameLog} from "../../logic/modules/FrameLog.ts";
 import {Mob} from "../../logic/modules/MobsModule.ts";
-import {Corpse, Health} from "../../logic/modules/DeathModule.ts";
+import {Corpse, Health, Ruin} from "../../logic/modules/DeathModule.ts";
 import {Building} from "../../logic/modules/BuildingsModule.ts";
 
 const MAP_SIZE = 64;
@@ -29,6 +29,13 @@ export type CorpseData = {
     type: string;
     damage?: number;
     criticalMultiplier?: number;
+}
+
+export type RuinData = {
+    id: number;
+    x: number;
+    y: number;
+    type: string;
 }
 
 export type MobData = {
@@ -74,6 +81,7 @@ export class AutoRpgDisplay {
     mobs: MobData[] = [];
     corpses: CorpseData[] = [];
     buildings: BuildingData[] = [];
+    ruins: RuinData[] = [];
     config:AutoRpgDisplayConfig  = new AutoRpgDisplayConfig();
     
     // Layers
@@ -106,6 +114,7 @@ export class AutoRpgDisplay {
         this.updateMobs();
         this.updateCorpses();
         this.updateBuildings();
+        this.updateRuins();
         this.modules.forEach(module => module.update(delta));
 
         this.mobsLayer.sort('y');
@@ -230,5 +239,22 @@ export class AutoRpgDisplay {
         });
 
         this.buildings = buildings;
+    }
+
+    private updateRuins() {
+        const entities = this.ecs.getEntitiesWithComponent(Ruin);
+        
+        const ruins = entities.map(entity => {
+            const ruin = this.ecs.getComponent(entity, Ruin);
+            
+            return {
+                id: entity,
+                x: ruin?.x || 0,
+                y: ruin?.y || 0,
+                type: ruin?.type || 'castle'
+            };
+        });
+        
+        this.ruins = ruins;
     }
 }
