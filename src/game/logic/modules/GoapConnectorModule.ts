@@ -63,10 +63,10 @@ class GoapToSteeringDesiresSystem extends GameSystem {
     }
 
     private processMoveAction(entity: number): void {
-        const steering = this.game.ecs.getComponent<Steering>(entity, Steering);
-        const rangeFromTarget = this.game.ecs.getComponent<RangeFromTarget>(entity, RangeFromTarget);
-        const position = this.game.ecs.getComponent<Position>(entity, Position);
-        const targetSelection = this.game.ecs.getComponent<TargetSelection>(entity, TargetSelection);
+        const steering = this.game.ecs.getComponent(entity, Steering);
+        const rangeFromTarget = this.game.ecs.getComponent(entity, RangeFromTarget);
+        const position = this.game.ecs.getComponent(entity, Position);
+        const targetSelection = this.game.ecs.getComponent(entity, TargetSelection);
 
         if (!steering || !rangeFromTarget || !position || !targetSelection?.target) {
             return;

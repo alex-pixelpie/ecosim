@@ -14,5 +14,6 @@ export const enum UiEvents {
 }
 
 export const enum GameEvents {
-    GameOver = 'game-over'
+    GameOver = 'game-over',
+    GameStart = 'game-start',
 }

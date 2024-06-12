@@ -33,7 +33,7 @@ enum BuildingKeys {
     Base = "castle"
 }
 
-const destructionStages = 3; // TODO - config this shit
+const destructionStages = 4; // TODO - config this shit
 
 export class BuildingsDisplayModule extends DisplayModule<AutoRpgDisplay> {
     private display: AutoRpgDisplay;

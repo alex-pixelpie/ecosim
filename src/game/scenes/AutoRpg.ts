@@ -47,7 +47,7 @@ export class AutoRpg extends Scene
     }
 
     create () {
-        EventBus.on(GameEvents.GameOver, this.changeScene, this);
+        EventBus.on(GameEvents.GameStart, this.changeScene, this);
 
         const ecs = new ECS();
         
@@ -82,7 +82,7 @@ export class AutoRpg extends Scene
     }
 
     changeScene () {
-        EventBus.off(GameEvents.GameOver, this.changeScene, this);
-        // this.scene.start('GameOver');
+        EventBus.off(GameEvents.GameStart, this.changeScene, this);
+        this.scene.start('Game');
     }
 }

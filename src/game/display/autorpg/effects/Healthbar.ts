@@ -5,36 +5,55 @@ export interface HealthData {
     health: number;
     maxHealth: number;
 }
-
 export class Healthbar {
     healthBar: Phaser.GameObjects.Graphics;
-    maxWidth: number = 40;
+    maxWidth: number;
     height: number = 5;
-    offsetTop: number = 10;
-    offsetLeft: number = 20;
+    offsetBottom: number = 10; // Distance from the bottom of the sprite
     onTop: boolean;
-    
-    constructor(display: AutoRpgDisplay, isOnTop: boolean = false){
+
+    constructor(display: AutoRpgDisplay, isOnTop: boolean = false) {
         this.onTop = isOnTop;
         this.healthBar = display.scene.add.graphics();
         display.mobUi.add(this.healthBar);
     }
-    
-    destroy(){
+
+    destroy() {
         this.healthBar.destroy();
     }
-    
-    update(healthData: HealthData, sprite:Sprite): void {
+
+    update(healthData: HealthData, sprite: Sprite): void {
         if (!this.healthBar) {
             return;
         }
-        
-        const spriteTopY = this.onTop ? sprite.y - sprite.displayHeight / 4 : sprite.y + sprite.displayHeight / 2 + this.offsetTop;
+
+        this.maxWidth = this.calculateWidth(healthData.maxHealth);
+        const spriteBottomY = sprite.y + sprite.displayHeight / 2 + this.offsetBottom;
+        const healthBarX = sprite.x - this.maxWidth / 2;
+
         this.healthBar.clear();
         this.healthBar.fillStyle(0x000000, 0.5);
-        this.healthBar.fillRect(sprite.x - this.offsetLeft, spriteTopY - this.offsetTop, this.maxWidth, this.height); // Background bar
+        this.healthBar.fillRect(healthBarX, spriteBottomY, this.maxWidth, this.height); // Background bar
         this.healthBar.fillStyle(0xff0000, 1);
         const healthWidth = ((healthData.health as number) / (healthData.maxHealth || 1)) * this.maxWidth;
-        this.healthBar.fillRect(sprite.x - this.offsetLeft, spriteTopY - this.offsetTop, healthWidth, this.height); // Background bar
+        this.healthBar.fillRect(healthBarX, spriteBottomY, healthWidth, this.height); // Foreground bar
+    }
+
+    calculateWidth(maxHealth: number): number {
+        const minHealth = 50;
+        const maxHealthRange = 1000;
+        const minWidth = 10;
+        const maxWidth = 200;
+        if (maxHealth <= minHealth) {
+            return minWidth;
+        }
+        if (maxHealth >= maxHealthRange) {
+            return maxWidth;
+        }
+        const logMin = Math.log(minHealth);
+        const logMax = Math.log(maxHealthRange);
+        const logCurrent = Math.log(maxHealth);
+        const scale = (logCurrent - logMin) / (logMax - logMin);
+        return minWidth + scale * (maxWidth - minWidth);
     }
 }

@@ -5,6 +5,7 @@ import {PhysicsModule} from "./PhysicsModule.ts";
 import Position = PhysicsModule.Position;
 import {PhaserPhysicsModule} from "./PhaserPhysicsModule.ts";
 import PhysicsBody = PhaserPhysicsModule.PhysicsBody;
+import {Dead} from "./DeathModule.ts";
 
 export class TargetSelection implements Component {
     target: number | null = null;
@@ -86,8 +87,8 @@ export class TargetSelectionSystem extends GameSystem {
     }
 
     static selectTarget(game:GameLogic, entity: number): number | null {
-        const position = game.ecs.getComponent<Position>(entity, Position);
-        const targetSelection = game.ecs.getComponent<TargetSelection>(entity, TargetSelection);
+        const position = game.ecs.getComponent(entity, Position);
+        const targetSelection = game.ecs.getComponent(entity, TargetSelection);
         
         if (!position || !targetSelection) {
             return null;
@@ -97,6 +98,11 @@ export class TargetSelectionSystem extends GameSystem {
 
         const potentialTargets = [...entities].filter(e => {
             if (e === entity || e == null) {
+                return false;
+            }
+
+            const dead = game.ecs.getComponent(e, Dead);
+            if (dead) {
                 return false;
             }
             
@@ -109,7 +115,7 @@ export class TargetSelectionSystem extends GameSystem {
         }
 
         const targetsByDistance = potentialTargets.map(e => {
-            const targetPosition = game.ecs.getComponent<Position>(e, Position);
+            const targetPosition = game.ecs.getComponent(e, Position);
             if (!targetPosition) {
                 return null;
             }
@@ -155,7 +161,7 @@ class TargetedResetSystem extends GameSystem {
 
     public update(entities: Set<number>, _: number): void {
         entities.forEach(entity => {
-            const targeted = this.game.ecs.getComponent<Targeted>(entity, Targeted);
+            const targeted = this.game.ecs.getComponent(entity, Targeted);
             targeted.targetedBy = [];
         });
     }
@@ -170,7 +176,7 @@ class TargetReselectionSystem extends TimedGameSystem {
 
     public updateTimed(entities: Set<number>, _: number): void {
         entities.forEach(entity => {
-            const targetSelection = this.game.ecs.getComponent<TargetSelection>(entity, TargetSelection);
+            const targetSelection = this.game.ecs.getComponent(entity, TargetSelection);
             targetSelection.target = TargetSelectionSystem.selectTarget(this.game, entity);
         });
     }

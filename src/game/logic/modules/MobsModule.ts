@@ -84,7 +84,7 @@ export namespace MobsModule {
                 const random = Math.random();
                 const x = Math.floor(200 + Math.random() * 1000);
                 const y = Math.floor(200 + Math.random() * 1000);
-                const group:number = 0;//Math.random() > 0.5 ? 1 : 0;
+                const group:number = Math.random() > 0.5 ? 1 : 0;
 
                 if (random < 0.5) {
                     this.makeSkeleton(x, y, group);
