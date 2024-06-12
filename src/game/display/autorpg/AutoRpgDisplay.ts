@@ -6,10 +6,11 @@ import {PhysicsModule} from "../../logic/modules/PhysicsModule.ts";
 import Position = PhysicsModule.Position;
 import {DisplayModule} from "../DisplayModule.ts";
 import {PhaserPhysicsModule} from "../../logic/modules/PhaserPhysicsModule.ts";
-import {Corpse, Health} from "../../logic/modules/weapons/Attack.ts";
 import {Group, TargetSelection} from "../../logic/modules/Targeting.ts";
 import {FrameLog} from "../../logic/modules/FrameLog.ts";
 import {Mob} from "../../logic/modules/MobsModule.ts";
+import {Corpse, Health} from "../../logic/modules/DeathModule.ts";
+import {Building} from "../../logic/modules/BuildingsModule.ts";
 
 const MAP_SIZE = 64;
 const WHITE_TILE : number = 8;
@@ -48,6 +49,18 @@ export type MobData = {
     rotationToTarget: number;
 }
 
+export type BuildingData = {
+    id: number;
+    x: number;
+    y: number;
+    type: string;
+    group:number;
+    health: number | string;
+    maxHealth?: number;
+    damage?: number;
+    criticalMultiplier?: number;
+}
+
 export class AutoRpgDisplayConfig {
     whiteTile: number = WHITE_TILE;
 }
@@ -60,6 +73,7 @@ export class AutoRpgDisplay {
     tiles: TileDisplayData[][];
     mobs: MobData[] = [];
     corpses: CorpseData[] = [];
+    buildings: BuildingData[] = [];
     config:AutoRpgDisplayConfig  = new AutoRpgDisplayConfig();
     
     // Layers
@@ -91,6 +105,7 @@ export class AutoRpgDisplay {
         this.updateTiles();
         this.updateMobs();
         this.updateCorpses();
+        this.updateBuildings();
         this.modules.forEach(module => module.update(delta));
 
         this.mobsLayer.sort('y');
@@ -186,5 +201,34 @@ export class AutoRpgDisplay {
         });
         
         this.corpses = corpses;
+    }
+
+    private updateBuildings() {
+        const entities = this.ecs.getEntitiesWithComponent(Building);
+        
+        const buildings = entities.map(entity => {
+            const position = this.ecs.getComponent(entity, Position);
+            const building = this.ecs.getComponent(entity, Building);
+            const health = this.ecs.getComponent(entity, Health);
+            const group = this.ecs.getComponent(entity, Group);
+            const log = this.ecs.getComponent(entity, FrameLog.FrameLog);
+
+            const damage = log?.logs.reduce((acc, log) => log.type === FrameLog.FrameLogType.TakeDamage ? acc + log.value : acc, 0);
+            const criticalMultiplier = log?.logs.reduce((acc, log) => log.type === FrameLog.FrameLogType.TakeCriticalDamage ? log.value : acc, 0);
+            
+            return {
+                id: entity,
+                x: position?.x || 0,
+                y: position?.y || 0,
+                type: building?.type || 'castle',
+                health: health?.value || 'N/A',
+                maxHealth: health?.maxValue,
+                group: group?.id || 0,
+                damage,
+                criticalMultiplier
+            };
+        });
+
+        this.buildings = buildings;
     }
 }

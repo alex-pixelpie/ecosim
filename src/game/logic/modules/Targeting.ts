@@ -3,14 +3,19 @@ import {MathUtils, Pos} from "../../utils/Math.ts";
 import {GameLogic, GameLogicModule, GameSystem, TimedGameSystem} from "../GameLogic.ts";
 import {PhysicsModule} from "./PhysicsModule.ts";
 import Position = PhysicsModule.Position;
+import {PhaserPhysicsModule} from "./PhaserPhysicsModule.ts";
+import PhysicsBody = PhaserPhysicsModule.PhysicsBody;
 
 export class TargetSelection implements Component {
     target: number | null = null;
     x: number = 0;
     y: number = 0;
+    targetSize: number = 0;
     
     constructor(public targetGroups: Set<number>) {}
 }
+
+export class Targetable implements Component {}
 
 export class Targeted implements Component {
     targetedBy: number[] = [];
@@ -23,22 +28,22 @@ export class Group extends Component {
 }
 
 export class RangeFromTarget extends Component {
-    constructor(public maxDistance: number = 1, public minDistance: number = 0) {
+    constructor(public maxDistance: number = 1, public minDistance: number = 0, public ownSize: number = 0) {
         super();
     }
 
-    inRange(currentPosition: Pos, targetPosition: Pos): boolean {
-        const distance = MathUtils.distance(currentPosition, targetPosition);
+    inRange(currentPosition: Pos, targetPosition: Pos, otherSize:number): boolean {
+        let distance = MathUtils.distance(currentPosition, targetPosition) - otherSize - this.ownSize;
         return distance <= this.maxDistance && distance >= this.minDistance;
     }
     
-    tooClose(currentPosition: Pos, targetPosition: Pos): boolean {
-        const distance = MathUtils.distance(currentPosition, targetPosition);
+    tooClose(currentPosition: Pos, targetPosition: Pos, otherSize:number): boolean {
+        const distance = MathUtils.distance(currentPosition, targetPosition) - otherSize - this.ownSize;
         return distance < this.minDistance;
     }
     
-    tooFar(currentPosition: Pos, targetPosition: Pos): boolean {
-        const distance = MathUtils.distance(currentPosition, targetPosition);
+    tooFar(currentPosition: Pos, targetPosition: Pos, otherSize:number): boolean {
+        const distance = MathUtils.distance(currentPosition, targetPosition) - otherSize - this.ownSize;
         return distance > this.maxDistance;
     }
 }
@@ -61,18 +66,12 @@ export class TargetSelectionSystem extends GameSystem {
 
             // If we don't have a target, select one
             if (!targetSelection.target) {
-                targetSelection.target = TargetSelectionSystem.selectTarget(this.game, entity, entities);
+                targetSelection.target = TargetSelectionSystem.selectTarget(this.game, entity);
             }
             
             const target = targetSelection.target;
             if (!target) {
                 return;
-            }
-            
-            // Track that we are targeting this entity
-            const targeted = this.game.ecs.getComponent<Targeted>(target, Targeted);
-            if (targeted) {
-                targeted.targetedBy.push(entity);
             }
             
             // Track the target's position
@@ -86,13 +85,15 @@ export class TargetSelectionSystem extends GameSystem {
         });
     }
 
-    static selectTarget(game:GameLogic, entity: number, entities: Set<number>): number | null {
+    static selectTarget(game:GameLogic, entity: number): number | null {
         const position = game.ecs.getComponent<Position>(entity, Position);
         const targetSelection = game.ecs.getComponent<TargetSelection>(entity, TargetSelection);
-
+        
         if (!position || !targetSelection) {
             return null;
         }
+
+        const entities = game.ecs.getEntitiesWithComponents([Targetable, Position, Group]);
 
         const potentialTargets = [...entities].filter(e => {
             if (e === entity || e == null) {
@@ -100,10 +101,6 @@ export class TargetSelectionSystem extends GameSystem {
             }
             
             const targetGroup = game.ecs.getComponent(e, Group);
-            if (!targetGroup) {
-                return false;
-            }
-
             return targetSelection.targetGroups.has(targetGroup.id);
         });
         
@@ -127,7 +124,25 @@ export class TargetSelectionSystem extends GameSystem {
             return null;
         }
 
-        return targetsByDistance[0]!.entity;
+        const target = targetsByDistance[0]!.entity;
+        
+        if (!target) {
+            return null;
+        }
+        
+        // Track that we are targeting this entity
+        const targeted = game.ecs.getComponent<Targeted>(target, Targeted);
+        if (targeted) {
+            targeted.targetedBy.push(entity);
+        }
+
+        // Set the target size
+        const body = game.ecs.getComponent(target, PhysicsBody);
+        if (body) {
+            targetSelection.targetSize = body.body.width/2;
+        }
+        
+        return target;
     }
 }
 
@@ -156,7 +171,7 @@ class TargetReselectionSystem extends TimedGameSystem {
     public updateTimed(entities: Set<number>, _: number): void {
         entities.forEach(entity => {
             const targetSelection = this.game.ecs.getComponent<TargetSelection>(entity, TargetSelection);
-            targetSelection.target = TargetSelectionSystem.selectTarget(this.game, entity, entities);
+            targetSelection.target = TargetSelectionSystem.selectTarget(this.game, entity);
         });
     }
 }

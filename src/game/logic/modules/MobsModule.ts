@@ -2,11 +2,10 @@ import {GameLogic, GameLogicModule, TimedGameSystem} from "../GameLogic.ts";
 import {Component} from "../../core/ECS.ts";
 import {GoapState, MobGoapStateComponent} from "./goap/MobGoapStateComponent.ts";
 import {GOAP} from "./goap/GoapModule.ts";
-import {Health} from "./weapons/Attack.ts";
 import {Weapon, WeaponConfig, WeaponEffect} from "./weapons/Weapons.ts";
 import {Steering} from "./SteeringModule.ts";
 import {FrameLog} from "./FrameLog.ts";
-import {Group, RangeFromTarget, Targeted, TargetSelection} from "./Targeting.ts";
+import {Group, RangeFromTarget, Targetable, Targeted, TargetSelection} from "./Targeting.ts";
 import {GlideLocomotion} from "./Locomotion.ts";
 import {GetTargetAction} from "./goap/actions/GetTargetAction.ts";
 import {MoveAction} from "./goap/actions/MoveAction.ts";
@@ -20,6 +19,7 @@ import {EscapeOverwhelmAction} from "./goap/actions/EscapeOverwhelmAction.ts";
 import {EscapeOverwhelmGoal} from "./goap/goals/EscapeOverwhelmGoal.ts";
 import {OverwhelmComponent} from "./OverwhelmModule.ts";
 import Goal = GOAP.Goal;
+import {DieAndDrop, DropType, Health, Mortality} from "./DeathModule.ts";
 
 const numberOfMobs = 200;
 
@@ -84,7 +84,7 @@ export namespace MobsModule {
                 const random = Math.random();
                 const x = Math.floor(200 + Math.random() * 1000);
                 const y = Math.floor(200 + Math.random() * 1000);
-                const group:number = Math.random() > 0.5 ? 1 : 0;
+                const group:number = 0;//Math.random() > 0.5 ? 1 : 0;
 
                 if (random < 0.5) {
                     this.makeSkeleton(x, y, group);
@@ -106,11 +106,12 @@ export namespace MobsModule {
             game.ecs.addComponent(entity, new ActionComponent());
         }
 
-        static addTargeting(game: GameLogic, entity: number, ownGroup: number){
+        static addTargeting(game: GameLogic, entity: number, ownGroup: number, size:number){
             // Targeting all groups except own
             game.ecs.addComponent(entity, new TargetSelection(groupTypeValues.filter(group => group !== ownGroup).reduce((acc, group) => acc.add(group), new Set<number>()) as Set<number>));
             game.ecs.addComponent(entity, new Targeted());
-            game.ecs.addComponent(entity, new RangeFromTarget(0));
+            game.ecs.addComponent(entity, new Targetable());
+            game.ecs.addComponent(entity, new RangeFromTarget(0, 0, size));
         }
 
         static addMovement(game: GameLogic, entity: number, speed: number){
@@ -121,10 +122,11 @@ export namespace MobsModule {
         static addCombat(game: GameLogic, entity: number, health:number, weaponConfig: WeaponConfig){
             game.ecs.addComponent(entity, new Health(health));
             game.ecs.addComponent(entity, new Weapon(weaponConfig));
+            game.ecs.addComponent(entity, new Mortality());
         }
         
         static addPhysics(game: GameLogic, entity: number, x:number, y:number, size:number) {
-            game.addPhysicalComponents(entity, x, y, size);
+            game.addPhysicalComponents({entity, x, y, radius: size, isStatic: false});
             game.mobs.add(entity);
         }
         
@@ -144,8 +146,11 @@ export namespace MobsModule {
             // GOAP
             MobSpawnSystem.addGoap(game, entity, [new GetTargetAction(), new MoveAction(), new AttackAction()], [new KillEnemiesGoal()]);
             
+            // Drops
+            game.ecs.addComponent(entity, new DieAndDrop([{type: DropType.Corpse}]));
+            
             // Targeting
-            MobSpawnSystem.addTargeting(game, entity, group);
+            MobSpawnSystem.addTargeting(game, entity, group, 16);
             
             // Movement
             MobSpawnSystem.addMovement(game, entity, 200);
@@ -168,11 +173,14 @@ export namespace MobsModule {
             // GOAP
             MobSpawnSystem.addGoap(game, entity, [new GetTargetAction(), new MoveAction(), new AttackAction(), new EscapeOverwhelmAction()], [new KillEnemiesGoal(), new EscapeOverwhelmGoal()]);
 
+            // Drops
+            game.ecs.addComponent(entity, new DieAndDrop([{type: DropType.Corpse}]));
+
             // Overwhelm
             game.ecs.addComponent(entity, new OverwhelmComponent(2));
 
             // Targeting
-            MobSpawnSystem.addTargeting(game, entity, group);
+            MobSpawnSystem.addTargeting(game, entity, group, 16);
 
             // Movement
             MobSpawnSystem.addMovement(game, entity, 300);
@@ -194,10 +202,6 @@ export namespace MobsModule {
             
             const spawnSystem = new MobSpawnSystem(game, updateInterval);
             game.ecs.addSystem(spawnSystem);
-
-            // while (game.mobs.size < numberOfMobs) {
-            //     spawnSystem.makeSkeleton(Math.floor(200 + Math.random() * 400), Math.floor(200 + Math.random() * 400));
-            // }
         }
     }
 } 

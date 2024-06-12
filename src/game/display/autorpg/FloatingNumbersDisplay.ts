@@ -59,5 +59,11 @@ export class FloatingNumbersDisplay extends DisplayModule<AutoRpgDisplay> {
                 this.showFloatingDamage(mob.state.damage, mob.x, mob.y, mob.state.criticalMultiplier || 0);
             }
         });
+        
+        this.display.buildings.forEach(building => {
+            if (building.damage) {
+                this.showFloatingDamage(building.damage, building.x, building.y, building.criticalMultiplier || 0);
+            }
+        });
     }
 }

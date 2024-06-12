@@ -3,9 +3,9 @@ import {Component} from "../../../core/ECS.ts";
 import {MathUtils} from "../../../utils/Math.ts";
 import {PhysicsModule} from "../PhysicsModule.ts";
 import Position = PhysicsModule.Position;
-import {Health} from "./Attack.ts";
 import {TargetSelection} from "../Targeting.ts";
 import {FrameLog} from "../FrameLog.ts";
+import {Health} from "../DeathModule.ts";
 
 export class WeaponConfig {
     damageMin:number;

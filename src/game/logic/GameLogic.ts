@@ -74,6 +74,16 @@ export type EcoSimLogicConfig = {
     plants: any
 }
 
+export interface PhysicalComponentCreationData {
+    entity: number; 
+    x: number;
+    y: number;
+    radius?:number;
+    width?:number;
+    height?:number;
+    isStatic:boolean;
+}
+
 export class GameLogic {
     ecs: ECS;
     scene: Phaser.Scene;
@@ -90,7 +100,7 @@ export class GameLogic {
     mobs: Set<number> = new Set();
 
     // Populated by the PhaserPhysicsModule
-    addPhysicalComponents:(entity: number, x: number, y: number, radius:number)=>void = () => {};
+    addPhysicalComponents:(data:PhysicalComponentCreationData)=>void = () => {};
 
     // Populated by the PhaserPhysicsModule
     removePhysicalComponents:(entity: number)=>void = () => {};

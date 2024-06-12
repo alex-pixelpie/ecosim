@@ -72,8 +72,8 @@ class GoapToSteeringDesiresSystem extends GameSystem {
             return;
         }
 
-        const tooClose = rangeFromTarget.tooClose(position, targetSelection);
-        const tooFar = rangeFromTarget.tooFar(position, targetSelection);
+        const tooClose = rangeFromTarget.tooClose(position, targetSelection, targetSelection.targetSize);
+        const tooFar = rangeFromTarget.tooFar(position, targetSelection, targetSelection.targetSize);
 
         if (tooClose) {
             const dir = MathUtils.multiply(MathUtils.normalize({
@@ -195,7 +195,7 @@ class GoapStateUpdateSystem extends GameSystem {
             return false;
         }
 
-        state.state[GoapState.inRange] = rangeComponent.inRange(positionComponent, targetSelectionComponent);
+        state.state[GoapState.inRange] = rangeComponent.inRange(positionComponent, targetSelectionComponent, targetSelectionComponent.targetSize);
     }
 
     private updateOverwhelmState(entity: number, state: MobGoapStateComponent) {

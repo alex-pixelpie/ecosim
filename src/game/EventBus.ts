@@ -12,3 +12,7 @@ export const enum UiEvents {
     WindConfigUpdated = 'wind-config-updated',
     PlantSelected = 'plant-selected',
 }
+
+export const enum GameEvents {
+    GameOver = 'game-over'
+}

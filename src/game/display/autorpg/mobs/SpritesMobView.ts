@@ -1,5 +1,5 @@
 import {MobView} from "./MobView.ts";
-import {Healthbar} from "../effects/Healthbar.ts";
+import {Healthbar, HealthData} from "../effects/Healthbar.ts";
 import {MobData} from "../AutoRpgDisplay.ts";
 import { GroupRing } from "../effects/GroupRing.ts";
 
@@ -71,7 +71,7 @@ export class SpritesMobView extends MobView {
             });
         }
 
-        this.healthbar.update(mob, this.sprite);
+        this.healthbar.update(mob as HealthData, this.sprite);
         this.groupRing.update(mob, this.sprite);
         
         this.sprite.x = mob.x + 20; // Offset can be adjusted as needed

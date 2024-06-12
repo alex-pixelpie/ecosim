@@ -1,4 +1,4 @@
-import {EventBus, UiEvents} from '../EventBus';
+import {EventBus, GameEvents, UiEvents} from '../EventBus';
 import { Scene } from 'phaser';
 import {GameLogic} from "../logic/GameLogic.ts";
 import {ECS} from "../core/ECS.ts";
@@ -22,6 +22,9 @@ import {LocomotionModule} from "../logic/modules/Locomotion.ts";
 import {GoapConnectorModule} from "../logic/modules/GoapConnectorModule.ts";
 import {OverwhelmModule} from "../logic/modules/OverwhelmModule.ts";
 import {CorpsesDisplayModule} from "../display/autorpg/CorpsesDisplayModule.ts";
+import {DeathModule} from "../logic/modules/DeathModule.ts";
+import {BuildingsModule} from "../logic/modules/BuildingsModule.ts";
+import {BuildingsDisplayModule} from "../display/autorpg/BuildingsDisplayModule.ts";
 
 export class AutoRpg extends Scene
 {
@@ -43,6 +46,8 @@ export class AutoRpg extends Scene
     }
 
     create () {
+        EventBus.on(GameEvents.GameOver, this.changeScene, this);
+
         const ecs = new ECS();
         
         this.gameLogic = new GameLogic( ecs, this, [
@@ -52,17 +57,20 @@ export class AutoRpg extends Scene
             new PhaserPhysicsModule.PhaserPhysicsModule(),
             new MobsModule.MobsModule(),
             new AttackModule(),
+            new DeathModule(),
             new OverwhelmModule(),
             new SteeringModule(),
             new GOAP.GoapModule(),
             new GoapConnectorModule(),
-            new TargetingModule()
+            new TargetingModule(),
+            new BuildingsModule()
         ]);
         
         this.gameDisplay = new AutoRpgDisplay(this, ecs, [
             new CameraModule(),
             new DungeonFloorDisplayModule(),
             new MobsDisplay(),
+            new BuildingsDisplayModule(),
             new CorpsesDisplayModule(),
             new TileSelectionModule(),
             new FloatingNumbersDisplay()
@@ -72,6 +80,7 @@ export class AutoRpg extends Scene
     }
 
     changeScene () {
-        this.scene.start('GameOver');
+        EventBus.off(GameEvents.GameOver, this.changeScene, this);
+        // this.scene.start('GameOver');
     }
 }
