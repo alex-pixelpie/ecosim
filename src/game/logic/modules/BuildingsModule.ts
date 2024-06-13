@@ -4,6 +4,8 @@ import {Group, Targetable} from "./Targeting.ts";
 import {Dead, DieAndDrop, DropType, Health} from "./DeathModule.ts";
 import {EventBus, GameEvents} from "../../EventBus.ts";
 import {FrameLog} from "./FrameLog.ts";
+import {MobsModule, MobType} from "./MobsModule.ts";
+import MobsSpawn = MobsModule.MobsSpawn;
 
 export enum BuildingType {
     Base = "Base"
@@ -55,6 +57,7 @@ export class BuildingsModule extends GameLogicModule {
         game.ecs.addComponent(enemyBase, new Group(0));
         game.ecs.addComponent(enemyBase, new Targetable());
         game.ecs.addComponent(enemyBase, new FrameLog.FrameLog());
+        game.ecs.addComponent(enemyBase, new MobsSpawn([{type: MobType.Skeleton, count: 3}, {type: MobType.ElfArcher, count: 2}], 0, {x: offset+baseSize, y: offset+baseSize}));
         game.addPhysicalComponents({entity: enemyBase, x: offset+hBaseSize, y: offset+hBaseSize, width: baseSize, height: baseSize, isStatic: true});
 
         const playerBase = game.ecs.addEntity();
@@ -64,7 +67,7 @@ export class BuildingsModule extends GameLogicModule {
         game.ecs.addComponent(playerBase, new Group(1));
         game.ecs.addComponent(playerBase, new Targetable());
         game.ecs.addComponent(playerBase, new FrameLog.FrameLog());
+        game.ecs.addComponent(playerBase, new MobsSpawn([{type: MobType.Skeleton, count: 3}, {type: MobType.ElfArcher, count: 2}], 1, {x: mapSize-offset-baseSize, y: mapSize-offset-baseSize}));
         game.addPhysicalComponents({entity: playerBase, x: mapSize-offset-hBaseSize, y: mapSize-offset-hBaseSize, width: baseSize, height: baseSize, isStatic: true});
-
     }
 }

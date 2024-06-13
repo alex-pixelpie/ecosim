@@ -1,4 +1,4 @@
-import {GameLogic, GameLogicModule, TimedGameSystem} from "../GameLogic.ts";
+import {GameLogic, GameLogicModule, GameSystem, TimedGameSystem} from "../GameLogic.ts";
 import {Component} from "../../core/ECS.ts";
 import {GoapState, MobGoapStateComponent} from "./goap/MobGoapStateComponent.ts";
 import {GOAP} from "./goap/GoapModule.ts";
@@ -20,8 +20,6 @@ import {EscapeOverwhelmGoal} from "./goap/goals/EscapeOverwhelmGoal.ts";
 import {OverwhelmComponent} from "./OverwhelmModule.ts";
 import Goal = GOAP.Goal;
 import {DieAndDrop, DropType, Health, Mortality} from "./DeathModule.ts";
-
-const numberOfMobs = 200;
 
 enum GroupType {
     Red = 0,
@@ -76,28 +74,52 @@ export namespace MobsModule {
     
     const defaultState:Record<GoapState, boolean> = { [GoapState.hasTarget]: false, [GoapState.inRange]: false, [GoapState.overwhelmed]:false };
     
-    export class MobSpawnSystem extends TimedGameSystem {
-        protected updateTimed(entities: Set<number>, _: number): void {
-            const mobsCounter = this.game.ecs.getComponent(Array.from(entities)[0], MobsCounter);
-            
-            while (this.game.mobs.size < mobsCounter.count) {
-                const random = Math.random();
-                const x = Math.floor(400 + Math.random() * 1200);
-                const y = Math.floor(400 + Math.random() * 1200);
-                const group:number = Math.random() > 0.5 ? 1 : 0;
-
-                if (random < 0.5) {
-                    this.makeSkeleton(x, y, group);
-                } else {
-                    this.makeElfArcher(x, y, group);
-                }
-            }
+    interface MobSpawnDefinition {
+        type: MobType;
+        count: number;    
+    }
+    
+    export class MobsSpawn extends Component {
+        public constructor(public mobs: MobSpawnDefinition[], public group: number, public position: {x: number, y: number}) {
+            super();
         }
-        protected init(): void {
-            this.componentsRequired = new Set([MobsCounter]);
+    }
+    
+    class MobSpawnUpgradeSystem extends TimedGameSystem {
+        protected updateTimed(entities: Set<number>, _: number): void {
+            entities.forEach(entity => {
+                const mobsSpawn = this.game.ecs.getComponent(entity, MobsSpawn);
+                mobsSpawn.mobs.forEach(mob => {
+                    mob.count += 1;
+                });
+            });
         }
         
-        public componentsRequired: Set<Function> = new Set([MobsCounter]);
+        protected init(): void {
+            this.componentsRequired = new Set([MobsSpawn]);
+        }
+        
+        public componentsRequired: Set<Function> = new Set([MobsSpawn]);
+    }
+    
+    export class MobSpawnSystem extends TimedGameSystem {
+        protected updateTimed(entities: Set<number>, _: number): void {
+            entities.forEach(entity => {
+                const mobsSpawn = this.game.ecs.getComponent(entity, MobsSpawn);
+                mobsSpawn.mobs.forEach(mob => {
+                    for (let i = 0; i < mob.count; i++) {
+                        const makeFunction = mob.type === MobType.Skeleton ? MobSpawnSystem.makeSkeleton : MobSpawnSystem.makeElfArcher;
+                        makeFunction(this.game, mobsSpawn.position.x, mobsSpawn.position.y, mobsSpawn.group);
+                    }
+                });
+            });
+        }
+        
+        protected init(): void {
+            this.componentsRequired = new Set([MobsSpawn]);
+        }
+        
+        public componentsRequired: Set<Function> = new Set([MobsSpawn]);
 
         static addGoap(game: GameLogic, entity: number, actions: Action[], goals: Goal[]){
             game.ecs.addComponent(entity, new MobGoapStateComponent({...defaultState} as Record<GoapState, boolean>));
@@ -136,8 +158,7 @@ export namespace MobsModule {
             game.ecs.addComponent(entity, new Group(group));
         }
             
-        public makeSkeleton(x: number, y: number, group: number){
-            const game = this.game;
+        static makeSkeleton(game:GameLogic, x: number, y: number, group: number){
             const entity = game.ecs.addEntity();
             game.ecs.addComponent(entity, new Mob(MobType.Skeleton));
             
@@ -163,8 +184,7 @@ export namespace MobsModule {
             MobSpawnSystem.addPhysics(game, entity, x, y, 16);
         }
         
-        public makeElfArcher(x: number, y: number, group: number){
-            const game = this.game;
+        static makeElfArcher(game:GameLogic, x: number, y: number, group: number){
             const entity = game.ecs.addEntity();
             game.ecs.addComponent(entity, new Mob(MobType.ElfArcher));
             
@@ -194,15 +214,34 @@ export namespace MobsModule {
         }
     }
     
-    const updateInterval = 1;
+    class MobsCountSystem extends GameSystem {
+        public componentsRequired: Set<Function> = new Set([MobsCounter]);
+        update(entities: Set<number>, _: number): void {
+            const mobsCounter = this.game.ecs.getComponent(Array.from(entities)[0], MobsCounter);
+            mobsCounter.count = this.game.mobs.size;
+        }
+        init(): void {
+            this.componentsRequired = new Set([MobsCounter]);
+        }
+    }
+    
+    const updateInterval = 5;
+    const mobsSpawnUpgradeInterval = 10;
     
     export class MobsModule extends GameLogicModule {
         public init(game: GameLogic): void {
             const mobsEntity = game.ecs.addEntity();
-            game.ecs.addComponent(mobsEntity, new MobsCounter(numberOfMobs));
+            
+            // TODO - move MobsCounter and MobsCountSystem behavior somewhere else
+            game.ecs.addComponent(mobsEntity, new MobsCounter(0));
+            const countSystem = new MobsCountSystem(game);
+            game.ecs.addSystem(countSystem);
             
             const spawnSystem = new MobSpawnSystem(game, updateInterval);
             game.ecs.addSystem(spawnSystem);
+            
+            const spawnUpgradeSystem = new MobSpawnUpgradeSystem(game, mobsSpawnUpgradeInterval);
+            game.ecs.addSystem(spawnUpgradeSystem);
         }
     }
 } 

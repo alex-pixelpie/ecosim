@@ -13,6 +13,8 @@ import {MoveAction} from "./goap/actions/MoveAction.ts";
 import {GetToTargetGoal} from "./goap/goals/GetToTargetGoal.ts";
 import {PhysicsModule} from "./PhysicsModule.ts";
 import Position = PhysicsModule.Position;
+import {MobsModule} from "./MobsModule.ts";
+import MobsSpawn = MobsModule.MobsSpawn;
 
 const defaultGoapState:Record<GoapState, boolean> = { [GoapState.hasTarget]: false, [GoapState.inRange]: false, [GoapState.overwhelmed]:false };
 
@@ -75,6 +77,11 @@ export class GameOverModule extends GameLogicModule {
     private onGameOver({victory}:{victory: boolean}) {
         EventBus.off(GameEvents.GameOver, this.onGameOver, this);
 
+        const spawners = this.game.ecs.getEntitiesWithComponents([MobsSpawn]);
+        spawners.forEach(spawner => {
+            this.game.ecs.removeComponent(spawner, MobsSpawn);
+        });
+        
         const positions = victory ? winPositions : losePositions;
         
         for (const targetPosition of positions) {
