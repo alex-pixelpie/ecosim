@@ -1,20 +1,15 @@
 import {GameLogic, GameLogicModule, GameSystem} from "../GameLogic.ts";
 import {EventBus, GameEvents} from "../../EventBus.ts";
 import {Component} from "../../core/ECS.ts";
-import {RangeFromTarget, TargetSelection} from "./Targeting.ts";
 import {GlideLocomotion} from "./Locomotion.ts";
 import {Steering} from "./SteeringModule.ts";
-import {GoapState, MobGoapStateComponent} from "./goap/MobGoapStateComponent.ts";
-import {GOAP} from "./goap/GoapModule.ts";
-import ActionComponent = GOAP.ActionComponent;
-import AvailableActionsComponent = GOAP.AvailableActionsComponent;
-import GoalsComponent = GOAP.GoalsComponent;
 import {MoveAction} from "./goap/actions/MoveAction.ts";
 import {GetToTargetGoal} from "./goap/goals/GetToTargetGoal.ts";
-import {PhysicsModule} from "./PhysicsModule.ts";
-import Position = PhysicsModule.Position;
-import {MobsModule} from "./MobsModule.ts";
-import MobsSpawn = MobsModule.MobsSpawn;
+import {Position} from "./PhaserPhysicsModule.ts";
+import {MobsSpawn} from "./MobsModule.ts";
+import {RangeFromTarget, TargetSelection} from "./TargetingModule.ts";
+import {GoapState, GoapStateComponent} from "./goap/GoapStateComponent.ts";
+import {ActionComponent, AvailableActionsComponent, GoalsComponent} from "./goap/GoapModule.ts";
 
 const defaultGoapState:Record<GoapState, boolean> = { [GoapState.hasTarget]: false, [GoapState.inRange]: false, [GoapState.overwhelmed]:false };
 
@@ -114,7 +109,7 @@ export class GameOverModule extends GameLogicModule {
 
         game.addPhysicalComponents({entity, x, y, radius: 2, isGameOver: true});
 
-        game.ecs.addComponent(entity, new MobGoapStateComponent({...defaultGoapState} as Record<GoapState, boolean>));
+        game.ecs.addComponent(entity, new GoapStateComponent({...defaultGoapState} as Record<GoapState, boolean>));
         game.ecs.addComponent(entity, new GoalsComponent([new GetToTargetGoal()]));
         game.ecs.addComponent(entity, new AvailableActionsComponent([new MoveAction()]));
         game.ecs.addComponent(entity, new ActionComponent());

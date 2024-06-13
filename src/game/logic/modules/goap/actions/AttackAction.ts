@@ -1,6 +1,6 @@
 import {Action} from "./Action.ts";
 import {GameLogic} from "../../../GameLogic.ts";
-import {GoapState, MobGoapStateComponent} from "../MobGoapStateComponent.ts";
+import {GoapState, GoapStateComponent} from "../GoapStateComponent.ts";
 
 export class AttackAction implements Action {
     preconditions = {[GoapState.hasTarget]: true, [GoapState.inRange]: true};
@@ -21,7 +21,7 @@ export class AttackAction implements Action {
     }
 
     hasCompleted(entity: number, game: GameLogic): boolean {
-        const state = game.ecs.getComponent(entity, MobGoapStateComponent);
+        const state = game.ecs.getComponent(entity, GoapStateComponent);
         return !state.state[GoapState.hasTarget] || !state.state[GoapState.inRange];
     }
 }

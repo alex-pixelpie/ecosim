@@ -1,6 +1,5 @@
-import {GOAP} from "../GoapModule.ts";
-import Goal = GOAP.Goal;
-import {GoapState} from "../MobGoapStateComponent.ts";
+import {GoapState} from "../GoapStateComponent.ts";
+import {Goal} from "../GoapModule.ts";
 
 export class EscapeOverwhelmGoal implements Goal {
     desiredState = { [GoapState.overwhelmed]: false};

@@ -6,7 +6,7 @@ export enum GoapState {
     overwhelmed = "overwhelmed"
 }
 
-export class MobGoapStateComponent implements Component {
+export class GoapStateComponent implements Component {
     state: Record<GoapState, boolean>;
 
     constructor(state: Record<GoapState, boolean>) {

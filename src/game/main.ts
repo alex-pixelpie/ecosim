@@ -1,6 +1,5 @@
 import { Boot } from './scenes/Boot';
 import { GameOver } from './scenes/GameOver';
-import { EcoSim} from './scenes/EcoSim.ts';
 import { AutoRpg} from './scenes/AutoRpg.ts';
 import { MainMenu } from './scenes/MainMenu';
 import { AUTO, Game } from 'phaser';
@@ -19,7 +18,6 @@ const config: Phaser.Types.Core.GameConfig = {
         Boot,
         Preloader,
         MainMenu,
-        EcoSim,
         AutoRpg,
         GameOver,
         TilesPaintingScene

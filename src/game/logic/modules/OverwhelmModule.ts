@@ -1,8 +1,8 @@
 import {GameLogic, GameLogicModule, GameSystem} from "../GameLogic.ts";
 import {Component} from "../../core/ECS.ts";
-import {Targeted} from "./Targeting.ts";
 import {Weapon} from "./weapons/Weapons.ts";
 import {Health} from "./DeathModule.ts";
+import {Targeted} from "./TargetingModule.ts";
 
 export class OverwhelmComponent implements Component {
     public overwhelmed: boolean = false;

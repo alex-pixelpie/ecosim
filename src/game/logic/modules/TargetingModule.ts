@@ -1,10 +1,7 @@
 import {Component} from "../../core/ECS.ts";
 import {MathUtils, Pos} from "../../utils/Math.ts";
 import {GameLogic, GameLogicModule, GameSystem, TimedGameSystem} from "../GameLogic.ts";
-import {PhysicsModule} from "./PhysicsModule.ts";
-import Position = PhysicsModule.Position;
-import {PhaserPhysicsModule} from "./PhaserPhysicsModule.ts";
-import PhysicsBody = PhaserPhysicsModule.PhysicsBody;
+import {PhysicsBody, Position} from "./PhaserPhysicsModule.ts";
 import {Dead} from "./DeathModule.ts";
 
 export class TargetSelection implements Component {
@@ -28,7 +25,7 @@ export class Targeted implements Component {
     targetedBy: number[] = [];
 }
 
-export class Group extends Component {
+export class TargetGroup extends Component {
     public constructor(public id: number) {
         super();
     }
@@ -105,7 +102,7 @@ export class MobTargetSelectionSystem extends GameSystem {
             return null;
         }
 
-        const entities = game.ecs.getEntitiesWithComponents([Targetable, Position, Group]);
+        const entities = game.ecs.getEntitiesWithComponents([Targetable, Position, TargetGroup]);
 
         const potentialTargets = [...entities].filter(e => {
             if (e === entity || e == null) {
@@ -117,7 +114,7 @@ export class MobTargetSelectionSystem extends GameSystem {
                 return false;
             }
             
-            const targetGroup = game.ecs.getComponent(e, Group);
+            const targetGroup = game.ecs.getComponent(e, TargetGroup);
             return mobTargeting.targetGroups.has(targetGroup.id);
         });
         

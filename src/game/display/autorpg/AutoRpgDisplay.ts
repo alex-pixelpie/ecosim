@@ -1,17 +1,14 @@
 import {ECS} from "../../core/ECS.ts";
-import {TilesModule} from "../../logic/modules/TilesModule.ts";
 import {MapDisplay} from "./../MapDisplay.ts";
-import Tile = TilesModule.Tile;
-import {PhysicsModule} from "../../logic/modules/PhysicsModule.ts";
-import Position = PhysicsModule.Position;
-import {DisplayModule} from "../DisplayModule.ts";
-import {PhaserPhysicsModule} from "../../logic/modules/PhaserPhysicsModule.ts";
-import {Group, TargetSelection} from "../../logic/modules/Targeting.ts";
-import {FrameLog} from "../../logic/modules/FrameLog.ts";
+import {FrameLog, FrameLogType} from "../../logic/modules/FrameLog.ts";
 import {Mob} from "../../logic/modules/MobsModule.ts";
 import {Corpse, Health, Ruin} from "../../logic/modules/DeathModule.ts";
 import {Building} from "../../logic/modules/BuildingsModule.ts";
 import {GameOverAgent} from "../../logic/modules/GameOverModule.ts";
+import {PhaserPhysicsModule, PhysicsBody, Position} from "../../logic/modules/PhaserPhysicsModule.ts";
+import {TargetGroup, TargetSelection} from "../../logic/modules/TargetingModule.ts";
+import {DisplayModule} from "../DisplayModule.ts";
+import {Tile} from "../../logic/modules/TilesModule.ts";
 
 const MAP_SIZE = 64;
 const WHITE_TILE : number = 8;
@@ -174,12 +171,12 @@ export class AutoRpgDisplay {
         const entities = this.ecs.getEntitiesWithComponent(Mob);
         
         const mobs = entities.map(entity => {
-            const body = this.ecs.getComponent(entity, PhaserPhysicsModule.PhysicsBody)?.body;
+            const body = this.ecs.getComponent(entity, PhysicsBody)?.body;
             const mob = this.ecs.getComponent(entity, Mob);
             const targeting = this.ecs.getComponent(entity, TargetSelection);
             const health = this.ecs.getComponent(entity, Health);
-            const log = this.ecs.getComponent(entity, FrameLog.FrameLog);
-            const group = this.ecs.getComponent(entity, Group);
+            const log = this.ecs.getComponent(entity, FrameLog);
+            const group = this.ecs.getComponent(entity, TargetGroup);
             
             let direction = 1;
             
@@ -195,9 +192,9 @@ export class AutoRpgDisplay {
                 rotationToTarget = Math.atan2((targetPosition?.y || 0) - (mobPosition?.y || 0), dx);
             }
             
-            const attacking = log?.logs.some(log => log.type === FrameLog.FrameLogType.Attack);
-            const damage = log?.logs.reduce((acc, log) => log.type === FrameLog.FrameLogType.TakeDamage ? acc + log.value : acc, 0);
-            const criticalMultiplier = log?.logs.reduce((acc, log) => log.type === FrameLog.FrameLogType.TakeCriticalDamage ? log.value : acc, 0);
+            const attacking = log?.logs.some(log => log.type === FrameLogType.Attack);
+            const damage = log?.logs.reduce((acc, log) => log.type === FrameLogType.TakeDamage ? acc + log.value : acc, 0);
+            const criticalMultiplier = log?.logs.reduce((acc, log) => log.type === FrameLogType.TakeCriticalDamage ? log.value : acc, 0);
             
             return {
                 id: entity,
@@ -226,10 +223,10 @@ export class AutoRpgDisplay {
         
         const corpses = entities.map(entity => {
             const corpse = this.ecs.getComponent(entity, Corpse);
-            const log = this.ecs.getComponent(entity, FrameLog.FrameLog);
+            const log = this.ecs.getComponent(entity, FrameLog);
             
-            const damage = log?.logs.reduce((acc, log) => log.type === FrameLog.FrameLogType.TakeDamage ? acc + log.value : acc, 0);
-            const criticalMultiplier = log?.logs.reduce((acc, log) => log.type === FrameLog.FrameLogType.TakeCriticalDamage ? log.value : acc, 0);
+            const damage = log?.logs.reduce((acc, log) => log.type === FrameLogType.TakeDamage ? acc + log.value : acc, 0);
+            const criticalMultiplier = log?.logs.reduce((acc, log) => log.type === FrameLogType.TakeCriticalDamage ? log.value : acc, 0);
             
             const currentAge = corpse.age;
             const maxAge = corpse.maxAge;
@@ -256,11 +253,11 @@ export class AutoRpgDisplay {
             const position = this.ecs.getComponent(entity, Position);
             const building = this.ecs.getComponent(entity, Building);
             const health = this.ecs.getComponent(entity, Health);
-            const group = this.ecs.getComponent(entity, Group);
-            const log = this.ecs.getComponent(entity, FrameLog.FrameLog);
+            const group = this.ecs.getComponent(entity, TargetGroup);
+            const log = this.ecs.getComponent(entity, FrameLog);
 
-            const damage = log?.logs.reduce((acc, log) => log.type === FrameLog.FrameLogType.TakeDamage ? acc + log.value : acc, 0);
-            const criticalMultiplier = log?.logs.reduce((acc, log) => log.type === FrameLog.FrameLogType.TakeCriticalDamage ? log.value : acc, 0);
+            const damage = log?.logs.reduce((acc, log) => log.type === FrameLogType.TakeDamage ? acc + log.value : acc, 0);
+            const criticalMultiplier = log?.logs.reduce((acc, log) => log.type === FrameLogType.TakeCriticalDamage ? log.value : acc, 0);
             
             return {
                 id: entity,

@@ -1,6 +1,6 @@
 import {Action} from "./Action.ts";
 import {GameLogic} from "../../../GameLogic.ts";
-import {GoapState, MobGoapStateComponent} from "./../MobGoapStateComponent.ts";
+import {GoapState, GoapStateComponent} from "../GoapStateComponent.ts";
 
 export class EscapeOverwhelmAction implements Action {
     preconditions = {[GoapState.overwhelmed]: true  };
@@ -17,7 +17,7 @@ export class EscapeOverwhelmAction implements Action {
     }
 
     hasCompleted(entity: number, game: GameLogic): boolean {
-        const state = game.ecs.getComponent(entity, MobGoapStateComponent);
+        const state = game.ecs.getComponent(entity, GoapStateComponent);
         return state.state[GoapState.overwhelmed];
     }
 }

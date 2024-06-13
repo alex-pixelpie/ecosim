@@ -1,17 +1,15 @@
 import {GameLogic, GameLogicModule, GameSystem} from "../GameLogic.ts";
-import {RangeFromTarget, Targeted, TargetSelection} from "./Targeting.ts";
 import {MathUtils} from "../../utils/Math.ts";
 import {Steering} from "./SteeringModule.ts";
-import {PhysicsModule} from "./PhysicsModule.ts";
-import Position = PhysicsModule.Position;
-import {GOAP} from "./goap/GoapModule.ts";
-import ActionComponent = GOAP.ActionComponent;
 import {Weapon} from "./weapons/Weapons.ts";
 import {MoveAction} from "./goap/actions/MoveAction.ts";
 import {AttackAction} from "./goap/actions/AttackAction.ts";
 import {EscapeOverwhelmAction} from "./goap/actions/EscapeOverwhelmAction.ts";
-import {GoapState, MobGoapStateComponent} from "./goap/MobGoapStateComponent.ts";
+import {GoapState, GoapStateComponent} from "./goap/GoapStateComponent.ts";
 import {OverwhelmComponent} from "./OverwhelmModule.ts";
+import {Position} from "./PhaserPhysicsModule.ts";
+import {ActionComponent} from "./goap/GoapModule.ts";
+import {RangeFromTarget, Targeted, TargetSelection} from "./TargetingModule.ts";
 
 class GoapToSteeringDesiresSystem extends GameSystem {
     public intensity: number = 1;
@@ -40,7 +38,7 @@ class GoapToSteeringDesiresSystem extends GameSystem {
     
     private processEscapeOverwhelmAction(entity: number): void {
         const moveDesires = this.game.ecs.getComponent<Steering>(entity, Steering);
-        const position = this.game.ecs.getComponent<Position>(entity, Position);
+        const position = this.game.ecs.getComponent(entity, Position);
         const targeted = this.game.ecs.getComponent(entity, Targeted);
         
         if (!moveDesires || !position || !targeted) {
@@ -92,7 +90,7 @@ class GoapToSteeringDesiresSystem extends GameSystem {
         this.avoidWalls(steering, position);
     }
     
-    private avoidWalls(steering: Steering, position: PhysicsModule.Position) {
+    private avoidWalls(steering: Steering, position: Position) {
         // Add wall avoidance
         const avoidanceIntensity = 1; // Adjust this value based on desired avoidance strength
         const wallProximityThreshold = 500; // Adjust this value based on how close is "too close" to a wall
@@ -157,15 +155,15 @@ class GoapToWeaponUseSystem extends GameSystem {
 }
 
 class GoapStateUpdateSystem extends GameSystem {
-    public componentsRequired: Set<Function> = new Set([MobGoapStateComponent]);
+    public componentsRequired: Set<Function> = new Set([GoapStateComponent]);
 
     protected init(): void {
-        this.componentsRequired = new Set([MobGoapStateComponent]);
+        this.componentsRequired = new Set([GoapStateComponent]);
     }
 
     public update(entities: Set<number>, _: number): void {
         entities.forEach(entity => {
-            const state = this.game.ecs.getComponent(entity, MobGoapStateComponent);
+            const state = this.game.ecs.getComponent(entity, GoapStateComponent);
             
             this.updateInRangeState(entity, state);
             this.updateOverwhelmState(entity, state);
@@ -173,7 +171,7 @@ class GoapStateUpdateSystem extends GameSystem {
         });
     }
 
-    private updateInRangeState(entity: number, state: MobGoapStateComponent) {
+    private updateInRangeState(entity: number, state: GoapStateComponent) {
         const game = this.game;
         state.state[GoapState.inRange] = false;
 
@@ -198,12 +196,12 @@ class GoapStateUpdateSystem extends GameSystem {
         state.state[GoapState.inRange] = rangeComponent.inRange(positionComponent, targetSelectionComponent, targetSelectionComponent.targetSize);
     }
 
-    private updateOverwhelmState(entity: number, state: MobGoapStateComponent) {
+    private updateOverwhelmState(entity: number, state: GoapStateComponent) {
         const overwhelm = this.game.ecs.getComponent(entity, OverwhelmComponent);
         state.state[GoapState.overwhelmed] = overwhelm?.overwhelmed || false;
     }
 
-    private updateTargetingState(entity: number, state: MobGoapStateComponent) {
+    private updateTargetingState(entity: number, state: GoapStateComponent) {
         const targetSelection = this.game.ecs.getComponent<TargetSelection>(entity, TargetSelection);
         state.state[GoapState.hasTarget] = !!(targetSelection?.target);
     }

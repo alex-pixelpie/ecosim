@@ -2,9 +2,8 @@ import {Component} from "../../core/ECS.ts";
 import {Mob, MobType} from "./MobsModule.ts";
 import {GameLogic, GameLogicModule, GameSystem} from "../GameLogic.ts";
 import {FrameLog} from "./FrameLog.ts";
-import {PhysicsModule} from "./PhysicsModule.ts";
-import Position = PhysicsModule.Position;
 import {Building, BuildingType} from "./BuildingsModule.ts";
+import {Position} from "./PhaserPhysicsModule.ts";
 
 export class Health extends Component {
     maxValue: number;
@@ -115,7 +114,7 @@ class DropsSystem extends GameSystem {
     private dropCorpse(entity: number) {
         const position = this.game.ecs.getComponent(entity, Position);
         const mob = this.game.ecs.getComponent(entity, Mob);
-        const frameLog = this.game.ecs.getComponent(entity, FrameLog.FrameLog);
+        const frameLog = this.game.ecs.getComponent(entity, FrameLog);
 
         if (position && mob && frameLog){
             const corpseEntity = this.game.ecs.addEntity();
@@ -123,7 +122,7 @@ class DropsSystem extends GameSystem {
             this.game.ecs.removeComponent(entity, DieAndDrop);
             
             // Copy the frame log to the corpse
-            const log = new FrameLog.FrameLog();
+            const log = new FrameLog();
             log.logs = [...frameLog.logs];
             this.game.ecs.addComponent(corpseEntity, log);
         }
@@ -132,14 +131,14 @@ class DropsSystem extends GameSystem {
     private dropRuin(entity: number) {
         const position = this.game.ecs.getComponent(entity, Position);
         const building = this.game.ecs.getComponent(entity, Building);
-        const frameLog = this.game.ecs.getComponent(entity, FrameLog.FrameLog);
+        const frameLog = this.game.ecs.getComponent(entity, FrameLog);
 
         if (position && building && frameLog){
             const ruinEntity = this.game.ecs.addEntity();
             this.game.ecs.addComponent(ruinEntity, new Ruin(building.type, position.x, position.y));
 
             // Copy the frame log to the ruin
-            const log = new FrameLog.FrameLog();
+            const log = new FrameLog();
             log.logs = [...frameLog.logs];
             this.game.ecs.addComponent(ruinEntity, log);
         }

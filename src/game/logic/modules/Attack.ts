@@ -1,10 +1,9 @@
-import {Entity} from "../../../core/ECS.ts";
-import {GameLogic, GameLogicModule, GameSystem} from "../../GameLogic.ts";
-import {Weapon} from "./Weapons.ts";
-import {RangeFromTarget, TargetSelection} from "../Targeting.ts";
-import {FrameLog} from "../FrameLog.ts";
-import {PhysicsModule} from "../PhysicsModule.ts";
-import Position = PhysicsModule.Position;
+import {Entity} from "../../core/ECS.ts";
+import {GameLogic, GameLogicModule, GameSystem} from "../GameLogic.ts";
+import {Weapon} from "./weapons/Weapons.ts";
+import {FrameLog, FrameLogType, FrameLogType} from "./FrameLog.ts";
+import {Position} from "./PhaserPhysicsModule.ts";
+import {RangeFromTarget, TargetSelection} from "./TargetingModule.ts";
 
 class AttackSystem extends GameSystem {
     public componentsRequired: Set<Function> = new Set([Weapon, TargetSelection]);
@@ -72,8 +71,8 @@ class AttackSystem extends GameSystem {
             return;
         }
         
-        const ownLog = game.ecs.getComponent(entity, FrameLog.FrameLog);
-        ownLog?.logs.push({type: FrameLog.FrameLogType.Attack, value: weaponComponent.damage, timestamp: game.timeFromStart});
+        const ownLog = game.ecs.getComponent(entity, FrameLog);
+        ownLog?.logs.push({type: FrameLogType.Attack, value: weaponComponent.damage, timestamp: game.timeFromStart});
         
         if (weaponComponent.isSwinging(game.timeFromStart)){
             return;

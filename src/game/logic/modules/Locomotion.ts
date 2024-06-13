@@ -1,9 +1,8 @@
 import {Component} from "../../core/ECS.ts";
 import {GameLogic, GameLogicModule, GameSystem} from "../GameLogic.ts";
-import {PhaserPhysicsModule} from "./PhaserPhysicsModule.ts";
-import PhysicsBody = PhaserPhysicsModule.PhysicsBody;
 import {Steering} from "./SteeringModule.ts";
 import {MathUtils} from "../../utils/Math.ts";
+import {PhysicsBody} from "./PhaserPhysicsModule.ts";
 
 export class GlideLocomotion extends Component {
     speed: number;

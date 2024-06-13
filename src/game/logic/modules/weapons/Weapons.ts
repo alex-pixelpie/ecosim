@@ -1,11 +1,9 @@
 import {GameLogic} from "../../GameLogic.ts";
 import {Component} from "../../../core/ECS.ts";
 import {MathUtils} from "../../../utils/Math.ts";
-import {PhysicsModule} from "../PhysicsModule.ts";
-import Position = PhysicsModule.Position;
-import {TargetSelection} from "../Targeting.ts";
-import {FrameLog} from "../FrameLog.ts";
-import {Health} from "../DeathModule.ts";
+import {Position} from "../PhaserPhysicsModule.ts";
+import { WeaponEffectDirectDamage } from "./WeaponEffectDirectDamage.ts";
+import { WeaponEffectArrow } from "./WeaponEffectArrow.ts";
 
 export class WeaponConfig {
     damageMin:number;
@@ -28,59 +26,9 @@ export enum WeaponEffect {
 export type WeaponEffectFunction = (game: GameLogic, owner:number, weapon:Weapon) => void;
 export type WeaponEffectsType = Record<WeaponEffect, WeaponEffectFunction>;
 
-export const directDamageEffect:WeaponEffectFunction = (game: GameLogic, owner:number, weapon:Weapon): void => {
-    const targetSelection = game.ecs.getComponent(owner, TargetSelection);
-    const target = targetSelection?.target as number;
-
-    // Check if the target is a valid entity
-    if (isNaN(target)){
-        return;
-    }
-
-    const health = game.ecs.getComponent(target, Health);
-    if (!health){
-        return;
-    }
-
-    const damage = weapon.damage;
-    const crit = weapon.criticalDamage;
-    const totalDamage = damage * crit;
-    health.value -= totalDamage;
-    weapon.appliedEffectThisAttack = true;
-
-    const targetLog = game.ecs.getComponent(target, FrameLog.FrameLog);
-    targetLog?.logs.push({type: FrameLog.FrameLogType.TakeDamage, value: totalDamage, timestamp: game.timeFromStart});
-    crit > 1 && targetLog?.logs.push({type: FrameLog.FrameLogType.TakeCriticalDamage, value: crit, timestamp: game.timeFromStart});
-};
-
-export const arrowEffect:WeaponEffectFunction = (game: GameLogic, owner:number, weapon:Weapon): void => {
-    const targetSelection = game.ecs.getComponent(owner, TargetSelection);
-    const target = targetSelection?.target as number;
-
-    // Check if the target is a valid entity
-    if (isNaN(target)){
-        return;
-    }
-
-    const health = game.ecs.getComponent(target, Health);
-    if (!health){
-        return;
-    }
-
-    const damage = weapon.damage;
-    const crit = weapon.criticalDamage;
-    const totalDamage = damage * crit;
-    health.value -= totalDamage;
-    weapon.appliedEffectThisAttack = true;
-
-    const targetLog = game.ecs.getComponent(target, FrameLog.FrameLog);
-    targetLog?.logs.push({type: FrameLog.FrameLogType.TakeDamage, value: totalDamage, timestamp: game.timeFromStart});
-    crit > 1 && targetLog?.logs.push({type: FrameLog.FrameLogType.TakeCriticalDamage, value: crit, timestamp: game.timeFromStart});
-};
-
 export const WeaponEffects:WeaponEffectsType = {
-    [WeaponEffect.DirectDamage]: directDamageEffect,
-    [WeaponEffect.Arrow]: arrowEffect,
+    [WeaponEffect.DirectDamage]: WeaponEffectDirectDamage,
+    [WeaponEffect.Arrow]: WeaponEffectArrow,
 }
 
 export class Weapon extends Component {
