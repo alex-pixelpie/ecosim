@@ -5,7 +5,7 @@ import {GOAP} from "./goap/GoapModule.ts";
 import {Weapon, WeaponConfig, WeaponEffect} from "./weapons/Weapons.ts";
 import {Steering} from "./SteeringModule.ts";
 import {FrameLog} from "./FrameLog.ts";
-import {Group, RangeFromTarget, Targetable, Targeted, TargetSelection} from "./Targeting.ts";
+import {Group, MobsTargeting, RangeFromTarget, Targetable, Targeted, TargetSelection} from "./Targeting.ts";
 import {GlideLocomotion} from "./Locomotion.ts";
 import {GetTargetAction} from "./goap/actions/GetTargetAction.ts";
 import {MoveAction} from "./goap/actions/MoveAction.ts";
@@ -82,8 +82,8 @@ export namespace MobsModule {
             
             while (this.game.mobs.size < mobsCounter.count) {
                 const random = Math.random();
-                const x = Math.floor(200 + Math.random() * 1000);
-                const y = Math.floor(200 + Math.random() * 1000);
+                const x = Math.floor(400 + Math.random() * 1200);
+                const y = Math.floor(400 + Math.random() * 1200);
                 const group:number = Math.random() > 0.5 ? 1 : 0;
 
                 if (random < 0.5) {
@@ -108,9 +108,10 @@ export namespace MobsModule {
 
         static addTargeting(game: GameLogic, entity: number, ownGroup: number, size:number){
             // Targeting all groups except own
-            game.ecs.addComponent(entity, new TargetSelection(groupTypeValues.filter(group => group !== ownGroup).reduce((acc, group) => acc.add(group), new Set<number>()) as Set<number>));
+            game.ecs.addComponent(entity, new TargetSelection());
             game.ecs.addComponent(entity, new Targeted());
             game.ecs.addComponent(entity, new Targetable());
+            game.ecs.addComponent(entity, new MobsTargeting(groupTypeValues.filter(group => group !== ownGroup).reduce((acc, group) => acc.add(group), new Set<number>()) as Set<number>));
             game.ecs.addComponent(entity, new RangeFromTarget(0, 0, size));
         }
 

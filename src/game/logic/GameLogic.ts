@@ -81,7 +81,8 @@ export interface PhysicalComponentCreationData {
     radius?:number;
     width?:number;
     height?:number;
-    isStatic:boolean;
+    isStatic?:boolean;
+    isGameOver?:boolean;
 }
 
 export class GameLogic {

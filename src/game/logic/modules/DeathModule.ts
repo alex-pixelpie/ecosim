@@ -120,7 +120,8 @@ class DropsSystem extends GameSystem {
         if (position && mob && frameLog){
             const corpseEntity = this.game.ecs.addEntity();
             this.game.ecs.addComponent(corpseEntity, new Corpse(mob.type, position.x, position.y));
-
+            this.game.ecs.removeComponent(entity, DieAndDrop);
+            
             // Copy the frame log to the corpse
             const log = new FrameLog.FrameLog();
             log.logs = [...frameLog.logs];

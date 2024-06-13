@@ -37,16 +37,19 @@ export namespace PhaserPhysicsModule {
     export class PhaserPhysicsModule extends GameLogicModule {
         mobsGroup: Phaser.Physics.Arcade.Group;
         staticGroup: Phaser.Physics.Arcade.StaticGroup;
+        gameOverGroup: Phaser.Physics.Arcade.Group;
         
         private game: GameLogic;
 
         public init(game:GameLogic): void {
             this.game = game;
             this.mobsGroup = game.scene.physics.add.group();
+            this.gameOverGroup = game.scene.physics.add.group();
             this.staticGroup = game.scene.physics.add.staticGroup();
             
             game.scene.physics.add.collider(this.mobsGroup, this.mobsGroup);
             game.scene.physics.add.collider(this.mobsGroup, this.staticGroup);
+            game.scene.physics.add.collider(this.gameOverGroup, this.gameOverGroup);
             
             this.game.addPhysicalComponents = this.addPhysicalComponents.bind(this);
             this.game.removePhysicalComponents = this.removePhysicalComponents.bind(this);
@@ -58,8 +61,8 @@ export namespace PhaserPhysicsModule {
             this.createCollidableBorders(size, size);
         }
 
-        private addPhysicalComponents({isStatic, y, radius, entity, x, width, height}: PhysicalComponentCreationData) {
-            const group = isStatic ? this.staticGroup : this.mobsGroup;
+        private addPhysicalComponents({isStatic, isGameOver, y, radius, entity, x, width, height}: PhysicalComponentCreationData) {
+            const group = isStatic ? this.staticGroup : isGameOver? this.gameOverGroup : this.mobsGroup; // Double ternary operator :scream:
             const bodyContainer = group.create(x, y) as GameObjects.Container;
             bodyContainer.setVisible(false);
             const body = bodyContainer.body as Phaser.Physics.Arcade.Body;

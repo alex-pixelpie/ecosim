@@ -31,10 +31,15 @@ export class Preloader extends Scene
         this.load.image('Grass', 'Grass.png');
         this.load.image('Seaweed', 'Seaweed.png');
         this.load.image('grassland-tiles', 'grassland-tiles.png');
-        
+
         this.load.image('group-ring', 'group-ring.png');
+        
+        this.load.image('circle', 'circle.png');
+        
         this.load.spritesheet('castle', 'castle-damage.png', { frameWidth: 256, frameHeight: 256 });
 
+        this.load.spritesheet('bat-0', './menu/bat-0.png', { frameWidth: 32, frameHeight: 32 });
+        
         // Skeleton
         this.load.spritesheet('skeleton-idle', './characters/skeleton/idle.png', { frameWidth: 150, frameHeight: 150 });
         this.load.spritesheet('skeleton-walk', './characters/skeleton/walk.png', { frameWidth: 150, frameHeight: 150 });
@@ -54,6 +59,6 @@ export class Preloader extends Scene
         //  For example, you can define global animations here, so we can use them in other scenes.
 
         //  Move to the MainMenu. You could also swap this for a Scene Transition, such as a camera fade.
-        this.scene.start('Game');
+        this.scene.start('AutoRpg');
     }
 }

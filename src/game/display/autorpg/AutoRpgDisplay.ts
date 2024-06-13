@@ -11,6 +11,7 @@ import {FrameLog} from "../../logic/modules/FrameLog.ts";
 import {Mob} from "../../logic/modules/MobsModule.ts";
 import {Corpse, Health, Ruin} from "../../logic/modules/DeathModule.ts";
 import {Building} from "../../logic/modules/BuildingsModule.ts";
+import {GameOverAgent} from "../../logic/modules/GameOverModule.ts";
 
 const MAP_SIZE = 64;
 const WHITE_TILE : number = 8;
@@ -32,6 +33,13 @@ export type CorpseData = {
 }
 
 export type RuinData = {
+    id: number;
+    x: number;
+    y: number;
+    type: string;
+}
+
+export type GameOverAgentData = {
     id: number;
     x: number;
     y: number;
@@ -82,6 +90,8 @@ export class AutoRpgDisplay {
     corpses: CorpseData[] = [];
     buildings: BuildingData[] = [];
     ruins: RuinData[] = [];
+    gameOverAgents:GameOverAgentData[] = [];
+    
     config:AutoRpgDisplayConfig  = new AutoRpgDisplayConfig();
     
     // Layers
@@ -90,6 +100,9 @@ export class AutoRpgDisplay {
     mobsLayer: Phaser.GameObjects.Container;
     corpsesLayer: Phaser.GameObjects.Container;
     groundUi: Phaser.GameObjects.Container;
+    groundShadow: Phaser.GameObjects.Container;
+    airShadow: Phaser.GameObjects.Container;
+    air: Phaser.GameObjects.Container;
     timeFromStart: number = 0;
     
     constructor(scene: Phaser.Scene, ecs:ECS, modules: AutoRpgDisplayModule[]) {
@@ -102,10 +115,13 @@ export class AutoRpgDisplay {
         modules.forEach(module => module.init(this));
 
         this.corpsesLayer = scene.add.container();
+        this.groundShadow = scene.add.container();
         this.groundUi = scene.add.container();
         this.mobsLayer = scene.add.container();
         this.mobUi = scene.add.container();
         this.overlayUi = scene.add.container();
+        this.airShadow = scene.add.container();
+        this.air = scene.add.container();
     }
  
     update(delta: number) {
@@ -115,11 +131,32 @@ export class AutoRpgDisplay {
         this.updateCorpses();
         this.updateBuildings();
         this.updateRuins();
+        this.updateGameOverAgents();
+        
         this.modules.forEach(module => module.update(delta));
 
         this.mobsLayer.sort('y');
 
     }
+    
+    private updateGameOverAgents() {
+        const entities = this.ecs.getEntitiesWithComponent(GameOverAgent);
+        
+        const gameOverAgents = entities.map(entity => {
+            const position = this.ecs.getComponent(entity, Position);
+            // const gameOverAgent = this.ecs.getComponent(entity, GameOverAgent);
+            
+            return {
+                id: entity,
+                x: position?.x || 0,
+                y: position?.y || 0,
+                type: 'bat-0'
+            };
+        });
+        
+        this.gameOverAgents = gameOverAgents;
+    }
+    
     
     private updateTiles(){
         const entities = this.ecs.getEntitiesWithComponent(Tile);

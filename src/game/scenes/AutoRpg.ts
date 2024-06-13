@@ -26,6 +26,8 @@ import {DeathModule} from "../logic/modules/DeathModule.ts";
 import {BuildingsModule} from "../logic/modules/BuildingsModule.ts";
 import {BuildingsDisplayModule} from "../display/autorpg/BuildingsDisplayModule.ts";
 import {RuinsDisplayModule} from "../display/autorpg/RuinsDisplayModule.ts";
+import {GameOverDisplayModule} from "../display/autorpg/GameOverDisplayModule.ts";
+import {GameOverModule} from "../logic/modules/GameOverModule.ts";
 
 export class AutoRpg extends Scene
 {
@@ -33,7 +35,7 @@ export class AutoRpg extends Scene
     private gameDisplay: AutoRpgDisplay;
     
     constructor () {
-        super('Game');
+        super('AutoRpg');
     }
 
     update(time: number, delta: number) {
@@ -64,7 +66,8 @@ export class AutoRpg extends Scene
             new GOAP.GoapModule(),
             new GoapConnectorModule(),
             new TargetingModule(),
-            new BuildingsModule()
+            new BuildingsModule(),
+            new GameOverModule()
         ]);
         
         this.gameDisplay = new AutoRpgDisplay(this, ecs, [
@@ -75,14 +78,17 @@ export class AutoRpg extends Scene
             new BuildingsDisplayModule(),
             new CorpsesDisplayModule(),
             new TileSelectionModule(),
-            new FloatingNumbersDisplay()
+            new FloatingNumbersDisplay(),
+            new GameOverDisplayModule()
         ]);
         
         EventBus.emit('current-scene-ready', this);
+
+        // EventBus.emit(GameEvents.GameOver, {victory: true});
     }
 
     changeScene () {
         EventBus.off(GameEvents.GameStart, this.changeScene, this);
-        this.scene.start('Game');
+        this.scene.start('AutoRpg');
     }
 }

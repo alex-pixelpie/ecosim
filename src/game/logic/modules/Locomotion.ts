@@ -6,8 +6,13 @@ import {Steering} from "./SteeringModule.ts";
 import {MathUtils} from "../../utils/Math.ts";
 
 export class GlideLocomotion extends Component {
-    constructor(public speed: number = 1) {
+    speed: number;
+    maxSpeed: number;
+    
+    constructor(speed: number = 1) {
         super();
+        this.speed = speed;
+        this.maxSpeed = speed;
     }
 }
 

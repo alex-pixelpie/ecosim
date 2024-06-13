@@ -13,10 +13,16 @@ export class TargetSelection implements Component {
     y: number = 0;
     targetSize: number = 0;
     
-    constructor(public targetGroups: Set<number>) {}
+    constructor() {}
 }
 
-export class Targetable implements Component {}
+export class Targetable extends Component {}
+
+export class MobsTargeting extends Component {
+    constructor(public targetGroups: Set<number>) {
+        super();
+    }
+}
 
 export class Targeted implements Component {
     targetedBy: number[] = [];
@@ -33,6 +39,10 @@ export class RangeFromTarget extends Component {
         super();
     }
 
+    distanceFromTarget(currentPosition: Pos, targetPosition: Pos): number {
+        return MathUtils.distance(currentPosition, targetPosition) - this.ownSize;
+    }
+    
     inRange(currentPosition: Pos, targetPosition: Pos, otherSize:number): boolean {
         let distance = MathUtils.distance(currentPosition, targetPosition) - otherSize - this.ownSize;
         return distance <= this.maxDistance && distance >= this.minDistance;
@@ -49,11 +59,11 @@ export class RangeFromTarget extends Component {
     }
 }
 
-export class TargetSelectionSystem extends GameSystem {
-    public componentsRequired: Set<Function> = new Set([TargetSelection]);
+export class MobTargetSelectionSystem extends GameSystem {
+    public componentsRequired: Set<Function> = new Set([TargetSelection, MobsTargeting]);
 
     protected init(): void {
-        this.componentsRequired = new Set([TargetSelection]);
+        this.componentsRequired = new Set([TargetSelection, MobsTargeting]);
     }
 
     public update(entities: Set<number>, _: number): void {
@@ -67,7 +77,7 @@ export class TargetSelectionSystem extends GameSystem {
 
             // If we don't have a target, select one
             if (!targetSelection.target) {
-                targetSelection.target = TargetSelectionSystem.selectTarget(this.game, entity);
+                targetSelection.target = MobTargetSelectionSystem.selectTarget(this.game, entity);
             }
             
             const target = targetSelection.target;
@@ -89,8 +99,9 @@ export class TargetSelectionSystem extends GameSystem {
     static selectTarget(game:GameLogic, entity: number): number | null {
         const position = game.ecs.getComponent(entity, Position);
         const targetSelection = game.ecs.getComponent(entity, TargetSelection);
+        const mobTargeting = game.ecs.getComponent(entity, MobsTargeting);
         
-        if (!position || !targetSelection) {
+        if (!position || !targetSelection || !mobTargeting) {
             return null;
         }
 
@@ -107,7 +118,7 @@ export class TargetSelectionSystem extends GameSystem {
             }
             
             const targetGroup = game.ecs.getComponent(e, Group);
-            return targetSelection.targetGroups.has(targetGroup.id);
+            return mobTargeting.targetGroups.has(targetGroup.id);
         });
         
         if (potentialTargets.length === 0) {
@@ -167,17 +178,17 @@ class TargetedResetSystem extends GameSystem {
     }
 }
 
-class TargetReselectionSystem extends TimedGameSystem {
-    public componentsRequired: Set<Function> = new Set([TargetSelection]);
+class MobTargetReselectionSystem extends TimedGameSystem {
+    public componentsRequired: Set<Function> = new Set([TargetSelection, MobsTargeting]);
 
     protected init(): void {
-        this.componentsRequired = new Set([TargetSelection]);
+        this.componentsRequired = new Set([TargetSelection, MobsTargeting]);
     }
 
     public updateTimed(entities: Set<number>, _: number): void {
         entities.forEach(entity => {
             const targetSelection = this.game.ecs.getComponent(entity, TargetSelection);
-            targetSelection.target = TargetSelectionSystem.selectTarget(this.game, entity);
+            targetSelection.target = MobTargetSelectionSystem.selectTarget(this.game, entity);
         });
     }
 }
@@ -189,10 +200,10 @@ export class TargetingModule extends GameLogicModule {
         const targetedResetSystem = new TargetedResetSystem(game);
         game.ecs.addSystem(targetedResetSystem);
         
-        const targetSelectionSystem = new TargetSelectionSystem(game);
+        const targetSelectionSystem = new MobTargetSelectionSystem(game);
         game.ecs.addSystem(targetSelectionSystem);
         
-        const targetReselectionSystem = new TargetReselectionSystem(game, reselectionInterval);
+        const targetReselectionSystem = new MobTargetReselectionSystem(game, reselectionInterval);
         game.ecs.addSystem(targetReselectionSystem);
     }
 }
