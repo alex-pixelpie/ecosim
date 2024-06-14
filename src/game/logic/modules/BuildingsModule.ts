@@ -8,10 +8,61 @@ import {MobsSpawn} from "./MobsModule.ts";
 import {Targetable, TargetGroup} from "./TargetingModule.ts";
 import {Configs} from "../../configs/Configs.ts";
 import {BuildingConfig, BuildingType} from "../../configs/BuildingsConfig.ts";
+import {Position} from "./PhaserPhysicsModule.ts";
+import {MathUtils, Pos} from "../../utils/Math.ts";
 
 export class Building extends Component {
     constructor(public type: BuildingType = BuildingType.Base) {
         super();
+    }
+}
+
+export class Home extends Component {
+    public x: number = 0;
+    public y: number = 0;
+    
+    constructor(public entity: number, public homeSize: number, public ownSize: number, public maxDistance: number, public safeDistance: number) {
+        super();
+    }
+    
+    distance(from: Pos): number {
+        return MathUtils.distance(from, this) - this.homeSize;
+    }
+
+    inRange(from: Pos): boolean {
+        let distance = MathUtils.distance(from, this) - this.ownSize - this.homeSize;
+        return distance <= this.maxDistance;
+    }
+
+    isSafe(from: Pos): boolean {
+        const distance = MathUtils.distance(from, this) - this.ownSize - this.homeSize;
+        return distance < this.safeDistance;
+    }
+}
+
+class HomeUpdateSystem extends GameSystem {
+    public componentsRequired: Set<Function> = new Set([Home]);
+    
+    protected init(): void {
+        this.componentsRequired = new Set([Home]);
+    }
+    
+    public update(entities: Set<number>, _: number): void {
+        entities.forEach(entity => {
+            const home = this.game.ecs.getComponent<Home>(entity, Home);
+            const building = this.game.ecs.getComponent<Building>(home.entity, Building);
+            
+            if (!building){
+                this.game.ecs.removeComponent(entity, Home); // TODO - improve homelessness logic
+                return;
+            }
+            
+            const position = this.game.ecs.getComponent(home.entity, Position);
+            if (position){
+                home.x = position.x;
+                home.y = position.y;
+            }
+        });
     }
 }
 
@@ -43,13 +94,16 @@ export class BuildingsModule extends GameLogicModule {
         const basesSystem = new BuildingsDeathSystem(game);
         game.ecs.addSystem(basesSystem);
 
+        const homeSystem = new HomeUpdateSystem(game);
+        game.ecs.addSystem(homeSystem);
+        
         const playerBaseConfig = Configs.buildingsConfig.getConfig(BuildingType.Base);
         const mapSize = Configs.mapConfig.pixelsSize;
         const offset = 100;
         const baseSize = 140;
         
-        BuildingsModule.makeBuilding(game, playerBaseConfig, 0, offset+baseSize, offset+baseSize);
-        BuildingsModule.makeBuilding(game, playerBaseConfig, 1, mapSize-offset-baseSize, mapSize-offset-baseSize);
+        // BuildingsModule.makeBuilding(game, playerBaseConfig, 0, offset+baseSize, offset+baseSize);
+        // BuildingsModule.makeBuilding(game, playerBaseConfig, 1, mapSize-offset-baseSize, mapSize-offset-baseSize);
     }
     
     static makeBuilding(game: GameLogic, config:BuildingConfig, group: number, x: number, y: number){

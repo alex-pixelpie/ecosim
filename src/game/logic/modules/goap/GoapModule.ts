@@ -25,7 +25,7 @@ class Planner {
 
     goalAchieved(currentState: Record<string, boolean>, desiredState: Record<string, boolean>): boolean {
         for (let key in desiredState) {
-            if (currentState[key] !== desiredState[key]) {
+            if (currentState[key] != desiredState[key]) {
                 return false;
             }
         }
@@ -82,7 +82,7 @@ class ActionSystem extends GameSystem {
             
             goalsComponent.updatePriorities(stateComponent.state);
 
-            const goals = goalsComponent.goals.sort((a, b) => a.priority - b.priority);
+            const goals = goalsComponent.goals.sort((a, b) => b.priority - a.priority);
             if (goals[0] !== this.goal) {
                 this.createPlan(entity);
             }
@@ -111,7 +111,7 @@ class ActionSystem extends GameSystem {
         const goalsComponent = this.game.ecs.getComponent<GoalsComponent>(entity, GoalsComponent);
         const availableActionsComponent = this.game.ecs.getComponent<AvailableActionsComponent>(entity, AvailableActionsComponent);
 
-        const goals = goalsComponent.goals.sort((a, b) => a.priority - b.priority);
+        const goals = goalsComponent.goals.sort((a, b) => b.priority - a.priority);
         this.goal = goals[0];
 
         actionComponent.plan = this.planner.plan(availableActionsComponent.actions, this.goal, stateComponent.state);

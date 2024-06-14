@@ -46,7 +46,7 @@ export interface PhysicalComponentCreationData {
 export class GameLogic {
     ecs: ECS;
     scene: Phaser.Scene;
-    timeFromStart: number = 0;
+    currentTime: number = 0;
     mobs: Set<number> = new Set();
 
     // Populated by the PhaserPhysicsModule
@@ -65,7 +65,7 @@ export class GameLogic {
     }
     
     update(delta: number) {
-        this.timeFromStart += delta;
+        this.currentTime += delta;
         this.ecs.update(delta);
     }
 }

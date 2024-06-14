@@ -3,7 +3,7 @@ import { MathUtils } from "../../../../utils/Math.ts";
 import { Steering } from "../../SteeringModule.ts";
 import { Position } from "../../PhaserPhysicsModule.ts";
 import { Targeted } from "../../TargetingModule.ts";
-import { ActionProcessor } from "../GoapToSteeringImpulsesSystem.ts";
+import { ActionProcessor } from "../systems/GoapToSteeringImpulsesSystem.ts";
 
 export const processEscapeOverwhelmAction: ActionProcessor = (game: GameLogic, entity: number, intensity: number = 1): void => {
     const moveDesires = game.ecs.getComponent<Steering>(entity, Steering);

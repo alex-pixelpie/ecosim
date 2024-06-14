@@ -1,8 +1,8 @@
 import {GameLogic} from "../../GameLogic.ts";
 import { GameLogicModule } from "../../GameLogicModule.ts";
-import { GoapStateUpdateSystem } from "./GoapStateUpdateSystem.ts";
-import { GoapToWeaponUseSystem } from "./GoapToWeaponUseSystem.ts";
-import {GoapToSteeringImpulsesSystem} from "./GoapToSteeringImpulsesSystem.ts";
+import { GoapStateUpdateSystem } from "./systems/GoapStateUpdateSystem.ts";
+import { GoapToWeaponUseSystem } from "./systems/GoapToWeaponUseSystem.ts";
+import {GoapToSteeringImpulsesSystem} from "./systems/GoapToSteeringImpulsesSystem.ts";
 
 export class GoapConnectorModule extends GameLogicModule {
     public init(game: GameLogic): void {

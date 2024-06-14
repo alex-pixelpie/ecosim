@@ -1,13 +1,13 @@
 import {GameLogic, GameSystem, TimedGameSystem} from "../GameLogic.ts";
 import { GameLogicModule } from "../GameLogicModule.ts";
 import {Component} from "../../core/ECS.ts";
-import {GoapState, GoapStateComponent} from "./goap/GoapStateComponent.ts";
+import {defaultGoapState, GoapStateComponent} from "./goap/GoapStateComponent.ts";
 import {Weapon} from "./weapons/Weapons.ts";
 import {Steering} from "./SteeringModule.ts";
 import {FrameLog} from "./FrameLogModule.ts";
 import {GlideLocomotion} from "./LocomotionModule.ts";
 import {GetTargetAction} from "./goap/actions/GetTargetAction.ts";
-import {MoveAction} from "./goap/actions/MoveAction.ts";
+import {MoveToTargetAction} from "./goap/actions/MoveToTargetAction.ts";
 import {AttackAction} from "./goap/actions/AttackAction.ts";
 import {KillEnemiesGoal} from "./goap/goals/KillEnemiesGoal.ts";
 import {Action} from "./goap/actions/Action.ts";
@@ -23,7 +23,13 @@ import {
 } from "./goap/GoapModule.ts";
 import {MobsTargeting, RangeFromTarget, Targetable, Targeted, TargetGroup, TargetSelection} from "./TargetingModule.ts";
 import {MobConfig, MobSpawnDefinition, MobType, WeaponConfig} from "../../configs/MobsConfig.ts";
-import { defaultState } from "./goap/GoapStateComponent.ts";
+import {Configs} from "../../configs/Configs.ts";
+import {Patroller} from "./PatrolModule.ts";
+import {PatrolGoal} from "./goap/goals/PatrolGoal.ts";
+import {StayCloseToHomeGoal} from "./goap/goals/StayCloseToHomeGoal.ts";
+import {GetToTargetGoal} from "./goap/goals/GetToTargetGoal.ts";
+import {PatrolAction} from "./goap/actions/PatrolAction.ts";
+import {GoHomeAction} from "./goap/actions/GoHomeAction.ts";
 
 enum GroupType {
     Red = 0,
@@ -70,16 +76,21 @@ class MobSpawnUpgradeSystem extends TimedGameSystem {
 const ActionTypeToAction = new Map<string, Action>(
     [
         [GetTargetAction.name, new GetTargetAction()],
-        [MoveAction.name, new MoveAction()],
+        [MoveToTargetAction.name, new MoveToTargetAction()],
         [AttackAction.name, new AttackAction()],
-        [EscapeOverwhelmAction.name, new EscapeOverwhelmAction()]
+        [EscapeOverwhelmAction.name, new EscapeOverwhelmAction()],
+        [PatrolAction.name, new PatrolAction()],
+        [GoHomeAction.name, new GoHomeAction()]
     ]
 );
 
 const GoalTypeToGoal = new Map<string, Goal>(
     [
         [KillEnemiesGoal.name, new KillEnemiesGoal()],
-        [EscapeOverwhelmGoal.name, new EscapeOverwhelmGoal()]
+        [EscapeOverwhelmGoal.name, new EscapeOverwhelmGoal()],
+        [PatrolGoal.name, new PatrolGoal()],
+        [StayCloseToHomeGoal.name, new StayCloseToHomeGoal()],
+        [GetToTargetGoal.name, new GetToTargetGoal()]
     ]
 );
 
@@ -89,39 +100,41 @@ export class MobSpawnSystem extends TimedGameSystem {
             const mobsSpawn = this.game.ecs.getComponent(entity, MobsSpawn);
             mobsSpawn.mobs.forEach(mob => {
                 for (let i = 0; i < mob.count; i++) {
-                    this.makeMob(this.game, mob.config, mobsSpawn.position.x, mobsSpawn.position.y, mobsSpawn.group);
+                    MobSpawnSystem.makeMob(this.game, mob.config, mobsSpawn.position.x, mobsSpawn.position.y, mobsSpawn.group);
                 }
             });
         });
     }
     
-    makeMob(game: GameLogic, config: MobConfig, x: number, y: number, group: number){
-        const entity = game.ecs.addEntity();
-        game.ecs.addComponent(entity, new Mob(config.type));
+    static makeMob(game: GameLogic, config: MobConfig, x: number, y: number, group: number){
+        const mob = game.ecs.addEntity();
+        game.ecs.addComponent(mob, new Mob(config.type));
         
         // Common
-        MobSpawnSystem.addCommonComponents(game, entity, group);
+        MobSpawnSystem.addCommonComponents(game, mob, group);
         
         // GOAP
-        MobSpawnSystem.addGoap(game, entity, config.actions.map(action => ActionTypeToAction.get(action) as Action), config.goals.map(goal => GoalTypeToGoal.get(goal) as Goal));
+        MobSpawnSystem.addGoap(game, mob, config.actions.map(action => ActionTypeToAction.get(action) as Action), config.goals.map(goal => GoalTypeToGoal.get(goal) as Goal));
         
         // Drops
-        game.ecs.addComponent(entity, new DieAndDrop(config.drops));
+        game.ecs.addComponent(mob, new DieAndDrop(config.drops));
         
         // Overwhelm
-        game.ecs.addComponent(entity, new OverwhelmComponent(config.survivalSecondsToOverwhelm));
+        game.ecs.addComponent(mob, new OverwhelmComponent(config.survivalSecondsToOverwhelm));
         
         // Targeting
-        MobSpawnSystem.addTargeting(game, entity, group, config.size);
+        MobSpawnSystem.addTargeting(game, mob, group, config.size);
         
         // Movement
-        MobSpawnSystem.addMovement(game, entity, config.speed);
+        MobSpawnSystem.addMovement(game, mob, config.speed);
         
         // Combat
-        MobSpawnSystem.addCombat(game, entity, config.health, config.weaponConfig);
+        MobSpawnSystem.addCombat(game, mob, config.health, config.weaponConfig);
         
         // Physics
-        MobSpawnSystem.addPhysics(game, entity, x, y, config.size);    
+        MobSpawnSystem.addPhysics(game, mob, x, y, config.size);    
+        
+        return mob;
     }
     
     protected init(): void {
@@ -131,7 +144,7 @@ export class MobSpawnSystem extends TimedGameSystem {
     public componentsRequired: Set<Function> = new Set([MobsSpawn]);
 
     static addGoap(game: GameLogic, entity: number, actions: Action[], goals: Goal[]){
-        game.ecs.addComponent(entity, new GoapStateComponent({...defaultState} as Record<GoapState, boolean>));
+        game.ecs.addComponent(entity, new GoapStateComponent({...defaultGoapState}));
         game.ecs.addComponent(entity, new GoalsComponent(goals));
         game.ecs.addComponent(entity, new AvailableActionsComponent(actions));
         game.ecs.addComponent(entity, new ActionComponent());
@@ -179,7 +192,7 @@ class MobsCountSystem extends GameSystem {
     }
 }
 
-const updateInterval = 5;
+const mobSpawnInterval = 5;
 const mobsSpawnUpgradeInterval = 10;
 
 export class MobsModule extends GameLogicModule {
@@ -191,10 +204,15 @@ export class MobsModule extends GameLogicModule {
         const countSystem = new MobsCountSystem(game);
         game.ecs.addSystem(countSystem);
         
-        const spawnSystem = new MobSpawnSystem(game, updateInterval);
+        const spawnSystem = new MobSpawnSystem(game, mobSpawnInterval);
         game.ecs.addSystem(spawnSystem);
         
         const spawnUpgradeSystem = new MobSpawnUpgradeSystem(game, mobsSpawnUpgradeInterval);
         game.ecs.addSystem(spawnUpgradeSystem);
+        
+        // Initial spawn
+        const pos = Configs.mapConfig.pixelsSize/2;
+        const mob = MobSpawnSystem.makeMob(game, Configs.mobsConfig.getMobConfig(MobType.Skeleton), pos, pos, GroupType.Red);
+        game.ecs.addComponent(mob, new Patroller({maxFrequency: 10, minFrequency: 5, range:500, targetRadius: 200, targetPosition: {x: pos, y: pos}}));
     }
 }

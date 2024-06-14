@@ -41,4 +41,19 @@ export class MathUtils {
     static multiply(pos: Pos, scalar: number): Pos {
         return { x: pos.x * scalar, y: pos.y * scalar };
     }
+    
+    static add(pos1: Pos, pos2: Pos): Pos {
+        return { x: pos1.x + pos2.x, y: pos1.y + pos2.y };
+    }
+    
+    static subtract(pos1: Pos, pos2: Pos): Pos {
+        return { x: pos1.x - pos2.x, y: pos1.y - pos2.y };
+    }
+
+    static randomPointOnCircumference(position: Pos, radius: number): Pos {
+        const angle = Math.random() * 2 * Math.PI;
+        const x = position.x + radius * Math.cos(angle);
+        const y = position.y + radius * Math.sin(angle);
+        return { x, y };
+    }
 }

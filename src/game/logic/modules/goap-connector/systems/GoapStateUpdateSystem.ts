@@ -1,8 +1,10 @@
-import { GameSystem } from "../../GameLogic.ts";
-import { GoapState, GoapStateComponent } from "../goap/GoapStateComponent.ts";
-import { OverwhelmComponent } from "../OverwhelmModule.ts";
-import { Position } from "../PhaserPhysicsModule.ts";
-import { RangeFromTarget, TargetSelection } from "../TargetingModule.ts";
+import { GameSystem } from "../../../GameLogic.ts";
+import { GoapState, GoapStateComponent } from "../../goap/GoapStateComponent.ts";
+import { OverwhelmComponent } from "../../OverwhelmModule.ts";
+import { Position } from "../../PhaserPhysicsModule.ts";
+import { RangeFromTarget, TargetSelection } from "../../TargetingModule.ts";
+import {Home} from "../../BuildingsModule.ts";
+import {Patrol} from "../../PatrolModule.ts";
 
 export class GoapStateUpdateSystem extends GameSystem {
     public componentsRequired: Set<Function> = new Set([GoapStateComponent]);
@@ -18,6 +20,8 @@ export class GoapStateUpdateSystem extends GameSystem {
             this.updateInRangeState(entity, state);
             this.updateOverwhelmState(entity, state);
             this.updateTargetingState(entity, state);
+            this.updateCloseToHomeState(entity, state);
+            this.updateHomePatrolledState(entity, state);
         });
     }
 
@@ -54,5 +58,29 @@ export class GoapStateUpdateSystem extends GameSystem {
     private updateTargetingState(entity: number, state: GoapStateComponent) {
         const targetSelection = this.game.ecs.getComponent<TargetSelection>(entity, TargetSelection);
         state.state[GoapState.hasTarget] = !!(targetSelection?.target);
+    }
+    
+    private updateCloseToHomeState(entity: number, state: GoapStateComponent) {
+        const position = this.game.ecs.getComponent(entity, Position);
+        const targetSelection = this.game.ecs.getComponent(entity, TargetSelection);
+        const home = this.game.ecs.getComponent(entity, Home);
+        
+        if (!position || !targetSelection || !home) {
+            return;
+        }
+
+        state.state[GoapState.closeToHome] = home.inRange(position);
+    }
+
+    private updateHomePatrolledState(entity: number, state: GoapStateComponent) {
+        const position = this.game.ecs.getComponent(entity, Position);
+        const patrol = this.game.ecs.getComponent(entity, Patrol);
+        
+        if (!position || !patrol) {
+            state.state[GoapState.homePatrolled] = false;
+            return;
+        }
+
+        state.state[GoapState.homePatrolled] = patrol.inRange(position);
     }
 }

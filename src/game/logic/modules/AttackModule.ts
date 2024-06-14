@@ -29,17 +29,17 @@ class AttackSystem extends GameSystem {
                 continue;
             }
             
-            if (weaponComponent.isAttacking(game.timeFromStart)) {
+            if (weaponComponent.isAttacking(game.currentTime)) {
                 this.processWeaponAttack(entity, weaponComponent, game);
                 continue;
             }
             
-            if (weaponComponent.isCoolingDown(game.timeFromStart)) {
+            if (weaponComponent.isCoolingDown(game.currentTime)) {
                 continue;
             }
 
             weaponComponent.reset();
-            weaponComponent.lastAttackTime = game.timeFromStart;
+            weaponComponent.lastAttackTime = game.currentTime;
         }
     }
 
@@ -73,9 +73,9 @@ class AttackSystem extends GameSystem {
         }
         
         const ownLog = game.ecs.getComponent(entity, FrameLog);
-        ownLog?.logs.push({type: FrameLogType.Attack, value: weaponComponent.damage, timestamp: game.timeFromStart});
+        ownLog?.logs.push({type: FrameLogType.Attack, value: weaponComponent.damage, timestamp: game.currentTime});
         
-        if (weaponComponent.isSwinging(game.timeFromStart)){
+        if (weaponComponent.isSwinging(game.currentTime)){
             return;
         }
         

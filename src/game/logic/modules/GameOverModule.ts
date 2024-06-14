@@ -4,16 +4,14 @@ import {EventBus, GameEvents} from "../../EventBus.ts";
 import {Component} from "../../core/ECS.ts";
 import {GlideLocomotion} from "./LocomotionModule.ts";
 import {Steering} from "./SteeringModule.ts";
-import {MoveAction} from "./goap/actions/MoveAction.ts";
+import {MoveToTargetAction} from "./goap/actions/MoveToTargetAction.ts";
 import {GetToTargetGoal} from "./goap/goals/GetToTargetGoal.ts";
 import {Position} from "./PhaserPhysicsModule.ts";
 import {MobsSpawn} from "./MobsModule.ts";
 import {RangeFromTarget, TargetSelection} from "./TargetingModule.ts";
-import {GoapState, GoapStateComponent} from "./goap/GoapStateComponent.ts";
+import {defaultGoapState, GoapStateComponent} from "./goap/GoapStateComponent.ts";
 import {ActionComponent, AvailableActionsComponent, GoalsComponent} from "./goap/GoapModule.ts";
 import {Configs} from "../../configs/Configs.ts";
-
-const defaultGoapState:Record<GoapState, boolean> = { [GoapState.hasTarget]: false, [GoapState.inRangeOfTarget]: false, [GoapState.overwhelmed]:false };
 
 export class GameOverAgent extends Component {
     constructor(public victory: boolean) {
@@ -111,9 +109,9 @@ export class GameOverModule extends GameLogicModule {
 
         game.addPhysicalComponents({entity, x, y, radius: 2, isGameOver: true});
 
-        game.ecs.addComponent(entity, new GoapStateComponent({...defaultGoapState} as Record<GoapState, boolean>));
+        game.ecs.addComponent(entity, new GoapStateComponent({...defaultGoapState}));
         game.ecs.addComponent(entity, new GoalsComponent([new GetToTargetGoal()]));
-        game.ecs.addComponent(entity, new AvailableActionsComponent([new MoveAction()]));
+        game.ecs.addComponent(entity, new AvailableActionsComponent([new MoveToTargetAction()]));
         game.ecs.addComponent(entity, new ActionComponent());
     }
 

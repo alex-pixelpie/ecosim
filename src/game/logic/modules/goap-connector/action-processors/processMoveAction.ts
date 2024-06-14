@@ -4,7 +4,7 @@ import { Steering } from "../../SteeringModule.ts";
 import { Position } from "../../PhaserPhysicsModule.ts";
 import { RangeFromTarget, TargetSelection } from "../../TargetingModule.ts";
 import { Configs } from "../../../../configs/Configs.ts";
-import { ActionProcessor } from "../GoapToSteeringImpulsesSystem.ts";
+import { ActionProcessor } from "../systems/GoapToSteeringImpulsesSystem.ts";
 
 export const processMoveAction: ActionProcessor = (game: GameLogic, entity: number, intensity: number = 1) => {
     const steering = game.ecs.getComponent(entity, Steering);
@@ -36,7 +36,7 @@ export const processMoveAction: ActionProcessor = (game: GameLogic, entity: numb
     avoidWalls(steering, position);
 };
 
-const avoidWalls = (steering: Steering, position: Position): void => {
+export const avoidWalls = (steering: Steering, position: Position): void => {
     // Add wall avoidance
     const avoidanceIntensity = 1; // Adjust this value based on desired avoidance strength
     const wallProximityThreshold = steering.mapEdgeProximityThreshold;

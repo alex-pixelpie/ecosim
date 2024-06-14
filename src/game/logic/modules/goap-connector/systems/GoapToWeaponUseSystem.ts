@@ -1,7 +1,7 @@
-import { GameSystem } from "../../GameLogic.ts";
-import { Weapon } from "../weapons/Weapons.ts";
-import { AttackAction } from "../goap/actions/AttackAction.ts";
-import { ActionComponent } from "../goap/GoapModule.ts";
+import { GameSystem } from "../../../GameLogic.ts";
+import { Weapon } from "../../weapons/Weapons.ts";
+import { AttackAction } from "../../goap/actions/AttackAction.ts";
+import { ActionComponent } from "../../goap/GoapModule.ts";
 
 export class GoapToWeaponUseSystem extends GameSystem {
     public intensity: number = 1;

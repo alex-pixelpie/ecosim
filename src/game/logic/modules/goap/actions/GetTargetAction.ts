@@ -3,13 +3,13 @@ import {GameLogic} from "../../../GameLogic.ts";
 import {GoapState, GoapStateComponent} from "../GoapStateComponent.ts";
 
 export class GetTargetAction implements Action {
-    preconditions = {[GoapState.hasTarget]: false };
+    preconditions = {[GoapState.hasTarget]: false, [GoapState.targetsInSight]: true};
     effects = { [GoapState.hasTarget]:true };
-    cost: number = 1;
+    cost: number = 10;
     type: string = GetTargetAction.name;
 
     isValid(state: Record<string, boolean>): boolean {
-        return !state[GoapState.hasTarget];
+        return Object.keys(this.preconditions).some(key => state[key] != this.preconditions[key as keyof typeof this.preconditions]);
     }
 
     successState(state: Record<string, boolean>): Record<string, boolean> {
@@ -18,6 +18,6 @@ export class GetTargetAction implements Action {
 
     hasCompleted(entity: number, game: GameLogic): boolean {
         const state = game.ecs.getComponent(entity, GoapStateComponent);
-        return state.state[GoapState.hasTarget];
+        return Object.keys(this.effects).every(key => state.state[key as keyof typeof this.effects] == this.effects[key as keyof typeof this.effects]);
     }
 }

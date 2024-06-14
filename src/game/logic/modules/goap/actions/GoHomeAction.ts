@@ -2,14 +2,14 @@ import {Action} from "./Action.ts";
 import {GameLogic} from "../../../GameLogic.ts";
 import {GoapState, GoapStateComponent} from "../GoapStateComponent.ts";
 
-export class MoveAction implements Action {
-    preconditions = {[GoapState.inRangeOfTarget]: false  };
-    effects = { [GoapState.inRangeOfTarget]: true };
+export class GoHomeAction implements Action {
+    preconditions = {[GoapState.closeToHome]: false  };
+    effects = { [GoapState.closeToHome]: true };
     cost: number = 10;
-    type: string = MoveAction.name;
+    type: string = GoHomeAction.name;
 
     isValid(state: Record<string, boolean>): boolean {
-        return !state[GoapState.inRangeOfTarget];
+        return !state[GoapState.closeToHome];
     }
 
     successState(state: Record<string, boolean>): Record<string, boolean> {
@@ -18,6 +18,6 @@ export class MoveAction implements Action {
 
     hasCompleted(entity: number, game: GameLogic): boolean {
         const stateComponent = game.ecs.getComponent(entity, GoapStateComponent);
-        return stateComponent.state[GoapState.inRangeOfTarget];
+        return stateComponent.state[GoapState.closeToHome];
     }
 }

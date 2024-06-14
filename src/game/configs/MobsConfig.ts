@@ -1,9 +1,14 @@
 import {GetTargetAction} from "../logic/modules/goap/actions/GetTargetAction.ts";
 import {KillEnemiesGoal} from "../logic/modules/goap/goals/KillEnemiesGoal.ts";
-import {MoveAction} from "../logic/modules/goap/actions/MoveAction.ts";
+import {MoveToTargetAction} from "../logic/modules/goap/actions/MoveToTargetAction.ts";
 import {EscapeOverwhelmGoal} from "../logic/modules/goap/goals/EscapeOverwhelmGoal.ts";
 import {AttackAction} from "../logic/modules/goap/actions/AttackAction.ts";
 import {EscapeOverwhelmAction} from "../logic/modules/goap/actions/EscapeOverwhelmAction.ts";
+import {Pos} from "../utils/Math.ts";
+import {PatrolAction} from "../logic/modules/goap/actions/PatrolAction.ts";
+import {StayCloseToHomeGoal} from "../logic/modules/goap/goals/StayCloseToHomeGoal.ts";
+import {GetToTargetGoal} from "../logic/modules/goap/goals/GetToTargetGoal.ts";
+import {PatrolGoal} from "../logic/modules/goap/goals/PatrolGoal.ts";
 
 export interface DropDefinition {
     chance?: number;
@@ -24,6 +29,14 @@ export interface WeaponConfig {
     effect: WeaponEffect;
 }
 
+export interface PatrolConfig {
+    range: number;
+    minFrequency: number;
+    maxFrequency: number;
+    targetPosition: Pos;
+    targetRadius: number;
+}
+
 export interface MobConfig {
     type: MobType;
     weaponConfig: WeaponConfig;
@@ -34,6 +47,7 @@ export interface MobConfig {
     drops: DropDefinition[];
     actions: string[]; // Action class names
     goals: string[]; // Goal class names
+    patrol?:PatrolConfig;
 }
 
 export interface MobSpawnDefinition {
@@ -56,7 +70,7 @@ export enum DropType {
     Ruin = 2
 }
 
-export const SkeletonConfig = {
+export const SkeletonConfig: MobConfig = {
     type: MobType.Skeleton,
     weaponConfig: {
         damageMax: 20,
@@ -75,11 +89,11 @@ export const SkeletonConfig = {
     size: 16,
     survivalSecondsToOverwhelm: 0,
     drops: [{ type: DropType.Corpse }],
-    actions: [GetTargetAction.name, MoveAction.name, AttackAction.name],
-    goals: [KillEnemiesGoal.name]
+    actions: [PatrolAction.name],
+    goals: [PatrolGoal.name],
 };
 
-export const ElfArcherConfig = {
+export const ElfArcherConfig : MobConfig = {
     type: MobType.ElfArcher,
     weaponConfig: {
         damageMax: 20,
@@ -98,7 +112,7 @@ export const ElfArcherConfig = {
     size: 16,
     survivalSecondsToOverwhelm: 3,
     drops: [{ type: DropType.Corpse }],
-    actions: [GetTargetAction.name, MoveAction.name, AttackAction.name, EscapeOverwhelmAction.name],
+    actions: [GetTargetAction.name, MoveToTargetAction.name, AttackAction.name, EscapeOverwhelmAction.name],
     goals: [KillEnemiesGoal.name, EscapeOverwhelmGoal.name]
 };
 
