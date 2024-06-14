@@ -1,9 +1,8 @@
 import { GameLogic } from "../../GameLogic.ts";
-import {FrameLog, FrameLogType} from "../FrameLog.ts";
+import {FrameLog, FrameLogType} from "../FrameLogModule.ts";
 import { Health } from "../DeathModule.ts";
 import { WeaponEffectFunction, Weapon } from "./Weapons.ts";
 import {TargetSelection} from "../TargetingModule.ts";
-
 
 export const WeaponEffectDirectDamage: WeaponEffectFunction = (game: GameLogic, owner: number, weapon: Weapon): void => {
     const targetSelection = game.ecs.getComponent(owner, TargetSelection);

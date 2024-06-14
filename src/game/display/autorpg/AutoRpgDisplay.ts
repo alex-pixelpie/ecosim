@@ -1,17 +1,15 @@
 import {ECS} from "../../core/ECS.ts";
 import {MapDisplay} from "./../MapDisplay.ts";
-import {FrameLog, FrameLogType} from "../../logic/modules/FrameLog.ts";
+import {FrameLog, FrameLogType} from "../../logic/modules/FrameLogModule.ts";
 import {Mob} from "../../logic/modules/MobsModule.ts";
 import {Corpse, Health, Ruin} from "../../logic/modules/DeathModule.ts";
 import {Building} from "../../logic/modules/BuildingsModule.ts";
 import {GameOverAgent} from "../../logic/modules/GameOverModule.ts";
-import {PhaserPhysicsModule, PhysicsBody, Position} from "../../logic/modules/PhaserPhysicsModule.ts";
+import {PhysicsBody, Position} from "../../logic/modules/PhaserPhysicsModule.ts";
 import {TargetGroup, TargetSelection} from "../../logic/modules/TargetingModule.ts";
 import {DisplayModule} from "../DisplayModule.ts";
 import {Tile} from "../../logic/modules/TilesModule.ts";
-
-const MAP_SIZE = 64;
-const WHITE_TILE : number = 8;
+import {Configs, MapConfig} from "../../logic/modules/ConfigsModule.ts";
 
 export type AutoRpgDisplayModule = DisplayModule<AutoRpgDisplay>;
 
@@ -73,10 +71,6 @@ export type BuildingData = {
     criticalMultiplier?: number;
 }
 
-export class AutoRpgDisplayConfig {
-    whiteTile: number = WHITE_TILE;
-}
-
 export class AutoRpgDisplay {
     mapDisplay: MapDisplay;
     modules: AutoRpgDisplayModule[];
@@ -88,8 +82,6 @@ export class AutoRpgDisplay {
     buildings: BuildingData[] = [];
     ruins: RuinData[] = [];
     gameOverAgents:GameOverAgentData[] = [];
-    
-    config:AutoRpgDisplayConfig  = new AutoRpgDisplayConfig();
     
     // Layers
     mobUi: Phaser.GameObjects.Container;
@@ -103,12 +95,16 @@ export class AutoRpgDisplay {
     timeFromStart: number = 0;
     
     constructor(scene: Phaser.Scene, ecs:ECS, modules: AutoRpgDisplayModule[]) {
+        const configEntity = ecs.getEntitiesWithComponent(Configs)[0];
+        const configs = ecs.getComponent(configEntity, Configs);
+        const config = configs.getConfig<MapConfig>(MapConfig);
+        
         this.ecs = ecs;
         this.scene = scene;
         this.modules = modules;
-        this.mapDisplay = new MapDisplay(scene, MAP_SIZE);
+        this.mapDisplay = new MapDisplay(scene, config.tilesInMapSide);
 
-        this.tiles = Array.from({length: MAP_SIZE}, () => Array.from({length: MAP_SIZE}, () => new TileDisplayData()));
+        this.tiles = Array.from({length: config.tilesInMapSide}, () => Array.from({length: config.tilesInMapSide}, () => new TileDisplayData()));
         modules.forEach(module => module.init(this));
 
         this.corpsesLayer = scene.add.container();

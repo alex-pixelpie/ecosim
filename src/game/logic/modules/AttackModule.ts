@@ -1,7 +1,8 @@
 import {Entity} from "../../core/ECS.ts";
-import {GameLogic, GameLogicModule, GameSystem} from "../GameLogic.ts";
+import {GameLogic, GameSystem} from "../GameLogic.ts";
+import { GameLogicModule } from "../GameLogicModule.ts";
 import {Weapon} from "./weapons/Weapons.ts";
-import {FrameLog, FrameLogType, FrameLogType} from "./FrameLog.ts";
+import {FrameLog, FrameLogType} from "./FrameLogModule.ts";
 import {Position} from "./PhaserPhysicsModule.ts";
 import {RangeFromTarget, TargetSelection} from "./TargetingModule.ts";
 

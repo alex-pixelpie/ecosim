@@ -3,7 +3,7 @@ import {GameLogic} from "../logic/GameLogic.ts";
 import {AutoRpgDisplay} from "../display/autorpg/AutoRpgDisplay.ts";
 import {EventBus, GameEvents, UiEvents} from "../EventBus.ts";
 import {ECS} from "../core/ECS.ts";
-import {FrameLog} from "../logic/modules/FrameLog.ts";
+import {FrameLog} from "../logic/modules/FrameLogModule.ts";
 import {CameraModule} from "../display/autorpg/CameraModule.ts";
 import {DungeonFloorDisplayModule} from "../display/autorpg/DungeonFloorDisplayModule.ts";
 import {TilesModule} from "../logic/modules/TilesModule.ts";

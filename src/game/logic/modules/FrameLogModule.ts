@@ -1,5 +1,6 @@
 import {Component} from "../../core/ECS.ts";
-import {GameLogic, GameLogicModule, GameSystem} from "../GameLogic.ts";
+import {GameLogic, GameSystem} from "../GameLogic.ts";
+import { GameLogicModule } from "../GameLogicModule.ts";
 
 export enum FrameLogType {
     Attack = 'Attack',

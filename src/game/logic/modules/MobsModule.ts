@@ -1,10 +1,11 @@
-import {GameLogic, GameLogicModule, GameSystem, TimedGameSystem} from "../GameLogic.ts";
+import {GameLogic, GameSystem, TimedGameSystem} from "../GameLogic.ts";
+import { GameLogicModule } from "../GameLogicModule.ts";
 import {Component} from "../../core/ECS.ts";
 import {GoapState, GoapStateComponent} from "./goap/GoapStateComponent.ts";
 import {Weapon, WeaponConfig, WeaponEffect} from "./weapons/Weapons.ts";
 import {Steering} from "./SteeringModule.ts";
-import {FrameLog} from "./FrameLog.ts";
-import {GlideLocomotion} from "./Locomotion.ts";
+import {FrameLog} from "./FrameLogModule.ts";
+import {GlideLocomotion} from "./LocomotionModule.ts";
 import {GetTargetAction} from "./goap/actions/GetTargetAction.ts";
 import {MoveAction} from "./goap/actions/MoveAction.ts";
 import {AttackAction} from "./goap/actions/AttackAction.ts";

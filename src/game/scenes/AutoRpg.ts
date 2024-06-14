@@ -11,9 +11,9 @@ import {MobsDisplayModule} from "../display/autorpg/MobsDisplayModule.ts";
 import MobsDisplay = MobsDisplayModule.MobsDisplayModule;
 import {PhaserPhysicsModule} from "../logic/modules/PhaserPhysicsModule.ts";
 import {FloatingNumbersDisplay} from "../display/autorpg/FloatingNumbersDisplay.ts";
-import {AttackModule} from "../logic/modules/Attack.ts";
+import {AttackModule} from "../logic/modules/AttackModule.ts";
 import {SteeringModule} from "../logic/modules/SteeringModule.ts";
-import {LocomotionModule} from "../logic/modules/Locomotion.ts";
+import {LocomotionModule} from "../logic/modules/LocomotionModule.ts";
 import {GoapConnectorModule} from "../logic/modules/GoapConnectorModule.ts";
 import {OverwhelmModule} from "../logic/modules/OverwhelmModule.ts";
 import {CorpsesDisplayModule} from "../display/autorpg/CorpsesDisplayModule.ts";
@@ -23,10 +23,11 @@ import {BuildingsDisplayModule} from "../display/autorpg/BuildingsDisplayModule.
 import {RuinsDisplayModule} from "../display/autorpg/RuinsDisplayModule.ts";
 import {GameOverDisplayModule} from "../display/autorpg/GameOverDisplayModule.ts";
 import {GameOverModule} from "../logic/modules/GameOverModule.ts";
-import {FrameLogModule} from "../logic/modules/FrameLog.ts";
+import {FrameLogModule} from "../logic/modules/FrameLogModule.ts";
 import {TargetingModule} from "../logic/modules/TargetingModule.ts";
 import {MobsModule} from "../logic/modules/MobsModule.ts";
 import {GoapModule} from "../logic/modules/goap/GoapModule.ts";
+import {ConfigsModule} from "../logic/modules/ConfigsModule.ts";
 
 export class AutoRpg extends Scene
 {
@@ -53,6 +54,7 @@ export class AutoRpg extends Scene
         const ecs = new ECS();
         
         this.gameLogic = new GameLogic( ecs, this, [
+            new ConfigsModule(),
             new FrameLogModule(),
             new TilesModule(),
             new LocomotionModule(),

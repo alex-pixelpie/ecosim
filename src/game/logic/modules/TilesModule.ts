@@ -1,13 +1,17 @@
-import {GameLogic, GameLogicModule} from "../GameLogic.ts";
+import {GameLogic} from "../GameLogic.ts";
+import { GameLogicModule } from "../GameLogicModule.ts";
 import {Component} from "../../core/ECS.ts";
 import {Position} from "./PhaserPhysicsModule.ts";
+import {MapConfig} from "./ConfigsModule.ts";
 
 export class Tile extends Component {}
 
 export class TilesModule extends GameLogicModule {
     override init(game: GameLogic) {
-        const size = game.config.tilesInMapSide;
+        const size = game.getConfig<MapConfig>(MapConfig).tilesInMapSide;
 
+        game.tiles = Array.from({length: size}, () => Array.from({length: size}, () => 0));
+        
         for (let column = 0; column < size; column++) {
             for (let row = 0; row < size; row++) {
                 const entity = game.ecs.addEntity();

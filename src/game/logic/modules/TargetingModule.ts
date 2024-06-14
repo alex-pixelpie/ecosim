@@ -1,6 +1,7 @@
 import {Component} from "../../core/ECS.ts";
 import {MathUtils, Pos} from "../../utils/Math.ts";
-import {GameLogic, GameLogicModule, GameSystem, TimedGameSystem} from "../GameLogic.ts";
+import {GameLogic, GameSystem, TimedGameSystem} from "../GameLogic.ts";
+import { GameLogicModule } from "../GameLogicModule.ts";
 import {PhysicsBody, Position} from "./PhaserPhysicsModule.ts";
 import {Dead} from "./DeathModule.ts";
 

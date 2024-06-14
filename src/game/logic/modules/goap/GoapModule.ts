@@ -1,4 +1,5 @@
-import {GameLogic, GameLogicModule, GameSystem} from "../../GameLogic.ts";
+import {GameLogic, GameSystem} from "../../GameLogic.ts";
+import { GameLogicModule } from "../../GameLogicModule.ts";
 import {Component} from "../../../core/ECS.ts";
 import {GoapStateComponent} from "./GoapStateComponent.ts";
 import {Action} from "./actions/Action.ts";

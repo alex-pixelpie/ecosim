@@ -1,7 +1,5 @@
 import {GameLogic} from "../../GameLogic.ts";
 import {Component} from "../../../core/ECS.ts";
-import {MathUtils} from "../../../utils/Math.ts";
-import {Position} from "../PhaserPhysicsModule.ts";
 import { WeaponEffectDirectDamage } from "./WeaponEffectDirectDamage.ts";
 import { WeaponEffectArrow } from "./WeaponEffectArrow.ts";
 
@@ -24,9 +22,9 @@ export enum WeaponEffect {
 }
 
 export type WeaponEffectFunction = (game: GameLogic, owner:number, weapon:Weapon) => void;
-export type WeaponEffectsType = Record<WeaponEffect, WeaponEffectFunction>;
+type WeaponEffectsType = Record<WeaponEffect, WeaponEffectFunction>;
 
-export const WeaponEffects:WeaponEffectsType = {
+const WeaponEffects:WeaponEffectsType = {
     [WeaponEffect.DirectDamage]: WeaponEffectDirectDamage,
     [WeaponEffect.Arrow]: WeaponEffectArrow,
 }
@@ -74,17 +72,6 @@ export class Weapon extends Component {
 
     public isAttacking(timeFromStart: number): boolean {
         return this.lastAttackTime + this.config.attackDuration > timeFromStart;
-    }
-
-    public isInRange(game: GameLogic, target: number, owner:number): boolean {
-        const ownerPosition = game.ecs.getComponent(owner, Position);
-        const targetPosition = game.ecs.getComponent(target, Position);
-
-        if (!ownerPosition || !targetPosition){
-            return false;
-        }
-
-        return MathUtils.distance(ownerPosition, targetPosition) <= this.config.rangeMax;
     }
 
     public ApplyEffect(game: GameLogic, owner:number): void {

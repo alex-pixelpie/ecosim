@@ -1,10 +1,12 @@
-import {GameLogic, GameLogicModule, GameSystem} from "../GameLogic.ts";
+import {GameLogic, GameSystem} from "../GameLogic.ts";
+import { GameLogicModule } from "../GameLogicModule.ts";
 import {Component} from "../../core/ECS.ts";
 import {Dead, DieAndDrop, DropType, Health} from "./DeathModule.ts";
 import {EventBus, GameEvents} from "../../EventBus.ts";
-import {FrameLog} from "./FrameLog.ts";
+import {FrameLog} from "./FrameLogModule.ts";
 import {ElfArcherConfig, MobsSpawn, SkeletonConfig} from "./MobsModule.ts";
 import {Targetable, TargetGroup} from "./TargetingModule.ts";
+import {MapConfig} from "./ConfigsModule.ts";
 
 export enum BuildingType {
     Base = "Base"
@@ -44,7 +46,7 @@ export class BuildingsModule extends GameLogicModule {
         const basesSystem = new BuildingsDeathSystem(game);
         game.ecs.addSystem(basesSystem);
 
-        const mapSize = game.config.tilesInMapSide * 32; // TODO - get value from config
+        const mapSize = game.getConfig<MapConfig>(MapConfig).pixelsSize;
         const offset = 100;
         const baseSize = 140;
         const hBaseSize = baseSize/2;

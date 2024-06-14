@@ -1,7 +1,8 @@
 import {Component} from "../../core/ECS.ts";
 import {Mob, MobType} from "./MobsModule.ts";
-import {GameLogic, GameLogicModule, GameSystem} from "../GameLogic.ts";
-import {FrameLog} from "./FrameLog.ts";
+import {GameLogic, GameSystem} from "../GameLogic.ts";
+import { GameLogicModule } from "../GameLogicModule.ts";
+import {FrameLog} from "./FrameLogModule.ts";
 import {Building, BuildingType} from "./BuildingsModule.ts";
 import {Position} from "./PhaserPhysicsModule.ts";
 
