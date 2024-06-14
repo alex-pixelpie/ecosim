@@ -2,7 +2,6 @@ import {GameLogic} from "../GameLogic.ts";
 import { GameLogicModule } from "../GameLogicModule.ts";
 import {Component} from "../../core/ECS.ts";
 import {Position} from "./PhaserPhysicsModule.ts";
-import { MapConfig } from "../../configs/MapConfig.ts";
 import {Configs} from "../../configs/Configs.ts";
 
 export class Tile extends Component {}

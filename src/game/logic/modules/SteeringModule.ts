@@ -5,6 +5,7 @@ import {Pos} from "../../utils/Math.ts";
 
 export class Steering extends Component {
     impulses: Pos[] = [];
+    mapEdgeProximityThreshold = 500;
 }
 
 export class SteeringResetSystem extends GameSystem {

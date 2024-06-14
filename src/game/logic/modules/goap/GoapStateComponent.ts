@@ -2,8 +2,9 @@ import {Component} from "../../../core/ECS.ts";
 
 export enum GoapState {
     hasTarget = "hasTarget",
-    inRange = "inRange",
-    overwhelmed = "overwhelmed"
+    inRangeOfTarget = "inRangeOfTarget",
+    overwhelmed = "overwhelmed",
+    closeToHome = "closeToHome"
 }
 
 export class GoapStateComponent implements Component {
@@ -13,3 +14,10 @@ export class GoapStateComponent implements Component {
         this.state = state;
     }
 }
+
+export const defaultState: Record<GoapState, boolean> = { 
+    [GoapState.hasTarget]: false, 
+    [GoapState.inRangeOfTarget]: false, 
+    [GoapState.overwhelmed]: false,
+    [GoapState.closeToHome]: false
+};

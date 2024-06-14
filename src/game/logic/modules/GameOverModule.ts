@@ -13,7 +13,7 @@ import {GoapState, GoapStateComponent} from "./goap/GoapStateComponent.ts";
 import {ActionComponent, AvailableActionsComponent, GoalsComponent} from "./goap/GoapModule.ts";
 import {Configs} from "../../configs/Configs.ts";
 
-const defaultGoapState:Record<GoapState, boolean> = { [GoapState.hasTarget]: false, [GoapState.inRange]: false, [GoapState.overwhelmed]:false };
+const defaultGoapState:Record<GoapState, boolean> = { [GoapState.hasTarget]: false, [GoapState.inRangeOfTarget]: false, [GoapState.overwhelmed]:false };
 
 export class GameOverAgent extends Component {
     constructor(public victory: boolean) {

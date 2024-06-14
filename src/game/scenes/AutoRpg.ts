@@ -14,7 +14,7 @@ import {FloatingNumbersDisplay} from "../display/autorpg/FloatingNumbersDisplay.
 import {AttackModule} from "../logic/modules/AttackModule.ts";
 import {SteeringModule} from "../logic/modules/SteeringModule.ts";
 import {LocomotionModule} from "../logic/modules/LocomotionModule.ts";
-import {GoapConnectorModule} from "../logic/modules/GoapConnectorModule.ts";
+import {GoapConnectorModule} from "../logic/modules/goap-connector/GoapConnectorModule.ts";
 import {OverwhelmModule} from "../logic/modules/OverwhelmModule.ts";
 import {CorpsesDisplayModule} from "../display/autorpg/CorpsesDisplayModule.ts";
 import {DeathModule} from "../logic/modules/DeathModule.ts";

@@ -23,6 +23,7 @@ import {
 } from "./goap/GoapModule.ts";
 import {MobsTargeting, RangeFromTarget, Targetable, Targeted, TargetGroup, TargetSelection} from "./TargetingModule.ts";
 import {MobConfig, MobSpawnDefinition, MobType, WeaponConfig} from "../../configs/MobsConfig.ts";
+import { defaultState } from "./goap/GoapStateComponent.ts";
 
 enum GroupType {
     Red = 0,
@@ -42,8 +43,6 @@ export class MobsCounter extends Component {
         super();
     }
 }
-
-const defaultState:Record<GoapState, boolean> = { [GoapState.hasTarget]: false, [GoapState.inRange]: false, [GoapState.overwhelmed]:false };
 
 export class MobsSpawn extends Component {
     public constructor(public mobs: MobSpawnDefinition[], public group: number, public position: {x: number, y: number}) {

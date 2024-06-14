@@ -5,8 +5,8 @@ import { GameLogicModule } from "../GameLogicModule.ts";
 import {FrameLog} from "./FrameLogModule.ts";
 import {Building} from "./BuildingsModule.ts";
 import {Position} from "./PhaserPhysicsModule.ts";
-import {BuildingType} from "../../configs/BuildingsConfig.ts";
 import {DropDefinition, DropType, MobType} from "../../configs/MobsConfig.ts";
+import {BuildingType} from "../../configs/BuildingsConfig.ts";
 
 export class Health extends Component {
     maxValue: number;
