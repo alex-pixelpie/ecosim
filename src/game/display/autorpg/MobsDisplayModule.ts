@@ -3,7 +3,7 @@ import {AutoRpgDisplay} from "./AutoRpgDisplay.ts";
 import {MobView} from "./mobs/MobView.ts";
 import {SkeletonView} from "./mobs/SkeletonView.ts";
 import {ElfArcherView} from "./mobs/ElfArcherView.ts";
-import {MobType} from "../../logic/modules/MobsModule.ts";
+import {MobType} from "../../configs/MobsConfig.ts";
 
 export namespace MobsDisplayModule {
     export class MobsDisplayModule extends DisplayModule<AutoRpgDisplay> {

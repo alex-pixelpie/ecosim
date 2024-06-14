@@ -11,7 +11,7 @@ import {MobsSpawn} from "./MobsModule.ts";
 import {RangeFromTarget, TargetSelection} from "./TargetingModule.ts";
 import {GoapState, GoapStateComponent} from "./goap/GoapStateComponent.ts";
 import {ActionComponent, AvailableActionsComponent, GoalsComponent} from "./goap/GoapModule.ts";
-import {MapConfig} from "./ConfigsModule.ts";
+import {Configs} from "../../configs/Configs.ts";
 
 const defaultGoapState:Record<GoapState, boolean> = { [GoapState.hasTarget]: false, [GoapState.inRange]: false, [GoapState.overwhelmed]:false };
 
@@ -103,7 +103,7 @@ export class GameOverModule extends GameLogicModule {
         targetSelection.targetSize = 16;
         targetSelection.target = 1;
         game.ecs.addComponent(entity, targetSelection);
-        game.ecs.addComponent(entity, new RangeFromTarget(0, 0, 2));
+        game.ecs.addComponent(entity, new RangeFromTarget(2));
 
         game.ecs.addComponent(entity, new GlideLocomotion(1000));
         game.ecs.addComponent(entity, new Steering());
@@ -118,7 +118,7 @@ export class GameOverModule extends GameLogicModule {
     }
 
     private getRandomStartPosition(): {x: number, y: number} {
-        const mapSize = this.game.getConfig<MapConfig>(MapConfig).pixelsSize;
+        const mapSize = Configs.mapConfig.pixelsSize;
 
         // Center of the map
         const centerX = mapSize / 2;

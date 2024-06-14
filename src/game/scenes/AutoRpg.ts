@@ -27,7 +27,6 @@ import {FrameLogModule} from "../logic/modules/FrameLogModule.ts";
 import {TargetingModule} from "../logic/modules/TargetingModule.ts";
 import {MobsModule} from "../logic/modules/MobsModule.ts";
 import {GoapModule} from "../logic/modules/goap/GoapModule.ts";
-import {ConfigsModule} from "../logic/modules/ConfigsModule.ts";
 
 export class AutoRpg extends Scene
 {
@@ -54,7 +53,6 @@ export class AutoRpg extends Scene
         const ecs = new ECS();
         
         this.gameLogic = new GameLogic( ecs, this, [
-            new ConfigsModule(),
             new FrameLogModule(),
             new TilesModule(),
             new LocomotionModule(),

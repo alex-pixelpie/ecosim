@@ -1,16 +1,13 @@
 import {GameLogic, GameSystem} from "../GameLogic.ts";
-import { GameLogicModule } from "../GameLogicModule.ts";
+import {GameLogicModule } from "../GameLogicModule.ts";
 import {Component} from "../../core/ECS.ts";
-import {Dead, DieAndDrop, DropType, Health} from "./DeathModule.ts";
+import {Dead, DieAndDrop, Health} from "./DeathModule.ts";
 import {EventBus, GameEvents} from "../../EventBus.ts";
 import {FrameLog} from "./FrameLogModule.ts";
-import {ElfArcherConfig, MobsSpawn, SkeletonConfig} from "./MobsModule.ts";
+import {MobsSpawn} from "./MobsModule.ts";
 import {Targetable, TargetGroup} from "./TargetingModule.ts";
-import {MapConfig} from "./ConfigsModule.ts";
-
-export enum BuildingType {
-    Base = "Base"
-}
+import {Configs} from "../../configs/Configs.ts";
+import {BuildingConfig, BuildingType} from "../../configs/BuildingsConfig.ts";
 
 export class Building extends Component {
     constructor(public type: BuildingType = BuildingType.Base) {
@@ -46,29 +43,24 @@ export class BuildingsModule extends GameLogicModule {
         const basesSystem = new BuildingsDeathSystem(game);
         game.ecs.addSystem(basesSystem);
 
-        const mapSize = game.getConfig<MapConfig>(MapConfig).pixelsSize;
+        const playerBaseConfig = Configs.buildingsConfig.getConfig(BuildingType.Base);
+        const mapSize = Configs.mapConfig.pixelsSize;
         const offset = 100;
         const baseSize = 140;
-        const hBaseSize = baseSize/2;
         
-        const enemyBase = game.ecs.addEntity();
-        game.ecs.addComponent(enemyBase, new Building());
-        game.ecs.addComponent(enemyBase, new DieAndDrop([{type: DropType.Ruin}]));
-        game.ecs.addComponent(enemyBase, new Health(1000));
-        game.ecs.addComponent(enemyBase, new TargetGroup(0));
-        game.ecs.addComponent(enemyBase, new Targetable());
-        game.ecs.addComponent(enemyBase, new FrameLog());
-        game.ecs.addComponent(enemyBase, new MobsSpawn([{config: {...SkeletonConfig}, count: 3}, {config: {...ElfArcherConfig}, count: 2}], 0, {x: offset+baseSize, y: offset+baseSize}));
-        game.addPhysicalComponents({entity: enemyBase, x: offset+hBaseSize, y: offset+hBaseSize, width: baseSize, height: baseSize, isStatic: true});
-
-        const playerBase = game.ecs.addEntity();
-        game.ecs.addComponent(playerBase, new Building());
-        game.ecs.addComponent(playerBase, new DieAndDrop([{type: DropType.Ruin}]));
-        game.ecs.addComponent(playerBase, new Health(1000));
-        game.ecs.addComponent(playerBase, new TargetGroup(1));
-        game.ecs.addComponent(playerBase, new Targetable());
-        game.ecs.addComponent(playerBase, new FrameLog());
-        game.ecs.addComponent(playerBase, new MobsSpawn([{config: {...SkeletonConfig}, count: 3}, {config: {...ElfArcherConfig}, count: 2}], 1, {x: mapSize-offset-baseSize, y: mapSize-offset-baseSize}));
-        game.addPhysicalComponents({entity: playerBase, x: mapSize-offset-hBaseSize, y: mapSize-offset-hBaseSize, width: baseSize, height: baseSize, isStatic: true});
+        BuildingsModule.makeBuilding(game, playerBaseConfig, 0, offset+baseSize, offset+baseSize);
+        BuildingsModule.makeBuilding(game, playerBaseConfig, 1, mapSize-offset-baseSize, mapSize-offset-baseSize);
+    }
+    
+    static makeBuilding(game: GameLogic, config:BuildingConfig, group: number, x: number, y: number){
+        const building = game.ecs.addEntity();
+        game.ecs.addComponent(building, new Building());
+        game.ecs.addComponent(building, new DieAndDrop(config.drops));
+        game.ecs.addComponent(building, new Health(config.health));
+        game.ecs.addComponent(building, new TargetGroup(group));
+        game.ecs.addComponent(building, new Targetable());
+        game.ecs.addComponent(building, new FrameLog());
+        game.ecs.addComponent(building, new MobsSpawn(config.spawn, group, {x, y}));
+        game.addPhysicalComponents({entity: building, x, y, width: config.size, height: config.size, isStatic: true});
     }
 }

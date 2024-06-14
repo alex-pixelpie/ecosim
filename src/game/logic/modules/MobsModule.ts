@@ -2,7 +2,7 @@ import {GameLogic, GameSystem, TimedGameSystem} from "../GameLogic.ts";
 import { GameLogicModule } from "../GameLogicModule.ts";
 import {Component} from "../../core/ECS.ts";
 import {GoapState, GoapStateComponent} from "./goap/GoapStateComponent.ts";
-import {Weapon, WeaponConfig, WeaponEffect} from "./weapons/Weapons.ts";
+import {Weapon} from "./weapons/Weapons.ts";
 import {Steering} from "./SteeringModule.ts";
 import {FrameLog} from "./FrameLogModule.ts";
 import {GlideLocomotion} from "./LocomotionModule.ts";
@@ -14,7 +14,7 @@ import {Action} from "./goap/actions/Action.ts";
 import {EscapeOverwhelmAction} from "./goap/actions/EscapeOverwhelmAction.ts";
 import {EscapeOverwhelmGoal} from "./goap/goals/EscapeOverwhelmGoal.ts";
 import {OverwhelmComponent} from "./OverwhelmModule.ts";
-import {DieAndDrop, DropDefinition, DropType, Health, Mortality} from "./DeathModule.ts";
+import {DieAndDrop, Health, Mortality} from "./DeathModule.ts";
 import {
     AvailableActionsComponent,
     Goal,
@@ -22,6 +22,7 @@ import {
     ActionComponent
 } from "./goap/GoapModule.ts";
 import {MobsTargeting, RangeFromTarget, Targetable, Targeted, TargetGroup, TargetSelection} from "./TargetingModule.ts";
+import {MobConfig, MobSpawnDefinition, MobType, WeaponConfig} from "../../configs/MobsConfig.ts";
 
 enum GroupType {
     Red = 0,
@@ -29,11 +30,6 @@ enum GroupType {
 }
 
 const groupTypeValues = Object.values(GroupType) as number[];
-
-export enum MobType {
-    Skeleton = 'Skeleton',
-    ElfArcher = 'ElfArcher'
-}
 
 export class Mob extends Component {
     public constructor(public type: MobType) {
@@ -47,38 +43,7 @@ export class MobsCounter extends Component {
     }
 }
 
-const skeletonSaberConfig = {
-    damageMax: 20,
-    damageMin: 10,
-    cooldownSeconds: 0.1,
-    rangeMax: 100,
-    rangeMin: 50,
-    swingSeconds: 0.5,
-    attackDuration: 0.75,
-    criticalChance: 0.1,
-    criticalMultiplier: 2,
-    effect: WeaponEffect.DirectDamage
-};
-
-const elfArcherBowConfig = {
-    damageMax: 20,
-    damageMin: 10,
-    cooldownSeconds: 1,
-    rangeMax: 600,
-    rangeMin: 300,
-    swingSeconds: 0.5,
-    attackDuration: 0.75,
-    criticalChance: 0.3,
-    criticalMultiplier: 3,
-    effect: WeaponEffect.Arrow
-};
-
 const defaultState:Record<GoapState, boolean> = { [GoapState.hasTarget]: false, [GoapState.inRange]: false, [GoapState.overwhelmed]:false };
-
-interface MobSpawnDefinition {
-    config: MobConfig;
-    count: number;    
-}
 
 export class MobsSpawn extends Component {
     public constructor(public mobs: MobSpawnDefinition[], public group: number, public position: {x: number, y: number}) {
@@ -118,42 +83,6 @@ const GoalTypeToGoal = new Map<string, Goal>(
         [EscapeOverwhelmGoal.name, new EscapeOverwhelmGoal()]
     ]
 );
-
-class MobConfig {
-    type:MobType;
-    weaponConfig: WeaponConfig;
-    health: number;
-    speed: number;
-    size: number;
-    survivalSecondsToOverwhelm: number;
-    drops:DropDefinition[];
-    actions: string[]; // Action class names
-    goals: string[]; // Goal class names
-}
-
-export const SkeletonConfig = {
-    type: MobType.Skeleton,
-    weaponConfig: {...skeletonSaberConfig},
-    health: 100,
-    speed: 200,
-    size: 16,
-    survivalSecondsToOverwhelm: 0,
-    drops: [{type: DropType.Corpse}],
-    actions: [GetTargetAction.name, MoveAction.name, AttackAction.name],
-    goals: [KillEnemiesGoal.name]
-}
-
-export const ElfArcherConfig = {
-    type: MobType.ElfArcher,
-    weaponConfig: {...elfArcherBowConfig},
-    health: 100,
-    speed: 300,
-    size: 16,
-    survivalSecondsToOverwhelm: 3,
-    drops: [{type: DropType.Corpse}],
-    actions: [GetTargetAction.name, MoveAction.name, AttackAction.name, EscapeOverwhelmAction.name],
-    goals: [KillEnemiesGoal.name, EscapeOverwhelmGoal.name]
-};
 
 export class MobSpawnSystem extends TimedGameSystem {
     protected updateTimed(entities: Set<number>, _: number): void {
@@ -215,7 +144,7 @@ export class MobSpawnSystem extends TimedGameSystem {
         game.ecs.addComponent(entity, new Targeted());
         game.ecs.addComponent(entity, new Targetable());
         game.ecs.addComponent(entity, new MobsTargeting(groupTypeValues.filter(group => group !== ownGroup).reduce((acc, group) => acc.add(group), new Set<number>()) as Set<number>));
-        game.ecs.addComponent(entity, new RangeFromTarget(0, 0, size));
+        game.ecs.addComponent(entity, new RangeFromTarget(size));
     }
 
     static addMovement(game: GameLogic, entity: number, speed: number){

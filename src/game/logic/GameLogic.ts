@@ -1,6 +1,5 @@
 import {ECS, Entity, System} from "../core/ECS.ts";
 import {Scene} from "phaser";
-import {Configs} from "./modules/ConfigsModule.ts";
 import { GameLogicModule } from "./GameLogicModule.ts";
 
 export abstract class GameSystem extends System {
@@ -68,14 +67,5 @@ export class GameLogic {
     update(delta: number) {
         this.timeFromStart += delta;
         this.ecs.update(delta);
-    }
-    
-    getConfig<T>(key: Function): T {
-        const configEntity = this.ecs.getEntitiesWithComponent(Configs)[0];
-        const config = this.ecs.getComponent(configEntity, Configs)?.getConfig(key);
-        if (!config) {
-            throw new Error(`Config ${key} not found`);
-        }
-        return config as T;
     }
 }

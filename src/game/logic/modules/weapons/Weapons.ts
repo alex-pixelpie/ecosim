@@ -2,24 +2,7 @@ import {GameLogic} from "../../GameLogic.ts";
 import {Component} from "../../../core/ECS.ts";
 import { WeaponEffectDirectDamage } from "./WeaponEffectDirectDamage.ts";
 import { WeaponEffectArrow } from "./WeaponEffectArrow.ts";
-
-export class WeaponConfig {
-    damageMin:number;
-    damageMax:number;
-    cooldownSeconds: number;
-    rangeMax: number;
-    rangeMin: number;
-    swingSeconds: number;
-    attackDuration: number;
-    criticalChance: number;
-    criticalMultiplier: number;
-    effect:WeaponEffect;
-}
-
-export enum WeaponEffect {
-    DirectDamage=1,
-    Arrow=2,
-}
+import {WeaponConfig, WeaponEffect} from "../../../configs/MobsConfig.ts";
 
 export type WeaponEffectFunction = (game: GameLogic, owner:number, weapon:Weapon) => void;
 type WeaponEffectsType = Record<WeaponEffect, WeaponEffectFunction>;

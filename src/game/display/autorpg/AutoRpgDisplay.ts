@@ -9,7 +9,7 @@ import {PhysicsBody, Position} from "../../logic/modules/PhaserPhysicsModule.ts"
 import {TargetGroup, TargetSelection} from "../../logic/modules/TargetingModule.ts";
 import {DisplayModule} from "../DisplayModule.ts";
 import {Tile} from "../../logic/modules/TilesModule.ts";
-import {Configs, MapConfig} from "../../logic/modules/ConfigsModule.ts";
+import {Configs} from "../../configs/Configs.ts";
 
 export type AutoRpgDisplayModule = DisplayModule<AutoRpgDisplay>;
 
@@ -95,16 +95,14 @@ export class AutoRpgDisplay {
     timeFromStart: number = 0;
     
     constructor(scene: Phaser.Scene, ecs:ECS, modules: AutoRpgDisplayModule[]) {
-        const configEntity = ecs.getEntitiesWithComponent(Configs)[0];
-        const configs = ecs.getComponent(configEntity, Configs);
-        const config = configs.getConfig<MapConfig>(MapConfig);
+        const mapConfig = Configs.mapConfig;
         
         this.ecs = ecs;
         this.scene = scene;
         this.modules = modules;
-        this.mapDisplay = new MapDisplay(scene, config.tilesInMapSide);
+        this.mapDisplay = new MapDisplay(scene, mapConfig.tilesInMapSide);
 
-        this.tiles = Array.from({length: config.tilesInMapSide}, () => Array.from({length: config.tilesInMapSide}, () => new TileDisplayData()));
+        this.tiles = Array.from({length: mapConfig.tilesInMapSide}, () => Array.from({length: mapConfig.tilesInMapSide}, () => new TileDisplayData()));
         modules.forEach(module => module.init(this));
 
         this.corpsesLayer = scene.add.container();

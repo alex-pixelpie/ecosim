@@ -1,10 +1,12 @@
 import {Component} from "../../core/ECS.ts";
-import {Mob, MobType} from "./MobsModule.ts";
+import {Mob} from "./MobsModule.ts";
 import {GameLogic, GameSystem} from "../GameLogic.ts";
 import { GameLogicModule } from "../GameLogicModule.ts";
 import {FrameLog} from "./FrameLogModule.ts";
-import {Building, BuildingType} from "./BuildingsModule.ts";
+import {Building} from "./BuildingsModule.ts";
 import {Position} from "./PhaserPhysicsModule.ts";
+import {BuildingType} from "../../configs/BuildingsConfig.ts";
+import {DropDefinition, DropType, MobType} from "../../configs/MobsConfig.ts";
 
 export class Health extends Component {
     maxValue: number;
@@ -52,17 +54,6 @@ class CorpseRotSystem extends GameSystem {
             }
         }
     }
-}
-
-export enum DropType {
-    Corpse = 1,
-    Ruin = 2,
-}
-
-export interface DropDefinition {
-    chance?: number;
-    value?: number;
-    type: DropType;
 }
 
 export class DieAndDrop extends Component {

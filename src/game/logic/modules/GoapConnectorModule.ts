@@ -11,7 +11,7 @@ import {OverwhelmComponent} from "./OverwhelmModule.ts";
 import {Position} from "./PhaserPhysicsModule.ts";
 import {ActionComponent} from "./goap/GoapModule.ts";
 import {RangeFromTarget, Targeted, TargetSelection} from "./TargetingModule.ts";
-import {MapConfig} from "./ConfigsModule.ts";
+import {Configs} from "../../configs/Configs.ts";
 
 class GoapToSteeringDesiresSystem extends GameSystem {
     public intensity: number = 1;
@@ -97,7 +97,7 @@ class GoapToSteeringDesiresSystem extends GameSystem {
         const avoidanceIntensity = 1; // Adjust this value based on desired avoidance strength
         const wallProximityThreshold = 500; // Adjust this value based on how close is "too close" to a wall
 
-        const size = this.game.getConfig<MapConfig>(MapConfig).pixelsSize;
+        const size = Configs.mapConfig.pixelsSize;
 
         const worldWidth = size - 100; // Replace with actual world width
         const worldHeight = size - 100; // Replace with actual world height

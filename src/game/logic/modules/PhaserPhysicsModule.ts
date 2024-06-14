@@ -2,7 +2,7 @@ import {GameLogic, GameSystem, PhysicalComponentCreationData} from "../GameLogic
 import { GameLogicModule } from "../GameLogicModule.ts";
 import {Component} from "../../core/ECS.ts";
 import {GameObjects} from "phaser";
-import {MapConfig} from "./ConfigsModule.ts";
+import {Configs} from "../../configs/Configs.ts";
 
 export class Position extends Component {
     public constructor(public x: number, public y: number) {
@@ -61,7 +61,7 @@ export class PhaserPhysicsModule extends GameLogicModule {
         const positionSynchronizationSystem = new PhysicsPositionSynchronizationSystem(game);
         game.ecs.addSystem(positionSynchronizationSystem);
         
-        const size = game.getConfig<MapConfig>(MapConfig).pixelsSize;
+        const size = Configs.mapConfig.pixelsSize;
         this.createCollidableBorders(size, size);
     }
 

@@ -33,7 +33,10 @@ export class TargetGroup extends Component {
 }
 
 export class RangeFromTarget extends Component {
-    constructor(public maxDistance: number = 1, public minDistance: number = 0, public ownSize: number = 0) {
+    public maxDistance: number = 1;
+    public minDistance: number = 0;
+    
+    constructor(public ownSize: number = 0) {
         super();
     }
 

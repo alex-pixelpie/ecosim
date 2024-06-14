@@ -3,7 +3,7 @@ import {GameLogic} from "../logic/GameLogic.ts";
 import {AutoRpgDisplay} from "../display/autorpg/AutoRpgDisplay.ts";
 import {EventBus, GameEvents, UiEvents} from "../EventBus.ts";
 import {ECS} from "../core/ECS.ts";
-import {FrameLog} from "../logic/modules/FrameLogModule.ts";
+import {FrameLogModule} from "../logic/modules/FrameLogModule.ts";
 import {CameraModule} from "../display/autorpg/CameraModule.ts";
 import {DungeonFloorDisplayModule} from "../display/autorpg/DungeonFloorDisplayModule.ts";
 import {TilesModule} from "../logic/modules/TilesModule.ts";
@@ -36,8 +36,8 @@ export class TilesPaintingScene extends Scene {
         const ecs = new ECS();
 
         this.gameLogic = new GameLogic( ecs, this, [
-            new FrameLog.FrameLogModule(),
-            new TilesModule.TilesModule(),
+            new FrameLogModule(),
+            new TilesModule(),
         ]);
 
         this.gameDisplay = new AutoRpgDisplay(this, ecs, [
