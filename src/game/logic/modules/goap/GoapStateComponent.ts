@@ -6,12 +6,15 @@ export const GoapMobilityState = {
 } as const;
 
 export const GoapPatrolState = {
-    patrolling: "patrolling"
+    patrolling: "patrolling",
+    isPatrolOnCooldown: "isPatrolOnCooldown"
 } as const;
 
 export const GoapStateConst = {...GoapMobilityState, ...GoapPatrolState} as const;
 
 export type GoapStateKey = keyof typeof GoapStateConst;
+
+export type GoapState = Record<GoapStateKey, boolean>;
 
 export const defaultGoapState: Record<GoapStateKey, boolean> = Object.keys(GoapStateConst).reduce((acc, key) => {
     acc[key as GoapStateKey] = false;

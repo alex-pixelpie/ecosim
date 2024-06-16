@@ -17,18 +17,19 @@ export class Patrol extends Component {
         this.currentFrequency = config.maxFrequency + Math.random() * (config.minFrequency - config.maxFrequency);
     }
 
-    public startPatrol(patrolTarget: Pos, currentTime: number){
+    public startPatrol(patrolTarget: Pos){
         this.patrolTarget = patrolTarget;
-        this.lastPatrolEndTime = currentTime;
         this.onPatrol = true;
     }
 
-    public endPatrol(){
+    public endPatrol(currentTime: number){
         this.onPatrol = false;
+        this.lastPatrolEndTime = currentTime;
     }
 
-    public canGoPatrol(currentTime: number): boolean {
-        return this.lastPatrolEndTime + this.currentFrequency < currentTime;
+    public isOnCooldown(currentTime: number): boolean {
+        const isCooldown = this.lastPatrolEndTime + this.currentFrequency > currentTime;
+        return isCooldown;
     }
 
     inRange(from: Pos): boolean {

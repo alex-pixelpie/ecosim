@@ -12,7 +12,7 @@ export const startPatrolAction: ActionProcessor = (game: GameLogic, entity: numb
     }
 
     const target = MathUtils.randomPointOnCircumference(patrol.config.targetPosition, patrol.config.range);
-    patrol.startPatrol(target, game.currentTime);
+    patrol.startPatrol(target);
     
     const locomotionTarget = game.ecs.getComponent(entity, LocomotionTarget);
     if (!locomotionTarget) {

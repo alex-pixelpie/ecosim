@@ -24,7 +24,8 @@ export class GoapStateUpdateSystem extends GameSystem {
         const wasPatrolling = state.state[GoapStateConst.patrolling];
         const isPatrolling = patrol?.onPatrol;
         state.state[GoapStateConst.patrolling] = isPatrolling;
-
+        state.state[GoapStateConst.isPatrolOnCooldown] = patrol?.isOnCooldown(this.game.currentTime);
+        
         if (wasPatrolling){
             state.state[GoapStateConst.hasMoveTarget] = state.state[GoapStateConst.patrolling];
         } 
@@ -46,7 +47,7 @@ export class GoapStateUpdateSystem extends GameSystem {
         state.state[GoapStateConst.isAtMoveTarget] = isPatrolEnded;
         
         if (isPatrolEnded){
-            patrol.endPatrol();
+            patrol.endPatrol(this.game.currentTime);
         }
     }
 }
