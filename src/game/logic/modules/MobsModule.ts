@@ -1,18 +1,12 @@
-import {GameLogic, GameSystem, TimedGameSystem} from "../GameLogic.ts";
+import {GameLogic, TimedGameSystem} from "../GameLogic.ts";
 import { GameLogicModule } from "../GameLogicModule.ts";
 import {Component} from "../../core/ECS.ts";
 import {defaultGoapState, GoapStateComponent} from "./goap/GoapStateComponent.ts";
 import {Weapon} from "./weapons/Weapons.ts";
-import {Steering} from "./SteeringModule.ts";
+import {Steering, WallsAvoider} from "./SteeringModule.ts";
 import {FrameLog} from "./FrameLogModule.ts";
-import {GlideLocomotion} from "./LocomotionModule.ts";
-import {GetTargetAction} from "./goap/actions/GetTargetAction.ts";
-import {MoveToTargetAction} from "./goap/actions/MoveToTargetAction.ts";
-import {AttackAction} from "./goap/actions/AttackAction.ts";
-import {KillEnemiesGoal} from "./goap/goals/KillEnemiesGoal.ts";
+import {GlideLocomotion, LocomotionTarget} from "./LocomotionModule.ts";
 import {Action} from "./goap/actions/Action.ts";
-import {EscapeOverwhelmAction} from "./goap/actions/EscapeOverwhelmAction.ts";
-import {EscapeOverwhelmGoal} from "./goap/goals/EscapeOverwhelmGoal.ts";
 import {OverwhelmComponent} from "./OverwhelmModule.ts";
 import {DieAndDrop, Health, Mortality} from "./DeathModule.ts";
 import {
@@ -24,12 +18,10 @@ import {
 import {MobsTargeting, RangeFromTarget, Targetable, Targeted, TargetGroup, TargetSelection} from "./TargetingModule.ts";
 import {MobConfig, MobSpawnDefinition, MobType, WeaponConfig} from "../../configs/MobsConfig.ts";
 import {Configs} from "../../configs/Configs.ts";
-import {Patroller} from "./PatrolModule.ts";
 import {PatrolGoal} from "./goap/goals/PatrolGoal.ts";
-import {StayCloseToHomeGoal} from "./goap/goals/StayCloseToHomeGoal.ts";
-import {GetToTargetGoal} from "./goap/goals/GetToTargetGoal.ts";
-import {PatrolAction} from "./goap/actions/PatrolAction.ts";
-import {GoHomeAction} from "./goap/actions/GoHomeAction.ts";
+import {StartPatrolAction} from "./goap/actions/StartPatrolAction.ts";
+import {MoveAction} from "./goap/actions/MoveAction.ts";
+import {Patrol} from "./goap-connector/GoapConnectorModule.ts";
 
 enum GroupType {
     Red = 0,
@@ -40,12 +32,6 @@ const groupTypeValues = Object.values(GroupType) as number[];
 
 export class Mob extends Component {
     public constructor(public type: MobType) {
-        super();
-    }
-}
-
-export class MobsCounter extends Component {
-    public constructor(public count: number) {
         super();
     }
 }
@@ -75,22 +61,14 @@ class MobSpawnUpgradeSystem extends TimedGameSystem {
 
 const ActionTypeToAction = new Map<string, Action>(
     [
-        [GetTargetAction.name, new GetTargetAction()],
-        [MoveToTargetAction.name, new MoveToTargetAction()],
-        [AttackAction.name, new AttackAction()],
-        [EscapeOverwhelmAction.name, new EscapeOverwhelmAction()],
-        [PatrolAction.name, new PatrolAction()],
-        [GoHomeAction.name, new GoHomeAction()]
+        [StartPatrolAction.name, new StartPatrolAction()],
+        [MoveAction.name, new MoveAction()]
     ]
 );
 
 const GoalTypeToGoal = new Map<string, Goal>(
     [
-        [KillEnemiesGoal.name, new KillEnemiesGoal()],
-        [EscapeOverwhelmGoal.name, new EscapeOverwhelmGoal()],
         [PatrolGoal.name, new PatrolGoal()],
-        [StayCloseToHomeGoal.name, new StayCloseToHomeGoal()],
-        [GetToTargetGoal.name, new GetToTargetGoal()]
     ]
 );
 
@@ -159,9 +137,11 @@ export class MobSpawnSystem extends TimedGameSystem {
         game.ecs.addComponent(entity, new RangeFromTarget(size));
     }
 
-    static addMovement(game: GameLogic, entity: number, speed: number){
+    static addMovement(game: GameLogic, entity: number, speed: number, avoidWalls = true){
         game.ecs.addComponent(entity, new GlideLocomotion(speed));
         game.ecs.addComponent(entity, new Steering());
+        game.ecs.addComponent(entity, new LocomotionTarget(0, 0, 16))
+        avoidWalls && game.ecs.addComponent(entity, new WallsAvoider());
     }
 
     static addCombat(game: GameLogic, entity: number, health:number, weaponConfig: WeaponConfig){
@@ -181,29 +161,11 @@ export class MobSpawnSystem extends TimedGameSystem {
     }
 }
 
-class MobsCountSystem extends GameSystem {
-    public componentsRequired: Set<Function> = new Set([MobsCounter]);
-    update(entities: Set<number>, _: number): void {
-        const mobsCounter = this.game.ecs.getComponent(Array.from(entities)[0], MobsCounter);
-        mobsCounter.count = this.game.mobs.size;
-    }
-    init(): void {
-        this.componentsRequired = new Set([MobsCounter]);
-    }
-}
-
 const mobSpawnInterval = 5;
 const mobsSpawnUpgradeInterval = 10;
 
 export class MobsModule extends GameLogicModule {
     public init(game: GameLogic): void {
-        const mobsEntity = game.ecs.addEntity();
-        
-        // TODO - move MobsCounter and MobsCountSystem behavior somewhere else
-        game.ecs.addComponent(mobsEntity, new MobsCounter(0));
-        const countSystem = new MobsCountSystem(game);
-        game.ecs.addSystem(countSystem);
-        
         const spawnSystem = new MobSpawnSystem(game, mobSpawnInterval);
         game.ecs.addSystem(spawnSystem);
         
@@ -213,6 +175,6 @@ export class MobsModule extends GameLogicModule {
         // Initial spawn
         const pos = Configs.mapConfig.pixelsSize/2;
         const mob = MobSpawnSystem.makeMob(game, Configs.mobsConfig.getMobConfig(MobType.Skeleton), pos, pos, GroupType.Red);
-        game.ecs.addComponent(mob, new Patroller({maxFrequency: 10, minFrequency: 5, range:500, targetRadius: 200, targetPosition: {x: pos, y: pos}}));
+        game.ecs.addComponent(mob, new Patrol({maxFrequency: 10, minFrequency: 5, range:500, targetRadius: 200, targetPosition: {x: pos, y: pos}}, 16));
     }
 }

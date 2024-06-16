@@ -1,8 +1,8 @@
-import {GoapState} from "../GoapStateComponent.ts";
 import {Goal} from "../GoapModule.ts";
+import {GoapStateConst} from "../GoapStateComponent.ts";
 
 export class PatrolGoal implements Goal {
-    desiredState = { [GoapState.homePatrolled]: true };
+    desiredState = { [GoapStateConst.isAtMoveTarget]: true, [GoapStateConst.patrolling]: true};
     priority = 1;
 
     updatePriority(_: Record<string, boolean>): void {

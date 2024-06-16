@@ -5,7 +5,8 @@ import { GameLogicModule } from "../GameLogicModule.ts";
 export enum FrameLogType {
     Attack = 'Attack',
     TakeDamage = 'TakeDamage',
-    TakeCriticalDamage = 'TakeCriticalDamage'
+    TakeCriticalDamage = 'TakeCriticalDamage',
+    MoveTargetReached = 'MoveTargetReached',
 }
 
 export interface FrameLogEntry {

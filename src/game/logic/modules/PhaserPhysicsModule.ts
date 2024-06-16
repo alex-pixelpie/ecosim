@@ -10,6 +10,12 @@ export class Position extends Component {
     }
 }
 
+export class Size extends Component {
+    public constructor(public radius: number) {
+        super();
+    }
+}
+
 export class PhysicsBody extends Component {
     public constructor(public body: Phaser.Physics.Arcade.Body, public container: GameObjects.Container) {
         super();
@@ -70,14 +76,19 @@ export class PhaserPhysicsModule extends GameLogicModule {
         const bodyContainer = group.create(x, y) as GameObjects.Container;
         bodyContainer.setVisible(false);
         const body = bodyContainer.body as Phaser.Physics.Arcade.Body;
+        let size = 0;
         
         if (width && height) {
             body.setSize(width, height);
+            size = Math.floor(Math.max(width, height)/2);
         } else if (radius) {
             body.setCircle(radius, 0, 0);
+            size = radius;
         }
         
         this.game.ecs.addComponent(entity, new PhysicsBody(body, bodyContainer));
+
+        this.game.ecs.addComponent(entity, new Size(size));
     }
 
     private removePhysicalComponents(entity: number) {

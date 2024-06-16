@@ -1,44 +1,15 @@
 import {Component} from "../../../core/ECS.ts";
 
-// TODO - deprecate all usages
-// TODO - refactor GOAP to use state consts
-export enum GoapState {
-    hasTarget = "hasTarget",
-    inRangeOfTarget = "inRangeOfTarget",
-    overwhelmed = "overwhelmed",
-    closeToHome = "closeToHome",
-    homePatrolled = "homePatrolled",
-    targetsInSight = "targetsInSight",
-}
-
 export const GoapMobilityState = {
-    idle : "idle",
-    moving : "moving",
-    attacking : "attacking",
-    fleeing : "fleeing",
-} as const;
-
-export const GoapHealthState = {
-    healthy : "healthy",
-    injured : "injured",
-    critical : "critical",
-} as const;
-
-export const GoapCombatState = {
-    ready : "ready",
-    hasTarget : "hasTarget",
-    targetInRange : "targetInRange",
-    overwhelmed : "overwhelmed",
-    attacking : "attacking",
+    isAtMoveTarget : "isAtMoveTarget",
+    hasMoveTarget: "hasMoveTarget"
 } as const;
 
 export const GoapPatrolState = {
-    patrolling: "patrolling",
-    closeToHome : "closeToHome",
-    homePatrolled : "homePatrolled",
+    patrolling: "patrolling"
 } as const;
 
-export const GoapStateConst = {...GoapMobilityState, ...GoapHealthState, ...GoapCombatState, ...GoapPatrolState} as const;
+export const GoapStateConst = {...GoapMobilityState, ...GoapPatrolState} as const;
 
 export type GoapStateKey = keyof typeof GoapStateConst;
 

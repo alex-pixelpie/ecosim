@@ -1,14 +1,7 @@
-import {GetTargetAction} from "../logic/modules/goap/actions/GetTargetAction.ts";
-import {KillEnemiesGoal} from "../logic/modules/goap/goals/KillEnemiesGoal.ts";
-import {MoveToTargetAction} from "../logic/modules/goap/actions/MoveToTargetAction.ts";
-import {EscapeOverwhelmGoal} from "../logic/modules/goap/goals/EscapeOverwhelmGoal.ts";
-import {AttackAction} from "../logic/modules/goap/actions/AttackAction.ts";
-import {EscapeOverwhelmAction} from "../logic/modules/goap/actions/EscapeOverwhelmAction.ts";
 import {Pos} from "../utils/Math.ts";
-import {PatrolAction} from "../logic/modules/goap/actions/PatrolAction.ts";
-import {StayCloseToHomeGoal} from "../logic/modules/goap/goals/StayCloseToHomeGoal.ts";
-import {GetToTargetGoal} from "../logic/modules/goap/goals/GetToTargetGoal.ts";
 import {PatrolGoal} from "../logic/modules/goap/goals/PatrolGoal.ts";
+import {StartPatrolAction} from "../logic/modules/goap/actions/StartPatrolAction.ts";
+import {MoveAction} from "../logic/modules/goap/actions/MoveAction.ts";
 
 export interface DropDefinition {
     chance?: number;
@@ -48,6 +41,7 @@ export interface MobConfig {
     actions: string[]; // Action class names
     goals: string[]; // Goal class names
     patrol?:PatrolConfig;
+    avoidWalls?: boolean;
 }
 
 export interface MobSpawnDefinition {
@@ -89,8 +83,9 @@ export const SkeletonConfig: MobConfig = {
     size: 16,
     survivalSecondsToOverwhelm: 0,
     drops: [{ type: DropType.Corpse }],
-    actions: [PatrolAction.name],
+    actions: [StartPatrolAction.name, MoveAction.name],
     goals: [PatrolGoal.name],
+    avoidWalls: true
 };
 
 export const ElfArcherConfig : MobConfig = {
@@ -112,8 +107,9 @@ export const ElfArcherConfig : MobConfig = {
     size: 16,
     survivalSecondsToOverwhelm: 3,
     drops: [{ type: DropType.Corpse }],
-    actions: [GetTargetAction.name, MoveToTargetAction.name, AttackAction.name, EscapeOverwhelmAction.name],
-    goals: [KillEnemiesGoal.name, EscapeOverwhelmGoal.name]
+    actions: [StartPatrolAction.name, MoveAction.name],
+    goals: [PatrolGoal.name],
+    avoidWalls: true
 };
 
 export class MobsConfig {
