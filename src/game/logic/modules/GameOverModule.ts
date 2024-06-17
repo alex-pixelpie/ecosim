@@ -6,9 +6,9 @@ import {GlideLocomotion} from "./LocomotionModule.ts";
 import {Steering} from "./SteeringModule.ts";
 import {Position} from "./PhaserPhysicsModule.ts";
 import {MobsSpawn} from "./MobsModule.ts";
-import {RangeFromTarget, TargetSelection} from "./TargetingModule.ts";
+import {AttackTarget} from "./TargetingModule.ts";
 import {defaultGoapState, GoapStateComponent} from "./goap/GoapStateComponent.ts";
-import {ActionComponent, AvailableActionsComponent, GoalsComponent} from "./goap/GoapModule.ts";
+import {ActionComponent} from "./goap/GoapModule.ts";
 import {Configs} from "../../configs/Configs.ts";
 
 export class GameOverAgent extends Component {
@@ -31,17 +31,16 @@ class SlowOnApproachSystem extends GameSystem {
     
     public update(entities: Set<number>, _: number): void {
         entities.forEach(entity => {
-            const rangeFromTarget = this.game.ecs.getComponent(entity, RangeFromTarget);
-            const targetSelection = this.game.ecs.getComponent(entity, TargetSelection);
+            const attackTarget = this.game.ecs.getComponent(entity, AttackTarget);
             const locomotion = this.game.ecs.getComponent(entity, GlideLocomotion);
             const position = this.game.ecs.getComponent(entity, Position);
             const slowOnApproach = this.game.ecs.getComponent(entity, SlowOnApproach);
             
-            if (!rangeFromTarget || !targetSelection || !locomotion || !position || !slowOnApproach) {
+            if (!attackTarget || !locomotion || !position || !slowOnApproach) {
                 return;
             }
             
-            const distance = rangeFromTarget.distanceFromTarget(targetSelection, position);
+            const distance = attackTarget.distanceFromTarget(position);
             const distanceToSlow = slowOnApproach.startSlowDistance;
             
             if (distance > distanceToSlow) {
@@ -93,13 +92,12 @@ export class GameOverModule extends GameLogicModule {
 
         game.ecs.addComponent(entity, new GameOverAgent(victory));
 
-        const targetSelection = new TargetSelection();
+        const targetSelection = new AttackTarget(2);
         targetSelection.x = targetPosition.x * 32;
         targetSelection.y = targetPosition.y * 32;
         targetSelection.targetSize = 16;
         targetSelection.target = 1;
         game.ecs.addComponent(entity, targetSelection);
-        game.ecs.addComponent(entity, new RangeFromTarget(2));
 
         game.ecs.addComponent(entity, new GlideLocomotion(1000));
         game.ecs.addComponent(entity, new Steering());

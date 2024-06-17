@@ -1,17 +1,29 @@
 import {Component} from "../../core/ECS.ts";
 import {MathUtils, Pos} from "../../utils/Math.ts";
-import {GameLogic, GameSystem, TimedGameSystem} from "../GameLogic.ts";
+import {GameLogic, GameSystem} from "../GameLogic.ts";
 import { GameLogicModule } from "../GameLogicModule.ts";
-import {PhysicsBody, Position} from "./PhaserPhysicsModule.ts";
+import {PhysicsBody, Position, Size} from "./PhaserPhysicsModule.ts";
 import {Dead} from "./DeathModule.ts";
 
-export class TargetSelection implements Component {
+export class AttackTarget implements Component {
+    attacking:false;
     target: number | null = null;
     x: number = 0;
     y: number = 0;
     targetSize: number = 0;
+    minAttackRange:number = 0; // Determined by weapon
+    maxAttackRange:number = 0; // Determined by weapon
     
-    constructor() {}
+    constructor(public ownSize:number) {}
+
+    distanceFromTarget(from: Pos): number {
+        return MathUtils.distance(from, this) - this.ownSize;
+    }
+
+    inRange(from: Pos): boolean {
+        let distance = MathUtils.distance(from, this) - this.targetSize - this.ownSize;
+        return distance <= this.minAttackRange && distance >= this.maxAttackRange;
+    }
 }
 
 export class Targetable extends Component {}
@@ -32,74 +44,55 @@ export class TargetGroup extends Component {
     }
 }
 
-export class RangeFromTarget extends Component {
-    public maxDistance: number = 1;
-    public minDistance: number = 0;
-    
-    constructor(public ownSize: number = 0) {
-        super();
-    }
-
-    distanceFromTarget(currentPosition: Pos, targetPosition: Pos): number {
-        return MathUtils.distance(currentPosition, targetPosition) - this.ownSize;
-    }
-    
-    inRange(currentPosition: Pos, targetPosition: Pos, otherSize:number): boolean {
-        let distance = MathUtils.distance(currentPosition, targetPosition) - otherSize - this.ownSize;
-        return distance <= this.maxDistance && distance >= this.minDistance;
-    }
-    
-    tooClose(currentPosition: Pos, targetPosition: Pos, otherSize:number): boolean {
-        const distance = MathUtils.distance(currentPosition, targetPosition) - otherSize - this.ownSize;
-        return distance < this.minDistance;
-    }
-    
-    tooFar(currentPosition: Pos, targetPosition: Pos, otherSize:number): boolean {
-        const distance = MathUtils.distance(currentPosition, targetPosition) - otherSize - this.ownSize;
-        return distance > this.maxDistance;
-    }
-}
-
 export class MobTargetSelectionSystem extends GameSystem {
-    public componentsRequired: Set<Function> = new Set([TargetSelection, MobsTargeting]);
+    public componentsRequired: Set<Function> = new Set([AttackTarget, MobsTargeting]);
 
     protected init(): void {
-        this.componentsRequired = new Set([TargetSelection, MobsTargeting]);
+        this.componentsRequired = new Set([AttackTarget, MobsTargeting]);
     }
 
     public update(entities: Set<number>, _: number): void {
         entities.forEach(entity => {
-            const targetSelection = this.game.ecs.getComponent<TargetSelection>(entity, TargetSelection);
+            const attackTarget = this.game.ecs.getComponent<AttackTarget>(entity, AttackTarget);
 
             // If we have a target, and it's no longer valid, clear it
-            if (targetSelection.target && !this.game.mobs.has(targetSelection.target)) {
-                targetSelection.target = null;
+            if (attackTarget.target && !this.game.mobs.has(attackTarget.target)) {
+                attackTarget.target = null;
             }
 
             // If we don't have a target, select one
-            if (!targetSelection.target) {
-                targetSelection.target = MobTargetSelectionSystem.selectTarget(this.game, entity);
+            if (!attackTarget.target) {
+                attackTarget.target = MobTargetSelectionSystem.selectTarget(this.game, entity);
             }
             
-            const target = targetSelection.target;
+            const target = attackTarget.target;
             if (!target) {
                 return;
             }
             
             // Track the target's position
             const targetPosition = this.game.ecs.getComponent(target, Position);
-
+            
             if (targetPosition) {
-                targetSelection.x = targetPosition.x;
-                targetSelection.y = targetPosition.y;
-                return;
+                attackTarget.x = targetPosition.x;
+                attackTarget.y = targetPosition.y;
+            }
+            
+            const ownSize = this.game.ecs.getComponent(entity, Size);
+            if (ownSize) {
+                attackTarget.ownSize = ownSize.radius;
+            }
+
+            const otherSize = this.game.ecs.getComponent(target, Size);
+            if (otherSize) {
+                attackTarget.targetSize = otherSize.radius;
             }
         });
     }
 
     static selectTarget(game:GameLogic, entity: number): number | null {
         const position = game.ecs.getComponent(entity, Position);
-        const targetSelection = game.ecs.getComponent(entity, TargetSelection);
+        const targetSelection = game.ecs.getComponent(entity, AttackTarget);
         const mobTargeting = game.ecs.getComponent(entity, MobsTargeting);
         
         if (!position || !targetSelection || !mobTargeting) {
@@ -179,22 +172,6 @@ class TargetedResetSystem extends GameSystem {
     }
 }
 
-class MobTargetReselectionSystem extends TimedGameSystem {
-    public componentsRequired: Set<Function> = new Set([TargetSelection, MobsTargeting]);
-
-    protected init(): void {
-        this.componentsRequired = new Set([TargetSelection, MobsTargeting]);
-    }
-
-    public updateTimed(entities: Set<number>, _: number): void {
-        entities.forEach(entity => {
-            const targetSelection = this.game.ecs.getComponent(entity, TargetSelection);
-            targetSelection.target = MobTargetSelectionSystem.selectTarget(this.game, entity);
-        });
-    }
-}
-
-const reselectionInterval = 3;
 
 export class TargetingModule extends GameLogicModule {
     public init(game: GameLogic): void {
@@ -203,8 +180,5 @@ export class TargetingModule extends GameLogicModule {
         
         const targetSelectionSystem = new MobTargetSelectionSystem(game);
         game.ecs.addSystem(targetSelectionSystem);
-        
-        const targetReselectionSystem = new MobTargetReselectionSystem(game, reselectionInterval);
-        game.ecs.addSystem(targetReselectionSystem);
     }
 }

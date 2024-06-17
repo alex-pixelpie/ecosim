@@ -2,10 +2,10 @@ import { GameLogic } from "../../GameLogic.ts";
 import {FrameLog, FrameLogType} from "../FrameLogModule.ts";
 import { Health } from "../DeathModule.ts";
 import { WeaponEffectFunction, Weapon } from "./Weapons.ts";
-import {TargetSelection} from "../TargetingModule.ts";
+import {AttackTarget} from "../TargetingModule.ts";
 
 export const WeaponEffectDirectDamage: WeaponEffectFunction = (game: GameLogic, owner: number, weapon: Weapon): void => {
-    const targetSelection = game.ecs.getComponent(owner, TargetSelection);
+    const targetSelection = game.ecs.getComponent(owner, AttackTarget);
     const target = targetSelection?.target as number;
 
     // Check if the target is a valid entity

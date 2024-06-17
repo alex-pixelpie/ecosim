@@ -36,6 +36,7 @@ export interface MobConfig {
     health: number;
     speed: number;
     size: number;
+    sensoryRange: number;
     survivalSecondsToOverwhelm: number;
     drops: DropDefinition[];
     actions: string[]; // Action class names
@@ -81,6 +82,7 @@ export const SkeletonConfig: MobConfig = {
     health: 100,
     speed: 200,
     size: 16,
+    sensoryRange: 300,
     survivalSecondsToOverwhelm: 0,
     drops: [{ type: DropType.Corpse }],
     actions: [StartPatrolAction.name, MoveAction.name],
@@ -103,6 +105,7 @@ export const ElfArcherConfig : MobConfig = {
         effect: WeaponEffect.Arrow
     },
     health: 100,
+    sensoryRange: 1000,
     speed: 300,
     size: 16,
     survivalSecondsToOverwhelm: 3,

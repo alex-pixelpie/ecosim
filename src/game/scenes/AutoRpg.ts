@@ -27,6 +27,7 @@ import {FrameLogModule} from "../logic/modules/FrameLogModule.ts";
 import {TargetingModule} from "../logic/modules/TargetingModule.ts";
 import {MobsModule} from "../logic/modules/MobsModule.ts";
 import {GoapModule} from "../logic/modules/goap/GoapModule.ts";
+import {SensoryModule} from "../logic/modules/SensoryModule.ts";
 
 export class AutoRpg extends Scene
 {
@@ -64,6 +65,7 @@ export class AutoRpg extends Scene
             new SteeringModule(),
             new GoapModule(),
             new GoapConnectorModule(),
+            new SensoryModule(),
             new TargetingModule(),
             new BuildingsModule(),
             new GameOverModule()

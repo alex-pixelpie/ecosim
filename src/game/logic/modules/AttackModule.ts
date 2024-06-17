@@ -4,27 +4,29 @@ import { GameLogicModule } from "../GameLogicModule.ts";
 import {Weapon} from "./weapons/Weapons.ts";
 import {FrameLog, FrameLogType} from "./FrameLogModule.ts";
 import {Position} from "./PhaserPhysicsModule.ts";
-import {RangeFromTarget, TargetSelection} from "./TargetingModule.ts";
+import {AttackTarget} from "./TargetingModule.ts";
 
 class AttackSystem extends GameSystem {
-    public componentsRequired: Set<Function> = new Set([Weapon, TargetSelection]);
+    public componentsRequired: Set<Function> = new Set([Weapon, AttackTarget]);
 
     protected init(): void {
-        this.componentsRequired = new Set([Weapon, TargetSelection]);
+        this.componentsRequired = new Set([Weapon, AttackTarget]);
     }
     
     update(entities: Set<number>, _:number): void {
         const game = this.game;
         
         for (const entity of entities) {
-            const weaponComponent = game.ecs.getComponent(entity, Weapon);
+            const attackComponent = game.ecs.getComponent(entity, AttackTarget);
             
-            const rangeComponent = game.ecs.getComponent(entity, RangeFromTarget);
-            if (rangeComponent){
-                rangeComponent.maxDistance = weaponComponent.config.rangeMax;
-                rangeComponent.minDistance = weaponComponent.config.rangeMin;
+            if (!attackComponent.attacking){
+                continue;
             }
             
+            const weaponComponent = game.ecs.getComponent(entity, Weapon);
+
+            attackComponent.minAttackRange = weaponComponent.config.rangeMax;
+            attackComponent.maxAttackRange = weaponComponent.config.rangeMin;
             if (!weaponComponent.isInUse) {
                 continue;
             }
@@ -44,16 +46,9 @@ class AttackSystem extends GameSystem {
     }
 
     private processWeaponAttack(entity: Entity, weaponComponent: Weapon, game: GameLogic) {
-        const targetSelection = game.ecs.getComponent(entity, TargetSelection);
+        const attackTarget = game.ecs.getComponent(entity, AttackTarget);
 
-        const target  = targetSelection?.target;
-        // Check if the target is a valid entity
-        if (isNaN(target as number)){
-            return;
-        }
-        
-        const rangeFromTarget = game.ecs.getComponent(entity, RangeFromTarget);
-        if (!rangeFromTarget){
+        if (!attackTarget.attacking) {
             return;
         }
         
@@ -62,12 +57,7 @@ class AttackSystem extends GameSystem {
             return;
         }
         
-        const targetPosition = game.ecs.getComponent(target as number, Position);
-        if (!targetPosition){
-            return;
-        }
-        
-        const isInRange = rangeFromTarget.inRange(position, targetPosition, targetSelection.targetSize);
+        const isInRange = attackTarget.inRange(position);
         if (!isInRange){
             return;
         }

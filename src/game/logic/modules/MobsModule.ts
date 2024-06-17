@@ -15,13 +15,14 @@ import {
     GoalsComponent,
     ActionComponent
 } from "./goap/GoapModule.ts";
-import {MobsTargeting, RangeFromTarget, Targetable, Targeted, TargetGroup, TargetSelection} from "./TargetingModule.ts";
+import {MobsTargeting, Targetable, Targeted, TargetGroup, AttackTarget} from "./TargetingModule.ts";
 import {MobConfig, MobSpawnDefinition, MobType, WeaponConfig} from "../../configs/MobsConfig.ts";
 import {Configs} from "../../configs/Configs.ts";
 import {PatrolGoal} from "./goap/goals/PatrolGoal.ts";
 import {StartPatrolAction} from "./goap/actions/StartPatrolAction.ts";
 import {MoveAction} from "./goap/actions/MoveAction.ts";
 import {Patrol} from "./goap-connector/GoapConnectorModule.ts";
+import {Senses} from "./SensoryModule.ts";
 
 enum GroupType {
     Red = 0,
@@ -101,7 +102,7 @@ export class MobSpawnSystem extends TimedGameSystem {
         game.ecs.addComponent(mob, new OverwhelmComponent(config.survivalSecondsToOverwhelm));
         
         // Targeting
-        MobSpawnSystem.addTargeting(game, mob, group, config.size);
+        MobSpawnSystem.addTargeting(game, mob, group, config.size, config.sensoryRange);
         
         // Movement
         MobSpawnSystem.addMovement(game, mob, config.speed);
@@ -128,13 +129,14 @@ export class MobSpawnSystem extends TimedGameSystem {
         game.ecs.addComponent(entity, new ActionComponent());
     }
 
-    static addTargeting(game: GameLogic, entity: number, ownGroup: number, size:number){
+    static addTargeting(game: GameLogic, entity: number, ownGroup: number, size: number, sensoryRange: number){
         // Targeting all groups except own
-        game.ecs.addComponent(entity, new TargetSelection());
+        game.ecs.addComponent(entity, new Senses(sensoryRange));
+
+        game.ecs.addComponent(entity, new AttackTarget(size));
         game.ecs.addComponent(entity, new Targeted());
         game.ecs.addComponent(entity, new Targetable());
         game.ecs.addComponent(entity, new MobsTargeting(groupTypeValues.filter(group => group !== ownGroup).reduce((acc, group) => acc.add(group), new Set<number>()) as Set<number>));
-        game.ecs.addComponent(entity, new RangeFromTarget(size));
     }
 
     static addMovement(game: GameLogic, entity: number, speed: number, avoidWalls = true){
@@ -174,7 +176,10 @@ export class MobsModule extends GameLogicModule {
         
         // Initial spawn
         const pos = Configs.mapConfig.pixelsSize/2;
-        const mob = MobSpawnSystem.makeMob(game, Configs.mobsConfig.getMobConfig(MobType.Skeleton), pos, pos, GroupType.Red);
-        game.ecs.addComponent(mob, new Patrol({maxFrequency: 10, minFrequency: 5, range:500, targetRadius: 200, targetPosition: {x: pos, y: pos}}, 16));
+        const skeleton = MobSpawnSystem.makeMob(game, Configs.mobsConfig.getMobConfig(MobType.Skeleton), pos, pos, GroupType.Red);
+        game.ecs.addComponent(skeleton, new Patrol({maxFrequency: 10, minFrequency: 5, range:500, targetRadius: 200, targetPosition: {x: pos, y: pos}}, 16));
+
+
+        const skeleton2 = MobSpawnSystem.makeMob(game, Configs.mobsConfig.getMobConfig(MobType.Skeleton), pos, pos-500, GroupType.Green);
     }
 }

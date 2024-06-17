@@ -2,10 +2,12 @@ import {MobView} from "./MobView.ts";
 import {Healthbar, HealthData} from "../effects/Healthbar.ts";
 import {MobData} from "../AutoRpgDisplay.ts";
 import { GroupRing } from "../effects/GroupRing.ts";
+import {SensoryRangeDisplay} from "../effects/SensoryRangeDisplay.ts";
 
 export class SpritesMobView extends MobView {
     sprites: Map<string, Phaser.GameObjects.Sprite>;
     healthbar:Healthbar;
+    sensorRangeDisplay: SensoryRangeDisplay;
     groupRing:GroupRing;
     walkAnimName: string;
     attackAnimName: string;
@@ -30,6 +32,9 @@ export class SpritesMobView extends MobView {
         
         // Initialize group ring
         this.groupRing = new GroupRing(this.display);
+        
+        // Initialize sensory range display
+        this.sensorRangeDisplay = new SensoryRangeDisplay(this.display);
     }
 
     destroy(): void {
@@ -37,6 +42,7 @@ export class SpritesMobView extends MobView {
         this.sprites.clear();
         this.healthbar.destroy();
         this.groupRing.destroy();
+        this.sensorRangeDisplay.destroy();
     }
 
     public update(mob: MobData): void {
@@ -73,6 +79,7 @@ export class SpritesMobView extends MobView {
 
         this.healthbar.update(mob as HealthData, this.sprite);
         this.groupRing.update(mob, this.sprite);
+        this.sensorRangeDisplay.update(this.sprite, mob.sensoryRange || 0);
         
         this.sprite.x = mob.x + 20; // Offset can be adjusted as needed
         this.sprite.y = mob.y;
