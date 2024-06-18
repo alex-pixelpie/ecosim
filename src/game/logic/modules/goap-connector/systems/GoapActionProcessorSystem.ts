@@ -4,12 +4,15 @@ import {startPatrolAction} from "../action-processors/startPatrolAction.ts";
 import {StartPatrolAction} from "../../goap/actions/StartPatrolAction.ts";
 import {MoveAction} from "../../goap/actions/MoveAction.ts";
 import {processMoveAction} from "../action-processors/processMoveAction.ts";
+import {StartAttackingEnemiesAction} from "../../goap/actions/StartAttackingEnemiesAction.ts";
+import {startAttackingEnemiesAction} from "../action-processors/startAttackingEnemiesAction.ts";
 
 export type ActionProcessor = (game:GameLogic, entity: number) => void;
 
 const actionProcessors: Map<string, ActionProcessor> = new Map([
     [StartPatrolAction.name, startPatrolAction],
-    [MoveAction.name, processMoveAction]
+    [MoveAction.name, processMoveAction],
+    [StartAttackingEnemiesAction.name, startAttackingEnemiesAction]
 ]);
 
 export class GoapActionProcessorSystem extends GameSystem {

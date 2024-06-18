@@ -79,7 +79,7 @@ export class SpritesMobView extends MobView {
 
         this.healthbar.update(mob as HealthData, this.sprite);
         this.groupRing.update(mob, this.sprite);
-        this.sensorRangeDisplay.update(this.sprite, mob.sensoryRange || 0);
+        this.sensorRangeDisplay.update(this.sprite, mob.sensoryRange || 0, mob.targetsInRange || 0);
         
         this.sprite.x = mob.x + 20; // Offset can be adjusted as needed
         this.sprite.y = mob.y;

@@ -2,6 +2,8 @@ import { GameSystem } from "../../../GameLogic.ts";
 import {GoapStateComponent, GoapStateConst} from "../../goap/GoapStateComponent.ts";
 import {Position} from "../../PhaserPhysicsModule.ts";
 import {Patrol} from "../GoapConnectorModule.ts";
+import {Senses} from "../../SensoryModule.ts";
+import {Targeting, TargetGroup, TargetOfAttack} from "../../TargetingModule.ts";
 
 export class GoapStateUpdateSystem extends GameSystem {
     public componentsRequired: Set<Function> = new Set([GoapStateComponent]);
@@ -15,6 +17,8 @@ export class GoapStateUpdateSystem extends GameSystem {
             const state = this.game.ecs.getComponent(entity, GoapStateComponent);
 
             this.updatePatrolStates(entity, state);
+            this.updateSensoryStates(entity, state);
+            this.updateAttackStates(entity, state);
         });
     }
 
@@ -49,5 +53,41 @@ export class GoapStateUpdateSystem extends GameSystem {
         if (isPatrolEnded){
             patrol.endPatrol(this.game.currentTime);
         }
+    }
+
+    private updateSensoryStates(entity: number, state: GoapStateComponent) {
+        const senses = this.game.ecs.getComponent(entity, Senses);
+        if (!senses) {
+            return;
+        }
+        
+        const targeting = this.game.ecs.getComponent(entity, Targeting)?.targetGroups;
+        if (!targeting) {
+            return;
+        }
+        
+        state.state[GoapStateConst.seeEnemies] = senses.entitiesInRange.some(entity => {
+            const mobGroup = this.game.ecs.getComponent(entity, TargetGroup);
+            return targeting.has(mobGroup.id);
+        });
+    }
+
+    private updateAttackStates(entity: number, state: GoapStateComponent) {
+        const attackTarget = this.game.ecs.getComponent(entity, TargetOfAttack);
+        if (!attackTarget) {
+            return;
+        }
+
+        state.state.isAttackingEnemy = attackTarget.attacking;
+
+        if (!attackTarget.attacking){
+            return;
+        }
+
+        const position = this.game.ecs.getComponent(entity, Position);
+        state.state.isAtMoveTarget = attackTarget.inRange(position);
+        state.state.hasMoveTarget = !state.state.isAtMoveTarget;
+
+        state.state.inRangeToAttackEnemy = state.state.isAtMoveTarget;
     }
 }

@@ -10,7 +10,13 @@ export const GoapPatrolState = {
     isPatrolOnCooldown: "isPatrolOnCooldown"
 } as const;
 
-export const GoapStateConst = {...GoapMobilityState, ...GoapPatrolState} as const;
+export const GoapSensoryState = {
+    seeEnemies: "seeEnemies",
+    inRangeToAttackEnemy: "inRangeToAttackEnemy",
+    isAttackingEnemy: "isAttackingEnemy"
+} as const;
+
+export const GoapStateConst = {...GoapMobilityState, ...GoapPatrolState, ...GoapSensoryState} as const;
 
 export type GoapStateKey = keyof typeof GoapStateConst;
 

@@ -21,7 +21,6 @@ export const processMoveAction: ActionProcessor = (game: GameLogic, entity: numb
     const inRange = locomotionTarget.inRange(position, size);
 
     if (inRange) {
-        
         log.logs.push({
             type: FrameLogType.MoveTargetReached,
             value: 0,

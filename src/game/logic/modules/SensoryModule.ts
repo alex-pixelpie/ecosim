@@ -3,6 +3,7 @@ import {GameLogicModule} from "../GameLogicModule.ts";
 import {Component} from "../../core/ECS.ts";
 import {Position} from "./PhaserPhysicsModule.ts";
 import {MathUtils} from "../../utils/Math.ts";
+import {Targetable} from "./TargetingModule.ts";
 
 export class Senses extends Component {
     public entitiesInRange: number[] = [];
@@ -26,7 +27,7 @@ class SensorySystem extends GameSystem {
 
             senses.entitiesInRange = [];
             
-            this.game.ecs.getEntitiesWithComponents([Position]).forEach(otherEntity => {
+            this.game.ecs.getEntitiesWithComponents([Position, Targetable]).forEach(otherEntity => {
                 if (entity === otherEntity) {
                     return;
                 }

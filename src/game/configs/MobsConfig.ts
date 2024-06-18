@@ -2,6 +2,8 @@ import {Pos} from "../utils/Math.ts";
 import {PatrolGoal} from "../logic/modules/goap/goals/PatrolGoal.ts";
 import {StartPatrolAction} from "../logic/modules/goap/actions/StartPatrolAction.ts";
 import {MoveAction} from "../logic/modules/goap/actions/MoveAction.ts";
+import {KillEnemiesGoal} from "../logic/modules/goap/goals/KillEnemiesGoal.ts";
+import {StartAttackingEnemiesAction} from "../logic/modules/goap/actions/StartAttackingEnemiesAction.ts";
 
 export interface DropDefinition {
     chance?: number;
@@ -82,11 +84,11 @@ export const SkeletonConfig: MobConfig = {
     health: 100,
     speed: 200,
     size: 16,
-    sensoryRange: 300,
+    sensoryRange: 500,
     survivalSecondsToOverwhelm: 0,
     drops: [{ type: DropType.Corpse }],
-    actions: [StartPatrolAction.name, MoveAction.name],
-    goals: [PatrolGoal.name],
+    actions: [StartPatrolAction.name, MoveAction.name, StartAttackingEnemiesAction.name],
+    goals: [PatrolGoal.name, KillEnemiesGoal.name],
     avoidWalls: true
 };
 

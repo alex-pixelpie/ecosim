@@ -1,12 +1,14 @@
 import {Component} from "../../core/ECS.ts";
 import {MathUtils, Pos} from "../../utils/Math.ts";
 import {GameLogic, GameSystem} from "../GameLogic.ts";
-import { GameLogicModule } from "../GameLogicModule.ts";
-import {PhysicsBody, Position, Size} from "./PhaserPhysicsModule.ts";
-import {Dead} from "./DeathModule.ts";
+import {GameLogicModule } from "../GameLogicModule.ts";
+import {LocomotionTarget} from "./LocomotionModule.ts";
 
-export class AttackTarget implements Component {
-    attacking:false;
+export class TargetOfAttack implements Component {
+    get attacking(): boolean {
+        return this.target !== null;
+    }
+    
     target: number | null = null;
     x: number = 0;
     y: number = 0;
@@ -20,6 +22,17 @@ export class AttackTarget implements Component {
         return MathUtils.distance(from, this) - this.ownSize;
     }
 
+    attack(target: number, targetSize:number, x:number, y:number): void {
+        this.target = target;
+        this.targetSize = targetSize;
+        this.x = x;
+        this.y = y;
+    }
+    
+    stopAttacking(){
+        this.target = null;
+    }
+    
     inRange(from: Pos): boolean {
         let distance = MathUtils.distance(from, this) - this.targetSize - this.ownSize;
         return distance <= this.minAttackRange && distance >= this.maxAttackRange;
@@ -28,7 +41,7 @@ export class AttackTarget implements Component {
 
 export class Targetable extends Component {}
 
-export class MobsTargeting extends Component {
+export class Targeting extends Component {
     constructor(public targetGroups: Set<number>) {
         super();
     }
@@ -44,116 +57,49 @@ export class TargetGroup extends Component {
     }
 }
 
-export class MobTargetSelectionSystem extends GameSystem {
-    public componentsRequired: Set<Function> = new Set([AttackTarget, MobsTargeting]);
+export class UpdateTargetsSystem extends GameSystem {
+    public componentsRequired: Set<Function> = new Set([TargetOfAttack]);
 
     protected init(): void {
-        this.componentsRequired = new Set([AttackTarget, MobsTargeting]);
+        this.componentsRequired = new Set([TargetOfAttack]);
     }
 
     public update(entities: Set<number>, _: number): void {
         entities.forEach(entity => {
-            const attackTarget = this.game.ecs.getComponent<AttackTarget>(entity, AttackTarget);
+            const attackTarget = this.game.ecs.getComponent<TargetOfAttack>(entity, TargetOfAttack);
 
-            // If we have a target, and it's no longer valid, clear it
-            if (attackTarget.target && !this.game.mobs.has(attackTarget.target)) {
-                attackTarget.target = null;
-            }
-
-            // If we don't have a target, select one
             if (!attackTarget.target) {
-                attackTarget.target = MobTargetSelectionSystem.selectTarget(this.game, entity);
-            }
-            
-            const target = attackTarget.target;
-            if (!target) {
                 return;
             }
             
-            // Track the target's position
-            const targetPosition = this.game.ecs.getComponent(target, Position);
-            
-            if (targetPosition) {
-                attackTarget.x = targetPosition.x;
-                attackTarget.y = targetPosition.y;
+            // If we have a target, and it's no longer valid, clear it
+            if (!this.game.mobs.has(attackTarget.target)) {
+                attackTarget.stopAttacking();
+                return;
             }
             
-            const ownSize = this.game.ecs.getComponent(entity, Size);
-            if (ownSize) {
-                attackTarget.ownSize = ownSize.radius;
+            // Update target position
+            const position = this.game.ecs.getComponent(attackTarget.target, LocomotionTarget);
+            if (!position) {
+                return;
             }
-
-            const otherSize = this.game.ecs.getComponent(target, Size);
-            if (otherSize) {
-                attackTarget.targetSize = otherSize.radius;
+            
+            if (attackTarget.inRange(position)) {
+                return;
             }
+            
+            attackTarget.x = position.x;
+            attackTarget.y = position.y;
+            
+            const locomotionTarget = this.game.ecs.getComponent(entity, LocomotionTarget);
+            if (!locomotionTarget) {
+                return;
+            }
+            
+            locomotionTarget.x = attackTarget.x;
+            locomotionTarget.y = attackTarget.y;
+            
         });
-    }
-
-    static selectTarget(game:GameLogic, entity: number): number | null {
-        const position = game.ecs.getComponent(entity, Position);
-        const targetSelection = game.ecs.getComponent(entity, AttackTarget);
-        const mobTargeting = game.ecs.getComponent(entity, MobsTargeting);
-        
-        if (!position || !targetSelection || !mobTargeting) {
-            return null;
-        }
-
-        const entities = game.ecs.getEntitiesWithComponents([Targetable, Position, TargetGroup]);
-
-        const potentialTargets = [...entities].filter(e => {
-            if (e === entity || e == null) {
-                return false;
-            }
-
-            const dead = game.ecs.getComponent(e, Dead);
-            if (dead) {
-                return false;
-            }
-            
-            const targetGroup = game.ecs.getComponent(e, TargetGroup);
-            return mobTargeting.targetGroups.has(targetGroup.id);
-        });
-        
-        if (potentialTargets.length === 0) {
-            return null;
-        }
-
-        const targetsByDistance = potentialTargets.map(e => {
-            const targetPosition = game.ecs.getComponent(e, Position);
-            if (!targetPosition) {
-                return null;
-            }
-
-            return {
-                entity: e,
-                distance: MathUtils.distance(position, targetPosition)
-            };
-        }).filter(v => v).sort((a, b) => (a?.distance ?? 0) - (b?.distance ?? 0));
-
-        if (targetsByDistance.length === 0) {
-            return null;
-        }
-
-        const target = targetsByDistance[0]!.entity;
-        
-        if (!target) {
-            return null;
-        }
-        
-        // Track that we are targeting this entity
-        const targeted = game.ecs.getComponent<Targeted>(target, Targeted);
-        if (targeted) {
-            targeted.targetedBy.push(entity);
-        }
-
-        // Set the target size
-        const body = game.ecs.getComponent(target, PhysicsBody);
-        if (body) {
-            targetSelection.targetSize = body.body.width/2;
-        }
-        
-        return target;
     }
 }
 
@@ -172,13 +118,12 @@ class TargetedResetSystem extends GameSystem {
     }
 }
 
-
 export class TargetingModule extends GameLogicModule {
     public init(game: GameLogic): void {
         const targetedResetSystem = new TargetedResetSystem(game);
         game.ecs.addSystem(targetedResetSystem);
         
-        const targetSelectionSystem = new MobTargetSelectionSystem(game);
+        const targetSelectionSystem = new UpdateTargetsSystem(game);
         game.ecs.addSystem(targetSelectionSystem);
     }
 }

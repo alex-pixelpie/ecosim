@@ -15,7 +15,7 @@ import {
     GoalsComponent,
     ActionComponent
 } from "./goap/GoapModule.ts";
-import {MobsTargeting, Targetable, Targeted, TargetGroup, AttackTarget} from "./TargetingModule.ts";
+import {Targeting, Targetable, Targeted, TargetGroup, TargetOfAttack} from "./TargetingModule.ts";
 import {MobConfig, MobSpawnDefinition, MobType, WeaponConfig} from "../../configs/MobsConfig.ts";
 import {Configs} from "../../configs/Configs.ts";
 import {PatrolGoal} from "./goap/goals/PatrolGoal.ts";
@@ -23,6 +23,9 @@ import {StartPatrolAction} from "./goap/actions/StartPatrolAction.ts";
 import {MoveAction} from "./goap/actions/MoveAction.ts";
 import {Patrol} from "./goap-connector/GoapConnectorModule.ts";
 import {Senses} from "./SensoryModule.ts";
+import {KillEnemiesGoal} from "./goap/goals/KillEnemiesGoal.ts";
+import {StartAttackingEnemiesAction} from "./goap/actions/StartAttackingEnemiesAction.ts";
+import {AttackAction} from "./goap/actions/AttackAction.ts";
 
 enum GroupType {
     Red = 0,
@@ -63,13 +66,16 @@ class MobSpawnUpgradeSystem extends TimedGameSystem {
 const ActionTypeToAction = new Map<string, Action>(
     [
         [StartPatrolAction.name, new StartPatrolAction()],
-        [MoveAction.name, new MoveAction()]
+        [MoveAction.name, new MoveAction()],
+        [StartAttackingEnemiesAction.name, new StartAttackingEnemiesAction()],
+        [AttackAction.name, new AttackAction()]
     ]
 );
 
 const GoalTypeToGoal = new Map<string, Goal>(
     [
         [PatrolGoal.name, new PatrolGoal()],
+        [KillEnemiesGoal.name, new KillEnemiesGoal()]
     ]
 );
 
@@ -85,7 +91,7 @@ export class MobSpawnSystem extends TimedGameSystem {
         });
     }
     
-    static makeMob(game: GameLogic, config: MobConfig, x: number, y: number, group: number){
+    static makeMob(game: GameLogic, config: MobConfig, x: number, y: number, group: number, goals?: string[], actions?: string[]){
         const mob = game.ecs.addEntity();
         game.ecs.addComponent(mob, new Mob(config.type));
         
@@ -93,7 +99,7 @@ export class MobSpawnSystem extends TimedGameSystem {
         MobSpawnSystem.addCommonComponents(game, mob, group);
         
         // GOAP
-        MobSpawnSystem.addGoap(game, mob, config.actions.map(action => ActionTypeToAction.get(action) as Action), config.goals.map(goal => GoalTypeToGoal.get(goal) as Goal));
+        MobSpawnSystem.addGoap(game, mob, (actions || config.actions).map(action => ActionTypeToAction.get(action) as Action), (goals || config.goals).map(goal => GoalTypeToGoal.get(goal) as Goal));
         
         // Drops
         game.ecs.addComponent(mob, new DieAndDrop(config.drops));
@@ -133,10 +139,10 @@ export class MobSpawnSystem extends TimedGameSystem {
         // Targeting all groups except own
         game.ecs.addComponent(entity, new Senses(sensoryRange));
 
-        game.ecs.addComponent(entity, new AttackTarget(size));
+        game.ecs.addComponent(entity, new TargetOfAttack(size));
         game.ecs.addComponent(entity, new Targeted());
         game.ecs.addComponent(entity, new Targetable());
-        game.ecs.addComponent(entity, new MobsTargeting(groupTypeValues.filter(group => group !== ownGroup).reduce((acc, group) => acc.add(group), new Set<number>()) as Set<number>));
+        game.ecs.addComponent(entity, new Targeting(groupTypeValues.filter(group => group !== ownGroup).reduce((acc, group) => acc.add(group), new Set<number>()) as Set<number>));
     }
 
     static addMovement(game: GameLogic, entity: number, speed: number, avoidWalls = true){
@@ -176,10 +182,10 @@ export class MobsModule extends GameLogicModule {
         
         // Initial spawn
         const pos = Configs.mapConfig.pixelsSize/2;
-        const skeleton = MobSpawnSystem.makeMob(game, Configs.mobsConfig.getMobConfig(MobType.Skeleton), pos, pos, GroupType.Red);
+        const skeleton = MobSpawnSystem.makeMob(game, Configs.mobsConfig.getMobConfig(MobType.Skeleton), pos, pos, GroupType.Red, [PatrolGoal.name], [StartPatrolAction.name, MoveAction.name]);
         game.ecs.addComponent(skeleton, new Patrol({maxFrequency: 10, minFrequency: 5, range:500, targetRadius: 200, targetPosition: {x: pos, y: pos}}, 16));
 
 
-        const skeleton2 = MobSpawnSystem.makeMob(game, Configs.mobsConfig.getMobConfig(MobType.Skeleton), pos, pos-500, GroupType.Green);
+        const skeleton2 = MobSpawnSystem.makeMob(game, Configs.mobsConfig.getMobConfig(MobType.Skeleton), pos, pos-550, GroupType.Green, [KillEnemiesGoal.name], [StartAttackingEnemiesAction.name, MoveAction.name, AttackAction.name]);
     }
 }

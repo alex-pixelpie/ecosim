@@ -4,23 +4,29 @@ import { GameLogicModule } from "../GameLogicModule.ts";
 import {Weapon} from "./weapons/Weapons.ts";
 import {FrameLog, FrameLogType} from "./FrameLogModule.ts";
 import {Position} from "./PhaserPhysicsModule.ts";
-import {AttackTarget} from "./TargetingModule.ts";
+import {TargetOfAttack} from "./TargetingModule.ts";
 
 class AttackSystem extends GameSystem {
-    public componentsRequired: Set<Function> = new Set([Weapon, AttackTarget]);
+    public componentsRequired: Set<Function> = new Set([Weapon, TargetOfAttack]);
 
     protected init(): void {
-        this.componentsRequired = new Set([Weapon, AttackTarget]);
+        this.componentsRequired = new Set([Weapon, TargetOfAttack]);
     }
     
     update(entities: Set<number>, _:number): void {
         const game = this.game;
         
         for (const entity of entities) {
-            const attackComponent = game.ecs.getComponent(entity, AttackTarget);
+            const attackComponent = game.ecs.getComponent(entity, TargetOfAttack);
             
             if (!attackComponent.attacking){
                 continue;
+            }
+            
+            const targetPosition = game.ecs.getComponent(attackComponent.target!, Position);
+            if (targetPosition){
+                attackComponent.x = targetPosition.x;
+                attackComponent.y = targetPosition.y;
             }
             
             const weaponComponent = game.ecs.getComponent(entity, Weapon);
@@ -46,7 +52,7 @@ class AttackSystem extends GameSystem {
     }
 
     private processWeaponAttack(entity: Entity, weaponComponent: Weapon, game: GameLogic) {
-        const attackTarget = game.ecs.getComponent(entity, AttackTarget);
+        const attackTarget = game.ecs.getComponent(entity, TargetOfAttack);
 
         if (!attackTarget.attacking) {
             return;

@@ -41,7 +41,8 @@ export interface Goal {
 
 export class GoalsComponent implements Component {
     goals: Goal[];
-
+    goal: Goal;
+    
     constructor(goals: Goal[]) {
         this.goals = goals;
     }
@@ -67,7 +68,6 @@ export class AvailableActionsComponent implements Component {
 class ActionSystem extends GameSystem {
     public componentsRequired: Set<Function> = new Set([ActionComponent, GoapStateComponent, GoalsComponent]);
     private planner: Planner;
-    private goal: Goal;
 
     protected init(): void {
         this.componentsRequired = new Set([ActionComponent, GoapStateComponent, GoalsComponent]);
@@ -83,7 +83,7 @@ class ActionSystem extends GameSystem {
             goalsComponent.updatePriorities(stateComponent.state);
 
             const goals = goalsComponent.goals.sort((a, b) => b.priority - a.priority);
-            if (goals[0] !== this.goal) {
+            if (goals[0] !== goalsComponent.goal) {
                 this.createPlan(entity);
             }
             
@@ -112,9 +112,9 @@ class ActionSystem extends GameSystem {
         const availableActionsComponent = this.game.ecs.getComponent<AvailableActionsComponent>(entity, AvailableActionsComponent);
 
         const goals = goalsComponent.goals.sort((a, b) => b.priority - a.priority);
-        this.goal = goals[0];
+        goalsComponent.goal = goals[0];
 
-        actionComponent.plan = this.planner.plan(availableActionsComponent.actions, this.goal, stateComponent.state);
+        actionComponent.plan = this.planner.plan(availableActionsComponent.actions, goalsComponent.goal, stateComponent.state);
     }
 }
 

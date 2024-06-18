@@ -9,3 +9,4 @@ export class PatrolGoal implements Goal {
         this.priority = state.isPatrolOnCooldown ? 0 : 1;
     }
 }
+

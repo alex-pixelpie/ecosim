@@ -6,7 +6,7 @@ import {Corpse, Health, Ruin} from "../../logic/modules/DeathModule.ts";
 import {Building} from "../../logic/modules/BuildingsModule.ts";
 import {GameOverAgent} from "../../logic/modules/GameOverModule.ts";
 import {PhysicsBody, Position} from "../../logic/modules/PhaserPhysicsModule.ts";
-import {TargetGroup, AttackTarget} from "../../logic/modules/TargetingModule.ts";
+import {TargetGroup, TargetOfAttack} from "../../logic/modules/TargetingModule.ts";
 import {DisplayModule} from "../DisplayModule.ts";
 import {Tile} from "../../logic/modules/TilesModule.ts";
 import {Configs} from "../../configs/Configs.ts";
@@ -59,6 +59,7 @@ export type MobData = {
     group:number;
     rotationToTarget: number;
     sensoryRange?: number;
+    targetsInRange?: number;
 }
 
 export type BuildingData = {
@@ -169,7 +170,7 @@ export class AutoRpgDisplay {
         const mobs = entities.map(entity => {
             const body = this.ecs.getComponent(entity, PhysicsBody)?.body;
             const mob = this.ecs.getComponent(entity, Mob);
-            const targeting = this.ecs.getComponent(entity, AttackTarget);
+            const targeting = this.ecs.getComponent(entity, TargetOfAttack);
             const health = this.ecs.getComponent(entity, Health);
             const log = this.ecs.getComponent(entity, FrameLog);
             const group = this.ecs.getComponent(entity, TargetGroup);
@@ -209,7 +210,8 @@ export class AutoRpgDisplay {
                 y: body?.y || 0,
                 group: group?.id || 0,
                 rotationToTarget,
-                sensoryRange: senses?.range || 0
+                sensoryRange: senses?.range || 0,
+                targetsInRange: senses?.entitiesInRange.length
             };
         });
 

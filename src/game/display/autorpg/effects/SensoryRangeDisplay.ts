@@ -5,16 +5,16 @@ export class SensoryRangeDisplay {
 
     constructor(display: AutoRpgDisplay) {
         this.circle = display.scene.add.graphics();
-        this.circle.lineStyle(2, 0x00ff00, 1); // Thin green line
     }
 
-    update(sprite: Phaser.GameObjects.Sprite, radius: number): void {
+    update(sprite: Phaser.GameObjects.Sprite, radius: number, targetsInRange: number): void {
         if (!this.circle) {
             return;
         }
 
         this.circle.clear();
-        this.circle.strokeCircle(0, 0, radius); // Draw circle at (0,0) with specified radius
+        this.circle.lineStyle(2, targetsInRange ? 0xff0000 : 0x00ff00, 1); // Thin green line
+        this.circle.strokeCircle(0, 0, radius);
         this.circle.setPosition(sprite.x, sprite.y);
     }
 
