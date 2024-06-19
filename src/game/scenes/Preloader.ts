@@ -34,7 +34,7 @@ export class Preloader extends Scene
         
         this.load.image('circle', 'circle.png');
 
-        this.load.image('tower', 'tower.png');
+        this.load.image('lair', 'tower.png');
         
         this.load.spritesheet('castle', 'castle-damage.png', { frameWidth: 256, frameHeight: 256 });
 

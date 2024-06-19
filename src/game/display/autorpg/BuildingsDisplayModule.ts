@@ -8,29 +8,30 @@ class BuildingView {
     healthbar:Healthbar;
     groupRing:GroupRing;
 
-    constructor(public display: AutoRpgDisplay, public x: number, public y: number, public type: string) {
+    constructor(public display: AutoRpgDisplay, public x: number, public y: number, public type: string, offset:{x:number, y:number} = {x:0, y:0}) {
         this.sprite = display.scene.add.sprite(x, y, type);
         display.mobsLayer.add(this.sprite);
         this.sprite.setOrigin(0.5, 0.5);
-        this.sprite.x -= 5;
-        this.sprite.y -= 50;
+        this.sprite.x += offset.x;
+        this.sprite.y += offset.y;
         
         // Initialize health bar
         this.healthbar = new Healthbar(this.display, false);
         
         // Initialize group ring
-        this.groupRing = new GroupRing(this.display, 5);
+        // this.groupRing = new GroupRing(this.display, 5);
     }
 
     destroy(): void {
         this.sprite.destroy();
         this.healthbar.destroy();
-        this.groupRing.destroy();
+        this.groupRing?.destroy();
     }
 }
 
 enum BuildingKeys {
-    Base = "castle"
+    Base = "castle",
+    Lair = "lair",
 }
 
 const destructionStages = 4; // TODO - config this shit
@@ -54,11 +55,11 @@ export class BuildingsDisplayModule extends DisplayModule<AutoRpgDisplay> {
         this.display.buildings.forEach(building => {
             let view = this.buildings.get(building.id);
             if (!view) {
-                view = new BuildingView(this.display, building.x, building.y, BuildingKeys[building.type  as any as keyof typeof BuildingKeys]);
+                view = new BuildingView(this.display, building.x, building.y, BuildingKeys[building.type  as any as keyof typeof BuildingKeys], {x:0, y:-25});
                 this.buildings.set(building.id, view);
             }
-            view.healthbar.update(building as HealthData, view.sprite);
-            view.groupRing.update(building, view.sprite);
+            view.healthbar?.update(building as HealthData, view.sprite);
+            view.groupRing?.update(building, view.sprite);
             const destructionFactor = 1 - (building.health as number) / (building.maxHealth as number);
             view.sprite.setFrame(Math.floor(destructionFactor * destructionStages));
         });

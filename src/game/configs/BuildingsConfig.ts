@@ -7,7 +7,8 @@ import {
 } from "./MobsConfig.ts";
 
 export enum BuildingType {
-    Base = "Base"
+    Base = "Base",
+    Lair = "Lair",
 }
 
 export interface BuildingConfig {
@@ -15,6 +16,7 @@ export interface BuildingConfig {
     health: number;
     spawn: MobSpawnDefinition[];
     size: number;
+    type?: BuildingType;
 }
 
 const enemyBaseConfig: BuildingConfig = {
@@ -31,11 +33,21 @@ const playerBaseConfig: BuildingConfig = {
     size: 140
 };
 
+const lairConfig: BuildingConfig = {
+    health: 1000,
+    spawn: [],
+    drops: [{ type: DropType.Ruin }],
+    size: 25,
+    type: BuildingType.Lair
+};
+
 export class BuildingsConfig {
     public getConfig(type: BuildingType): BuildingConfig {
         switch (type) {
             case BuildingType.Base:
                 return enemyBaseConfig;
+            case BuildingType.Lair:
+                return lairConfig;
             default:
                 return playerBaseConfig;
         }

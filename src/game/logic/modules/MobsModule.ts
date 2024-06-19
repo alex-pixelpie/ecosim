@@ -1,4 +1,4 @@
-import {GameLogic, TimedGameSystem} from "../GameLogic.ts";
+import {GameLogic} from "../GameLogic.ts";
 import { GameLogicModule } from "../GameLogicModule.ts";
 import {Component} from "../../core/ECS.ts";
 import {defaultGoapState, GoapStateComponent} from "./goap/GoapStateComponent.ts";
@@ -40,29 +40,6 @@ export class Mob extends Component {
     }
 }
 
-export class MobsSpawn extends Component {
-    public constructor(public mobs: MobSpawnDefinition[], public group: number, public position: {x: number, y: number}) {
-        super();
-    }
-}
-
-class MobSpawnUpgradeSystem extends TimedGameSystem {
-    protected updateTimed(entities: Set<number>, _: number): void {
-        entities.forEach(entity => {
-            const mobsSpawn = this.game.ecs.getComponent(entity, MobsSpawn);
-            mobsSpawn.mobs.forEach(mob => {
-                mob.count += 1;
-            });
-        });
-    }
-    
-    protected init(): void {
-        this.componentsRequired = new Set([MobsSpawn]);
-    }
-    
-    public componentsRequired: Set<Function> = new Set([MobsSpawn]);
-}
-
 const ActionTypeToAction = new Map<string, Action>(
     [
         [StartPatrolAction.name, new StartPatrolAction()],
@@ -79,27 +56,17 @@ const GoalTypeToGoal = new Map<string, Goal>(
     ]
 );
 
-export class MobSpawnSystem extends TimedGameSystem {
-    protected updateTimed(entities: Set<number>, _: number): void {
-        entities.forEach(entity => {
-            const mobsSpawn = this.game.ecs.getComponent(entity, MobsSpawn);
-            mobsSpawn.mobs.forEach(mob => {
-                for (let i = 0; i < mob.count; i++) {
-                    MobSpawnSystem.makeMob(this.game, mob.config, mobsSpawn.position.x, mobsSpawn.position.y, mobsSpawn.group);
-                }
-            });
-        });
-    }
-    
-    static makeMob(game: GameLogic, config: MobConfig, x: number, y: number, group: number, goals?: string[], actions?: string[]){
+export class MobsFactory {
+    static makeMob(game: GameLogic, {config,x, y, group, goals, actions}:MobSpawnDefinition) {
         const mob = game.ecs.addEntity();
+        
         game.ecs.addComponent(mob, new Mob(config.type));
         
         // Common
-        MobSpawnSystem.addCommonComponents(game, mob, group);
+        MobsFactory.addCommonComponents(game, mob, group);
         
         // GOAP
-        MobSpawnSystem.addGoap(game, mob, (actions || config.actions).map(action => ActionTypeToAction.get(action) as Action), (goals || config.goals).map(goal => GoalTypeToGoal.get(goal) as Goal));
+        MobsFactory.addGoap(game, mob, (actions || config.actions).map(action => ActionTypeToAction.get(action) as Action), (goals || config.goals).map(goal => GoalTypeToGoal.get(goal) as Goal));
         
         // Drops
         game.ecs.addComponent(mob, new DieAndDrop(config.drops));
@@ -108,26 +75,20 @@ export class MobSpawnSystem extends TimedGameSystem {
         game.ecs.addComponent(mob, new OverwhelmComponent(config.survivalSecondsToOverwhelm));
         
         // Targeting
-        MobSpawnSystem.addTargeting(game, mob, group, config.size, config.sensoryRange);
+        MobsFactory.addTargeting(game, mob, group, config.size, config.sensoryRange);
         
         // Movement
-        MobSpawnSystem.addMovement(game, mob, config.speed);
+        MobsFactory.addMovement(game, mob, config.speed);
         
         // Combat
-        MobSpawnSystem.addCombat(game, mob, config.health, config.weaponConfig);
+        MobsFactory.addCombat(game, mob, config.health, config.weaponConfig);
         
         // Physics
-        MobSpawnSystem.addPhysics(game, mob, x, y, config.size);    
+        MobsFactory.addPhysics(game, mob, x, y, config.size);    
         
         return mob;
     }
     
-    protected init(): void {
-        this.componentsRequired = new Set([MobsSpawn]);
-    }
-    
-    public componentsRequired: Set<Function> = new Set([MobsSpawn]);
-
     static addGoap(game: GameLogic, entity: number, actions: Action[], goals: Goal[]){
         game.ecs.addComponent(entity, new GoapStateComponent({...defaultGoapState}));
         game.ecs.addComponent(entity, new GoalsComponent(goals));
@@ -148,7 +109,7 @@ export class MobSpawnSystem extends TimedGameSystem {
     static addMovement(game: GameLogic, entity: number, speed: number, avoidWalls = true){
         game.ecs.addComponent(entity, new GlideLocomotion(speed));
         game.ecs.addComponent(entity, new Steering());
-        game.ecs.addComponent(entity, new LocomotionTarget(0, 0, 16))
+        game.ecs.addComponent(entity, new LocomotionTarget(0, 0, 16, 0))
         avoidWalls && game.ecs.addComponent(entity, new WallsAvoider());
     }
 
@@ -169,23 +130,40 @@ export class MobSpawnSystem extends TimedGameSystem {
     }
 }
 
-const mobSpawnInterval = 5;
-const mobsSpawnUpgradeInterval = 10;
+export class LairMobsSpawner extends Component {
+    spawns:number = 0;
+    
+    constructor(public maxSpawns: number, public spawnInterval: number, public mobConfig: MobConfig, public group: number, public position: {x: number, y: number}) {
+        super();
+    }
+    
+    public canSpawn(): boolean {
+        return this.spawns < this.maxSpawns;
+    }
+    
+    public spawn(): MobConfig {
+        this.spawns++;
+    }
+}
 
 export class MobsModule extends GameLogicModule {
     public init(game: GameLogic): void {
-        const spawnSystem = new MobSpawnSystem(game, mobSpawnInterval);
-        game.ecs.addSystem(spawnSystem);
-        
-        const spawnUpgradeSystem = new MobSpawnUpgradeSystem(game, mobsSpawnUpgradeInterval);
-        game.ecs.addSystem(spawnUpgradeSystem);
-        
         // Initial spawn
         const pos = Configs.mapConfig.pixelsSize/2;
-        const skeleton = MobSpawnSystem.makeMob(game, Configs.mobsConfig.getMobConfig(MobType.Skeleton), pos, pos, GroupType.Red, [PatrolGoal.name], [StartPatrolAction.name, MoveAction.name]);
-        game.ecs.addComponent(skeleton, new Patrol({maxFrequency: 10, minFrequency: 5, range:500, targetRadius: 200, targetPosition: {x: pos, y: pos}}, 16));
+        const redSkeletonConfig = {
+            config:Configs.mobsConfig.getMobConfig(MobType.Skeleton),
+            x:pos,
+            y:pos,
+            group:GroupType.Red,
+            goals:[PatrolGoal.name],
+            actions:[StartPatrolAction.name,MoveAction.name]
+        };
+        
+        const redSkeleton = MobsFactory.makeMob(game, redSkeletonConfig);
+        game.ecs.addComponent(redSkeleton, new Patrol({maxFrequency: 10, minFrequency: 5, range:500, targetRadius: 200, targetPosition: {x: pos, y: pos}}, 16));
 
-
-        const skeleton2 = MobSpawnSystem.makeMob(game, Configs.mobsConfig.getMobConfig(MobType.Skeleton), pos, pos-450, GroupType.Green, [KillEnemiesGoal.name], [StartAttackingEnemiesAction.name, MoveAction.name, AttackAction.name]);
+        
+        const greenSkeletonConfig = {...redSkeletonConfig, group:GroupType.Green, x:pos-450, y:pos, goals:[KillEnemiesGoal.name], actions:[StartAttackingEnemiesAction.name, MoveAction.name, AttackAction.name]};
+        const greenSkeleton = MobsFactory.makeMob(game, greenSkeletonConfig);
     }
 }

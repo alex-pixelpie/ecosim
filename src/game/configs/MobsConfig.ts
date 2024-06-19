@@ -49,7 +49,11 @@ export interface MobConfig {
 
 export interface MobSpawnDefinition {
     config: MobConfig;
-    count: number;
+    x: number;
+    y: number;
+    group: number;
+    goals?: string[];
+    actions?: string[];
 }
 
 export enum WeaponEffect {

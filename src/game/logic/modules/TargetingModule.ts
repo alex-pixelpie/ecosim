@@ -3,6 +3,7 @@ import {MathUtils, Pos} from "../../utils/Math.ts";
 import {GameLogic, GameSystem} from "../GameLogic.ts";
 import {GameLogicModule } from "../GameLogicModule.ts";
 import {LocomotionTarget} from "./LocomotionModule.ts";
+import {Position} from "./PhaserPhysicsModule.ts";
 
 export class TargetOfAttack implements Component {
     get attacking(): boolean {
@@ -79,17 +80,17 @@ export class UpdateTargetsSystem extends GameSystem {
             }
             
             // Update target position
-            const position = this.game.ecs.getComponent(attackTarget.target, LocomotionTarget);
+            const position = this.game.ecs.getComponent(attackTarget.target, Position);
             if (!position) {
                 return;
             }
+
+            attackTarget.x = position.x;
+            attackTarget.y = position.y;
             
             if (attackTarget.inRange(position)) {
                 return;
             }
-            
-            attackTarget.x = position.x;
-            attackTarget.y = position.y;
             
             const locomotionTarget = this.game.ecs.getComponent(entity, LocomotionTarget);
             if (!locomotionTarget) {
@@ -98,7 +99,7 @@ export class UpdateTargetsSystem extends GameSystem {
             
             locomotionTarget.x = attackTarget.x;
             locomotionTarget.y = attackTarget.y;
-            
+            locomotionTarget.minDistance = attackTarget.minAttackRange;
         });
     }
 }

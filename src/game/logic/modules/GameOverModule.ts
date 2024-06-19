@@ -5,7 +5,6 @@ import {Component} from "../../core/ECS.ts";
 import {GlideLocomotion} from "./LocomotionModule.ts";
 import {Steering} from "./SteeringModule.ts";
 import {Position} from "./PhaserPhysicsModule.ts";
-import {MobsSpawn} from "./MobsModule.ts";
 import {TargetOfAttack} from "./TargetingModule.ts";
 import {defaultGoapState, GoapStateComponent} from "./goap/GoapStateComponent.ts";
 import {ActionComponent} from "./goap/GoapModule.ts";
@@ -68,11 +67,6 @@ export class GameOverModule extends GameLogicModule {
 
     private onGameOver({victory}:{victory: boolean}) {
         EventBus.off(GameEvents.GameOver, this.onGameOver, this);
-
-        const spawners = this.game.ecs.getEntitiesWithComponents([MobsSpawn]);
-        spawners.forEach(spawner => {
-            this.game.ecs.removeComponent(spawner, MobsSpawn);
-        });
         
         const positions = victory ? winPositions : losePositions;
         

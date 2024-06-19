@@ -31,10 +31,8 @@ export const processMoveAction: ActionProcessor = (game: GameLogic, entity: numb
         return;
     }
 
-    const impulseToTarget = MathUtils.multiply(MathUtils.normalize({
-        x: locomotionTarget.x - position.x,
-        y: locomotionTarget.y - position.y
-    }), intensity);
+    const vectorToTarget = locomotionTarget.tooClose(position, size) ? MathUtils.subtract(position, locomotionTarget) : MathUtils.subtract(locomotionTarget, position);
+    const impulseToTarget = MathUtils.multiply(MathUtils.normalize(vectorToTarget), intensity);
     
     steering.impulses.push(impulseToTarget);
 };

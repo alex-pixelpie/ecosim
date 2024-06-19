@@ -19,14 +19,15 @@ export class GlideLocomotion extends Component {
 export class LocomotionTarget extends Component {
     
     // Size is the distance from the center of the target to the edge
-    constructor(public x: number, public y: number, public size: number) {
+    constructor(public x: number, public y: number, public size: number, public minDistance: number = 0) {
         super();
     }
 
-    distanceFrom(from: Pos): number {
-        return MathUtils.distance(from, this) - this.size;
+    tooClose(from: Pos, otherSize:number): boolean {
+        let distance = MathUtils.distance(from, this) - otherSize;
+        return distance <= this.minDistance;
     }
-
+    
     inRange(from: Pos, otherSize:number): boolean {
         let distance = MathUtils.distance(from, this) - otherSize;
         return distance <= this.size;
