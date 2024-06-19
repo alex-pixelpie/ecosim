@@ -24,7 +24,7 @@ export class TargetOfAttack implements Component {
 
     attack(target: number, targetSize:number, x:number, y:number): void {
         this.target = target;
-        this.targetSize = targetSize;
+        this.targetSize = targetSize/2;
         this.x = x;
         this.y = y;
     }

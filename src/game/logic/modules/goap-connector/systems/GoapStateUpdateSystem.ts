@@ -68,7 +68,7 @@ export class GoapStateUpdateSystem extends GameSystem {
         
         state.state[GoapStateConst.seeEnemies] = senses.entitiesInRange.some(entity => {
             const mobGroup = this.game.ecs.getComponent(entity, TargetGroup);
-            return targeting.has(mobGroup.id);
+            return targeting.has(mobGroup?.id);
         });
     }
 
@@ -78,16 +78,23 @@ export class GoapStateUpdateSystem extends GameSystem {
             return;
         }
 
-        state.state.isAttackingEnemy = attackTarget.attacking;
+        const wasAttacking = state.state.isAttackingEnemy;
 
         if (!attackTarget.attacking){
+            if (wasAttacking){
+                state.state.isAttackingEnemy = false;
+                state.state.inRangeToAttackEnemy = false;
+                state.state.hasMoveTarget = false;
+                state.state.isAtMoveTarget = false;
+            }
             return;
         }
+
+        state.state.isAttackingEnemy = true;
 
         const position = this.game.ecs.getComponent(entity, Position);
         state.state.isAtMoveTarget = attackTarget.inRange(position);
         state.state.hasMoveTarget = !state.state.isAtMoveTarget;
-
         state.state.inRangeToAttackEnemy = state.state.isAtMoveTarget;
     }
 }

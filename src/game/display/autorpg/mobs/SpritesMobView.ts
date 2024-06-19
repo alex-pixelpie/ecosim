@@ -3,12 +3,14 @@ import {Healthbar, HealthData} from "../effects/Healthbar.ts";
 import {MobData} from "../AutoRpgDisplay.ts";
 import { GroupRing } from "../effects/GroupRing.ts";
 import {SensoryRangeDisplay} from "../effects/SensoryRangeDisplay.ts";
+import {WeaponRangeDisplay} from "../effects/WeaponRangeDisplay.ts";
 
 export class SpritesMobView extends MobView {
     sprites: Map<string, Phaser.GameObjects.Sprite>;
     healthbar:Healthbar;
     sensorRangeDisplay: SensoryRangeDisplay;
     groupRing:GroupRing;
+    weaponRangeDisplay: WeaponRangeDisplay;
     walkAnimName: string;
     attackAnimName: string;
     idleAnimName: string;
@@ -35,6 +37,9 @@ export class SpritesMobView extends MobView {
         
         // Initialize sensory range display
         this.sensorRangeDisplay = new SensoryRangeDisplay(this.display);
+        
+        // Initialize weapon range display
+        this.weaponRangeDisplay = new WeaponRangeDisplay(this.display);
     }
 
     destroy(): void {
@@ -43,6 +48,7 @@ export class SpritesMobView extends MobView {
         this.healthbar.destroy();
         this.groupRing.destroy();
         this.sensorRangeDisplay.destroy();
+        this.weaponRangeDisplay.destroy();
     }
 
     public update(mob: MobData): void {
@@ -80,6 +86,7 @@ export class SpritesMobView extends MobView {
         this.healthbar.update(mob as HealthData, this.sprite);
         this.groupRing.update(mob, this.sprite);
         this.sensorRangeDisplay.update(this.sprite, mob.sensoryRange || 0, mob.targetsInRange || 0);
+        this.weaponRangeDisplay.update(this.sprite, mob.minAttackRange || 0, mob.maxAttackRange || 0);
         
         this.sprite.x = mob.x + 20; // Offset can be adjusted as needed
         this.sprite.y = mob.y;

@@ -156,6 +156,7 @@ class DeathSystem extends GameSystem {
 
             game.ecs.addComponent(entity, new Dead());
             game.ecs.removeComponent(entity, Mortality);
+            game.removePhysicalComponents(entity);
             game.mobs.delete(entity);
         }
     }

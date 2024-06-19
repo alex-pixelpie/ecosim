@@ -25,7 +25,7 @@ export const startAttackingEnemiesAction: ActionProcessor = (game: GameLogic, en
     
     const targets = senses.entitiesInRange.filter(target => {
         const targetGroup = game.ecs.getComponent(target, TargetGroup);
-        return targeting.targetGroups.has(targetGroup.id);
+        return targeting.targetGroups.has(targetGroup?.id);
     }).sort((a, b) => {
         const aPosition = game.ecs.getComponent(a, Position);
         const bPosition = game.ecs.getComponent(b, Position);

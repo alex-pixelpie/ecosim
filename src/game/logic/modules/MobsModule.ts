@@ -139,7 +139,7 @@ export class MobSpawnSystem extends TimedGameSystem {
         // Targeting all groups except own
         game.ecs.addComponent(entity, new Senses(sensoryRange));
 
-        game.ecs.addComponent(entity, new TargetOfAttack(size));
+        game.ecs.addComponent(entity, new TargetOfAttack(size/2));
         game.ecs.addComponent(entity, new Targeted());
         game.ecs.addComponent(entity, new Targetable());
         game.ecs.addComponent(entity, new Targeting(groupTypeValues.filter(group => group !== ownGroup).reduce((acc, group) => acc.add(group), new Set<number>()) as Set<number>));
@@ -186,6 +186,6 @@ export class MobsModule extends GameLogicModule {
         game.ecs.addComponent(skeleton, new Patrol({maxFrequency: 10, minFrequency: 5, range:500, targetRadius: 200, targetPosition: {x: pos, y: pos}}, 16));
 
 
-        const skeleton2 = MobSpawnSystem.makeMob(game, Configs.mobsConfig.getMobConfig(MobType.Skeleton), pos, pos-550, GroupType.Green, [KillEnemiesGoal.name], [StartAttackingEnemiesAction.name, MoveAction.name, AttackAction.name]);
+        const skeleton2 = MobSpawnSystem.makeMob(game, Configs.mobsConfig.getMobConfig(MobType.Skeleton), pos, pos-450, GroupType.Green, [KillEnemiesGoal.name], [StartAttackingEnemiesAction.name, MoveAction.name, AttackAction.name]);
     }
 }

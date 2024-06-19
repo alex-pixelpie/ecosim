@@ -60,6 +60,8 @@ export type MobData = {
     rotationToTarget: number;
     sensoryRange?: number;
     targetsInRange?: number;
+    minAttackRange?: number;
+    maxAttackRange?: number;
 }
 
 export type BuildingData = {
@@ -211,8 +213,10 @@ export class AutoRpgDisplay {
                 group: group?.id || 0,
                 rotationToTarget,
                 sensoryRange: senses?.range || 0,
-                targetsInRange: senses?.entitiesInRange.length
-            };
+                targetsInRange: senses?.entitiesInRange.length,
+                minAttackRange: targeting?.minAttackRange || 0,
+                maxAttackRange: targeting?.maxAttackRange || 0
+            } as MobData;
         });
 
         this.mobs = mobs;
