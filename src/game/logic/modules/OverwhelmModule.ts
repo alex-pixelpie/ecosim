@@ -29,7 +29,7 @@ class OverwhelmSystem extends GameSystem {
             
             const totalDps = targeted.targetedBy.reduce((acc, e) => {
                 const weapon = this.game.ecs.getComponent(e, Weapon);
-                return acc + (weapon?.isInUse ? weapon.dps : 0);
+                return acc + (weapon?.inUse ? weapon.dps : 0);
             }, 0);
             
             if (totalDps === 0) {

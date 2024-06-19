@@ -54,6 +54,7 @@ export interface MobSpawnDefinition {
     group: number;
     goals?: string[];
     actions?: string[];
+    patrol?:PatrolConfig;
 }
 
 export enum WeaponEffect {

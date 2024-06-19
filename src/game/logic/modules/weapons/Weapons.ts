@@ -13,7 +13,7 @@ const WeaponEffects:WeaponEffectsType = {
 }
 
 export class Weapon extends Component {
-    public isInUse: boolean = false;
+    public inUse: boolean = false;
     public lastAttackTime: number = 0;
     public appliedEffectThisAttack: boolean = false;
 

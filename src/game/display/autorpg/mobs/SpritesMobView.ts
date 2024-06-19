@@ -4,6 +4,7 @@ import {MobData} from "../AutoRpgDisplay.ts";
 import { GroupRing } from "../effects/GroupRing.ts";
 import {SensoryRangeDisplay} from "../effects/SensoryRangeDisplay.ts";
 import {WeaponRangeDisplay} from "../effects/WeaponRangeDisplay.ts";
+import {MathUtils} from "../../../utils/Math.ts";
 
 export class SpritesMobView extends MobView {
     sprites: Map<string, Phaser.GameObjects.Sprite>;
@@ -87,11 +88,16 @@ export class SpritesMobView extends MobView {
         this.groupRing.update(mob, this.sprite);
         this.sensorRangeDisplay.update(this.sprite, mob.sensoryRange || 0, mob.targetsInRange || 0);
         this.weaponRangeDisplay.update(this.sprite, mob.minAttackRange || 0, mob.maxAttackRange || 0);
-        
+
         this.sprite.x = mob.x + 20; // Offset can be adjusted as needed
         this.sprite.y = mob.y;
         this.sprite.scaleX = mob.state.direction;
         this.sprite.visible = true;
+        
+        this.sprites.forEach(sprite => {
+            sprite.x = this.sprite.x;
+            sprite.y = this.sprite.y;
+        });
     }
 }
     

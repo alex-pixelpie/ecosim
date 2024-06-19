@@ -30,7 +30,7 @@ export class LocomotionTarget extends Component {
     
     inRange(from: Pos, otherSize:number): boolean {
         let distance = MathUtils.distance(from, this) - otherSize;
-        return distance <= this.size;
+        return distance <= this.size && distance >= this.minDistance;
     }
 }
 

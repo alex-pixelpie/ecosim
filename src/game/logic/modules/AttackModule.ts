@@ -33,7 +33,7 @@ class AttackSystem extends GameSystem {
 
             attackComponent.minAttackRange = weaponComponent.config.rangeMax;
             attackComponent.maxAttackRange = weaponComponent.config.rangeMin;
-            if (!weaponComponent.isInUse) {
+            if (!weaponComponent.inUse) {
                 continue;
             }
             

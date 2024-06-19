@@ -1,11 +1,16 @@
 import {GameLogic, GameSystem} from "../GameLogic.ts";
 import {GameLogicModule } from "../GameLogicModule.ts";
 import {Component} from "../../core/ECS.ts";
-import {Dead, DieAndDrop, Health} from "./DeathModule.ts";
+import {Corpse, Dead, DieAndDrop, Health} from "./DeathModule.ts";
 import {FrameLog} from "./FrameLogModule.ts";
 import {Targetable, TargetGroup} from "./TargetingModule.ts";
 import {Configs} from "../../configs/Configs.ts";
 import {BuildingConfig, BuildingType} from "../../configs/BuildingsConfig.ts";
+import {MobSpawnDefinition, MobType} from "../../configs/MobsConfig.ts";
+import {GroupType, LairMobsSpawner} from "./MobsModule.ts";
+import {PatrolGoal} from "./goap/goals/PatrolGoal.ts";
+import {StartPatrolAction} from "./goap/actions/StartPatrolAction.ts";
+import {MoveAction} from "./goap/actions/MoveAction.ts";
 
 export class Building extends Component {
     constructor(public type: BuildingType = BuildingType.Base) {
@@ -46,7 +51,22 @@ export class BuildingsModule extends GameLogicModule {
         // BuildingsModule.makeBuilding(game, playerBaseConfig, 0, offset+baseSize, offset+baseSize);
         // BuildingsModule.makeBuilding(game, playerBaseConfig, 1, mapSize-offset-baseSize, mapSize-offset-baseSize);
 
-        BuildingsModule.makeBuilding(game, Configs.buildingsConfig.getConfig(BuildingType.Lair), 1, mapSize/2, mapSize/2);
+        const pos = mapSize/2;
+        const group = GroupType.Red;
+        
+        const lair = BuildingsModule.makeBuilding(game, Configs.buildingsConfig.getConfig(BuildingType.Lair), group, pos, pos);
+
+        const redSkeletonConfig:MobSpawnDefinition = {
+            config:Configs.mobsConfig.getMobConfig(MobType.Skeleton),
+            x:pos,
+            y:pos,
+            group:group,
+            goals:[PatrolGoal.name],
+            actions:[StartPatrolAction.name, MoveAction.name],
+            patrol: {maxFrequency: 10, minFrequency: 5, range:500, targetRadius: 200, targetPosition: {x: pos, y: pos}}
+        };
+        
+        game.ecs.addComponent(lair, new LairMobsSpawner(5, 2, redSkeletonConfig));
     }
 
     static makeBuilding(game: GameLogic, config:BuildingConfig, group: number, x: number, y: number){
@@ -58,5 +78,6 @@ export class BuildingsModule extends GameLogicModule {
         game.ecs.addComponent(building, new Targetable());
         game.ecs.addComponent(building, new FrameLog());
         game.addPhysicalComponents({entity: building, x, y, radius: config.size, isStatic: true});
+        return building;
     }
 }

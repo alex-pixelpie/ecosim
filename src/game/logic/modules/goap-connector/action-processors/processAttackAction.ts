@@ -5,11 +5,12 @@ import { Weapon } from "../../weapons/Weapons.ts";
 
 export const processAttackAction: ActionProcessor = (game: GameLogic, entity: number): void => {
     const target = game.ecs.getComponent(entity, TargetOfAttack);
+    const weapon = game.ecs.getComponent(entity, Weapon);
 
     if (!target?.attacking) {
+        weapon.inUse = false;
         return;
     }
 
-    const weapon = game.ecs.getComponent(entity, Weapon);
-    weapon.isInUse = true;
+    weapon.inUse = true;
 }

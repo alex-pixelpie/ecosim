@@ -37,8 +37,6 @@ export class GoapStateUpdateSystem extends GameSystem {
         if (!isPatrolling){
             return;
         }
-
-        state.state[GoapStateConst.hasMoveTarget] = true;
         
         // Update locomotion state
         const position = this.game.ecs.getComponent(entity, Position);
@@ -49,7 +47,8 @@ export class GoapStateUpdateSystem extends GameSystem {
         const isPatrolEnded = patrol.inRange(position);
         
         state.state[GoapStateConst.isAtMoveTarget] = isPatrolEnded;
-        
+        state.state[GoapStateConst.hasMoveTarget] = !isPatrolEnded;
+
         if (isPatrolEnded){
             patrol.endPatrol(this.game.currentTime);
         }
@@ -93,8 +92,8 @@ export class GoapStateUpdateSystem extends GameSystem {
         state.state.isAttackingEnemy = true;
 
         const position = this.game.ecs.getComponent(entity, Position);
-        state.state.isAtMoveTarget = attackTarget.inRange(position);
         state.state.hasMoveTarget = !state.state.isAtMoveTarget;
         state.state.inRangeToAttackEnemy = state.state.isAtMoveTarget;
+        state.state.isAtMoveTarget = attackTarget.inRange(position);
     }
 }

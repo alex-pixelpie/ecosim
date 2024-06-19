@@ -1,4 +1,4 @@
-import {GameLogic} from "../GameLogic.ts";
+import {GameLogic, GameSystem} from "../GameLogic.ts";
 import { GameLogicModule } from "../GameLogicModule.ts";
 import {Component} from "../../core/ECS.ts";
 import {defaultGoapState, GoapStateComponent} from "./goap/GoapStateComponent.ts";
@@ -16,7 +16,7 @@ import {
     ActionComponent
 } from "./goap/GoapModule.ts";
 import {Targeting, Targetable, Targeted, TargetGroup, TargetOfAttack} from "./TargetingModule.ts";
-import {MobConfig, MobSpawnDefinition, MobType, WeaponConfig} from "../../configs/MobsConfig.ts";
+import {MobSpawnDefinition, MobType, WeaponConfig} from "../../configs/MobsConfig.ts";
 import {Configs} from "../../configs/Configs.ts";
 import {PatrolGoal} from "./goap/goals/PatrolGoal.ts";
 import {StartPatrolAction} from "./goap/actions/StartPatrolAction.ts";
@@ -27,7 +27,7 @@ import {KillEnemiesGoal} from "./goap/goals/KillEnemiesGoal.ts";
 import {StartAttackingEnemiesAction} from "./goap/actions/StartAttackingEnemiesAction.ts";
 import {AttackAction} from "./goap/actions/AttackAction.ts";
 
-enum GroupType {
+export enum GroupType {
     Red = 0,
     Green = 1
 }
@@ -57,7 +57,7 @@ const GoalTypeToGoal = new Map<string, Goal>(
 );
 
 export class MobsFactory {
-    static makeMob(game: GameLogic, {config,x, y, group, goals, actions}:MobSpawnDefinition) {
+    static makeMob(game: GameLogic, {config,x, y, group, goals, actions, patrol}:MobSpawnDefinition) {
         const mob = game.ecs.addEntity();
         
         game.ecs.addComponent(mob, new Mob(config.type));
@@ -84,8 +84,13 @@ export class MobsFactory {
         MobsFactory.addCombat(game, mob, config.health, config.weaponConfig);
         
         // Physics
-        MobsFactory.addPhysics(game, mob, x, y, config.size);    
-        
+        MobsFactory.addPhysics(game, mob, x, y, config.size);
+
+        if (patrol){
+            game.ecs.addComponent(mob, new Patrol(patrol, config.size));
+        }
+        game.mobs.add(mob);
+
         return mob;
     }
     
@@ -121,7 +126,6 @@ export class MobsFactory {
     
     static addPhysics(game: GameLogic, entity: number, x:number, y:number, size:number) {
         game.addPhysicalComponents({entity, x, y, radius: size, isStatic: false});
-        game.mobs.add(entity);
     }
     
     static addCommonComponents(game: GameLogic, entity: number, group:number){
@@ -131,39 +135,95 @@ export class MobsFactory {
 }
 
 export class LairMobsSpawner extends Component {
-    spawns:number = 0;
+    static idIndex:number = 0;
+    static get nextId():number {
+        return LairMobsSpawner.idIndex++;
+    }
     
-    constructor(public maxSpawns: number, public spawnInterval: number, public mobConfig: MobConfig, public group: number, public position: {x: number, y: number}) {
+    timeOfLastSpawn:number = 0;
+    spawns:Set<number> = new Set();
+    id: number;
+    
+    constructor(public maxSpawns: number, public spawnCooldown:number, public spawnDefinition:MobSpawnDefinition) {
         super();
+        this.id = LairMobsSpawner.nextId;
     }
     
-    public canSpawn(): boolean {
-        return this.spawns < this.maxSpawns;
+    public canSpawn(now:number): boolean {
+        return this.spawns.size < this.maxSpawns && this.timeOfLastSpawn + this.spawnCooldown < now;
     }
     
-    public spawn(): MobConfig {
-        this.spawns++;
+    public spawn(now:number, mob:number): void {
+        this.timeOfLastSpawn = now;
+        this.spawns.add(mob);;
+    }
+    
+    public despawn(mob:number): void {
+        this.spawns.delete(mob);
     }
 }
 
+export class LairMob extends Component {
+    constructor(public lair: number) {
+        super();
+    }
+}
+
+class LairMobsSpawnerSystem extends GameSystem {
+    public componentsRequired: Set<Function> = new Set([LairMobsSpawner]);
+    
+    protected init(): void {
+        this.componentsRequired = new Set([LairMobsSpawner]);
+    }
+    
+    public update(entities: Set<number>, _: number): void {
+        const now = this.game.currentTime;
+        
+        entities.forEach(entity => {
+            const spawner = this.game.ecs.getComponent<LairMobsSpawner>(entity, LairMobsSpawner);
+            if (spawner.canSpawn(now)){
+                const mob = MobsFactory.makeMob(this.game, spawner.spawnDefinition);
+                spawner.spawn(now, mob);
+                this.game.ecs.addComponent(mob, new LairMob(spawner.id));
+            }
+            
+            spawner.spawns.forEach(mob => {
+                if (!this.game.mobs.has(mob)){
+                    spawner.despawn(mob);
+                }
+            });
+        });
+    }
+}
+    
 export class MobsModule extends GameLogicModule {
     public init(game: GameLogic): void {
+        const lairMobsSpawnerSystem = new LairMobsSpawnerSystem(game);
+        game.ecs.addSystem(lairMobsSpawnerSystem);
+        
+        
         // Initial spawn
         const pos = Configs.mapConfig.pixelsSize/2;
-        const redSkeletonConfig = {
+        const redSkeletonConfig:MobSpawnDefinition = {
             config:Configs.mobsConfig.getMobConfig(MobType.Skeleton),
             x:pos,
             y:pos,
             group:GroupType.Red,
             goals:[PatrolGoal.name],
-            actions:[StartPatrolAction.name,MoveAction.name]
+            actions:[StartPatrolAction.name,MoveAction.name],
+            patrol: {maxFrequency: 10, minFrequency: 5, range:500, targetRadius: 200, targetPosition: {x: pos, y: pos}}
         };
-        
         const redSkeleton = MobsFactory.makeMob(game, redSkeletonConfig);
-        game.ecs.addComponent(redSkeleton, new Patrol({maxFrequency: 10, minFrequency: 5, range:500, targetRadius: 200, targetPosition: {x: pos, y: pos}}, 16));
 
         
-        const greenSkeletonConfig = {...redSkeletonConfig, group:GroupType.Green, x:pos-450, y:pos, goals:[KillEnemiesGoal.name], actions:[StartAttackingEnemiesAction.name, MoveAction.name, AttackAction.name]};
+        const greenSkeletonConfig:MobSpawnDefinition = {
+            config:Configs.mobsConfig.getMobConfig(MobType.Skeleton), 
+            x:pos-450, 
+            y:pos,
+            group:GroupType.Green,
+            goals:[KillEnemiesGoal.name], 
+            actions:[StartAttackingEnemiesAction.name, MoveAction.name, AttackAction.name]
+        };
         const greenSkeleton = MobsFactory.makeMob(game, greenSkeletonConfig);
     }
 }
