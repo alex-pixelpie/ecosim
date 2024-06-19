@@ -4,7 +4,6 @@ import {MobData} from "../AutoRpgDisplay.ts";
 import { GroupRing } from "../effects/GroupRing.ts";
 import {SensoryRangeDisplay} from "../effects/SensoryRangeDisplay.ts";
 import {WeaponRangeDisplay} from "../effects/WeaponRangeDisplay.ts";
-import {MathUtils} from "../../../utils/Math.ts";
 
 export class SpritesMobView extends MobView {
     sprites: Map<string, Phaser.GameObjects.Sprite>;
@@ -41,6 +40,15 @@ export class SpritesMobView extends MobView {
         
         // Initialize weapon range display
         this.weaponRangeDisplay = new WeaponRangeDisplay(this.display);
+        
+        this.sprites.forEach(sprite => {
+            this.display.outlinePlugin.add(sprite, {
+                thickness: 5,
+                outlineColor: 0xff0000,
+                quality: 0.1,
+                name: 'rexOutlinePostFx'
+            });
+        });
     }
 
     destroy(): void {

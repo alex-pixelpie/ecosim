@@ -5,6 +5,7 @@ export class SensoryRangeDisplay {
 
     constructor(display: AutoRpgDisplay) {
         this.circle = display.scene.add.graphics();
+        display.groundUi.add(this.circle);
     }
 
     update(sprite: Phaser.GameObjects.Sprite, radius: number, targetsInRange: number): void {

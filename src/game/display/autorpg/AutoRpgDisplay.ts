@@ -11,6 +11,7 @@ import {DisplayModule} from "../DisplayModule.ts";
 import {Tile} from "../../logic/modules/TilesModule.ts";
 import {Configs} from "../../configs/Configs.ts";
 import {Senses} from "../../logic/modules/SensoryModule.ts";
+import OutlinePipelinePlugin from "phaser3-rex-plugins/plugins/outlinepipeline-plugin";
 
 export type AutoRpgDisplayModule = DisplayModule<AutoRpgDisplay>;
 
@@ -99,6 +100,8 @@ export class AutoRpgDisplay {
     air: Phaser.GameObjects.Container;
     timeFromStart: number = 0;
     
+    outlinePlugin:OutlinePipelinePlugin;
+    
     constructor(scene: Phaser.Scene, ecs:ECS, modules: AutoRpgDisplayModule[]) {
         const mapConfig = Configs.mapConfig;
         
@@ -118,6 +121,8 @@ export class AutoRpgDisplay {
         this.overlayUi = scene.add.container();
         this.airShadow = scene.add.container();
         this.air = scene.add.container();
+
+        this.outlinePlugin  = scene.plugins.get('rexOutlinePipeline') as OutlinePipelinePlugin;
     }
  
     update(delta: number) {

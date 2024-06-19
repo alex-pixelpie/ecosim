@@ -4,6 +4,8 @@ import {MobView} from "./mobs/MobView.ts";
 import {SkeletonView} from "./mobs/SkeletonView.ts";
 import {ElfArcherView} from "./mobs/ElfArcherView.ts";
 import {MobType} from "../../configs/MobsConfig.ts";
+import OutlinePipelinePlugin from "phaser3-rex-plugins/plugins/outlinepipeline-plugin";
+import {SpritesMobView} from "./mobs/SpritesMobView.ts";
 
 export namespace MobsDisplayModule {
     export class MobsDisplayModule extends DisplayModule<AutoRpgDisplay> {

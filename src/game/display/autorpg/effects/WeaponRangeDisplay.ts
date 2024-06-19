@@ -7,6 +7,8 @@ export class WeaponRangeDisplay {
     constructor(display: AutoRpgDisplay) {
         this.minRange = display.scene.add.graphics();
         this.maxRange = display.scene.add.graphics();
+        display.groundUi.add(this.minRange);
+        display.groundUi.add(this.maxRange);
     }
 
     update(sprite: Phaser.GameObjects.Sprite, minRange: number, maxRange: number): void {

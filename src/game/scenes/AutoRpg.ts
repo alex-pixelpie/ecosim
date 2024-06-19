@@ -51,6 +51,9 @@ export class AutoRpg extends Scene
     create () {
         EventBus.on(GameEvents.GameStart, this.changeScene, this);
 
+        var postFxPlugin = this.plugins.get('rexOutlinePipeline');
+        console.log(postFxPlugin ? 'rexOutlinePipeline found' : 'rexOutlinePipeline not found');
+        
         const ecs = new ECS();
         
         this.gameLogic = new GameLogic( ecs, this, [
