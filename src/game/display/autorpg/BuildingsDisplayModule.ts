@@ -2,16 +2,14 @@ import {DisplayModule} from "../DisplayModule.ts";
 import {AutoRpgDisplay, BuildingData} from "./AutoRpgDisplay.ts";
 import {Healthbar, HealthData} from "./effects/Healthbar.ts";
 import {GroupRing} from "./effects/GroupRing.ts";
-import {Tap} from "phaser3-rex-plugins/plugins/gestures";
-import {EventBus, GameEvents} from "../../EventBus.ts";
+import {Selection} from "./effects/Selection.ts";
 
 class BuildingView {
     sprite: Phaser.GameObjects.Sprite;
     healthbar:Healthbar;
     groupRing:GroupRing;
-    tap: Tap;
-    wasSelected:boolean;
-
+    selection:Selection;
+    
     constructor(public display: AutoRpgDisplay, id:number, public x: number, public y: number, public type: string, offset:{x:number, y:number} = {x:0, y:0}) {
         this.sprite = display.scene.add.sprite(x, y, type);
         display.mobsLayer.add(this.sprite);
@@ -24,47 +22,25 @@ class BuildingView {
         
         // Initialize group ring
         // this.groupRing = new GroupRing(this.display, 5);
-
-        this.tap = new Tap(this.sprite, {
-
-        });
         
-        this.tap.on('tap', function () {
-            EventBus.emit(GameEvents.EntityTap, id);
-        });
+        // Initialize selection effect
+        this.selection = new Selection(this.sprite, [this.sprite], this.display.outlinePlugin, id);
     }
 
     destroy(): void {
         this.sprite.destroy();
         this.healthbar.destroy();
         this.groupRing?.destroy();
-        this.tap.destroy();
+        this.selection.destroy();
     }
     
     update(building:BuildingData){
-        this.healthbar?.update(building as HealthData, this.sprite);
-        this.groupRing?.update(building, this.sprite);
         const destructionFactor = 1 - (building.health as number) / (building.maxHealth as number);
         this.sprite.setFrame(Math.floor(destructionFactor * destructionStages));
         
-        if (building.isSelected){
-            if (this.wasSelected){
-                return;
-            }
-            this.display.outlinePlugin.add(this.sprite, {
-                thickness: 5,
-                outlineColor: 0xff0000,
-                quality: 0.1
-            });
-        } else {
-            if (!this.wasSelected){
-                return;
-            }
-            this.display.outlinePlugin.remove(this.sprite);
-
-        }
-
-        this.wasSelected = !!building.isSelected;
+        this.selection.update(building);
+        this.healthbar?.update(building as HealthData, this.sprite);
+        this.groupRing?.update(building, this.sprite);
     }
 }
 

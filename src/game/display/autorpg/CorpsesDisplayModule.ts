@@ -1,50 +1,26 @@
 import {DisplayModule} from "../DisplayModule.ts";
 import {AutoRpgDisplay, CorpseData} from "./AutoRpgDisplay.ts";
-import {Tap} from "phaser3-rex-plugins/plugins/gestures";
-import {EventBus, GameEvents} from "../../EventBus.ts";
+import {Selection} from "./effects/Selection.ts";
 
 class CorpseView {
     sprite: Phaser.GameObjects.Sprite;
-    private tap: Tap;
-    private wasSelected: boolean;
+    selection:Selection;
+    
     constructor(public display: AutoRpgDisplay, public id:number, public x: number, public y: number, public type: string) {
         this.sprite = display.scene.add.sprite(x, y, type);
         display.corpsesLayer.add(this.sprite);
-
-        this.tap = new Tap(this.sprite, {
-
-        });
         
-        this.tap.on('tap', function () {
-            EventBus.emit(GameEvents.EntityTap, id);
-        });
+        this.selection = new Selection(this.sprite, [this.sprite], display.outlinePlugin, id);
     }
 
     destroy(): void {
         this.sprite.destroy();
-        this.tap.destroy();
+        this.selection.destroy();
     }
 
     update(corpse: CorpseData) {
         this.sprite.setAlpha(corpse.rotFactor);
-
-        if (corpse.isSelected){
-            if (this.wasSelected){
-                return;
-            }
-            this.display.outlinePlugin.add(this.sprite, {
-                thickness: 5,
-                outlineColor: 0xff0000,
-                quality: 0.1
-            });
-        } else {
-            if (!this.wasSelected){
-                return;
-            }
-            this.display.outlinePlugin.remove(this.sprite);
-        }
-
-        this.wasSelected = !!corpse.isSelected;
+        this.selection.update(corpse);
     }
 }
 

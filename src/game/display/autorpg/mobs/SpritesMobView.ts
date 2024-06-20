@@ -4,8 +4,7 @@ import {MobData} from "../AutoRpgDisplay.ts";
 import { GroupRing } from "../effects/GroupRing.ts";
 import {SensoryRangeDisplay} from "../effects/SensoryRangeDisplay.ts";
 import {WeaponRangeDisplay} from "../effects/WeaponRangeDisplay.ts";
-import { Tap } from 'phaser3-rex-plugins/plugins/gestures.js';
-import {EventBus, GameEvents} from "../../../EventBus.ts";
+import {Selection} from "../effects/Selection.ts";
 
 export class SpritesMobView extends MobView {
     sprites: Map<string, Phaser.GameObjects.Sprite>;
@@ -13,11 +12,10 @@ export class SpritesMobView extends MobView {
     sensorRangeDisplay: SensoryRangeDisplay;
     groupRing:GroupRing;
     weaponRangeDisplay: WeaponRangeDisplay;
+    selection:Selection;
     walkAnimName: string;
     attackAnimName: string;
     idleAnimName: string;
-    tap: Tap;
-    wasSelected:boolean;
     
     protected init(x: number, y: number): void {
         if (this.sprites) {
@@ -49,16 +47,9 @@ export class SpritesMobView extends MobView {
         
         // Initialize weapon range display
         this.weaponRangeDisplay = new WeaponRangeDisplay(this.display);
-
-        this.tap = new Tap(this.container, {
-            
-        });
         
-        const id = this.id;
-        
-        this.tap.on('tap', function () {
-            EventBus.emit(GameEvents.EntityTap, id);
-        });
+        // Initialize selection effect
+        this.selection = new Selection(this.container, Array.from(this.sprites.values()), this.display.outlinePlugin, this.id);
     }
 
     destroy(): void {
@@ -69,7 +60,7 @@ export class SpritesMobView extends MobView {
         this.groupRing.destroy();
         this.sensorRangeDisplay.destroy();
         this.weaponRangeDisplay.destroy();
-        this.tap.destroy();
+        this.selection.destroy();
     }
 
     public update(mob: MobData): void {
@@ -104,38 +95,17 @@ export class SpritesMobView extends MobView {
             });
         }
 
-        this.healthbar.update(mob as HealthData, this.container);
-        this.groupRing.update(mob, this.container);
-        this.sensorRangeDisplay.update(this.container, mob.sensoryRange || 0, mob.targetsInRange || 0);
-        this.weaponRangeDisplay.update(this.container, mob.minAttackRange || 0, mob.maxAttackRange || 0);
-
-        this.container.x = mob.x+ 20; // Offset can be adjusted as needed
+        this.container.x = mob.x + 20; // Offset can be adjusted as needed
         this.container.y = mob.y;
         this.container.scaleX = mob.state.direction;
         
         this.sprite.visible = true;
         
-        if (mob.isSelected){
-            if (this.wasSelected){
-                return;
-            }
-            this.sprites.forEach(sprite => {
-                this.display.outlinePlugin.add(sprite, {
-                    thickness: 5,
-                    outlineColor: 0xff0000,
-                    quality: 0.1
-                });
-            });
-        } else {
-            if (!this.wasSelected){
-                return;
-            }
-            this.sprites.forEach(sprite => {
-                this.display.outlinePlugin.remove(sprite);
-            });
-        }
-        
-        this.wasSelected = !!mob.isSelected;
+        this.healthbar.update(mob as HealthData, this.container);
+        this.groupRing.update(mob, this.container);
+        this.sensorRangeDisplay.update(this.container, mob.sensoryRange || 0, mob.targetsInRange || 0);
+        this.weaponRangeDisplay.update(this.container, mob.minAttackRange || 0, mob.maxAttackRange || 0);
+        this.selection.update(mob as MobData);
     }
 }
     
