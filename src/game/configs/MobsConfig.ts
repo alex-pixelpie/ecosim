@@ -69,7 +69,8 @@ export enum MobType {
 
 export enum DropType {
     Corpse = 1,
-    Ruin = 2
+    Ruin = 2,
+    Coin = 3
 }
 
 export const SkeletonConfig: MobConfig = {
@@ -91,7 +92,7 @@ export const SkeletonConfig: MobConfig = {
     size: 16,
     sensoryRange: 500,
     survivalSecondsToOverwhelm: 0,
-    drops: [{ type: DropType.Corpse }],
+    drops: [{ type: DropType.Corpse }, { type: DropType.Coin, value: 1, chance: 0.5 }],
     actions: [StartPatrolAction.name, MoveAction.name, StartAttackingEnemiesAction.name],
     goals: [PatrolGoal.name, KillEnemiesGoal.name],
     avoidWalls: true
@@ -116,7 +117,7 @@ export const ElfArcherConfig : MobConfig = {
     speed: 300,
     size: 16,
     survivalSecondsToOverwhelm: 3,
-    drops: [{ type: DropType.Corpse }],
+    drops: [{ type: DropType.Corpse }, { type: DropType.Coin, value: 1, chance: 0.5 }],
     actions: [StartPatrolAction.name, MoveAction.name],
     goals: [PatrolGoal.name],
     avoidWalls: true

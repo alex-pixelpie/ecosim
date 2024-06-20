@@ -2,7 +2,7 @@ import {ECS} from "../../core/ECS.ts";
 import {MapDisplay} from "./../MapDisplay.ts";
 import {FrameLog, FrameLogType} from "../../logic/modules/FrameLogModule.ts";
 import {Mob} from "../../logic/modules/MobsModule.ts";
-import {Corpse, Health, Ruin} from "../../logic/modules/DeathModule.ts";
+import {Coin, Corpse, Health, Ruin} from "../../logic/modules/DeathModule.ts";
 import {Building} from "../../logic/modules/BuildingsModule.ts";
 import {GameOverAgent} from "../../logic/modules/GameOverModule.ts";
 import {PhysicsBody, Position} from "../../logic/modules/PhaserPhysicsModule.ts";
@@ -26,7 +26,8 @@ export enum DisplayEntityType {
     Corpse = 'corpse',
     Building = 'building',
     Ruin = 'ruin',
-    GameOverAgent = 'gameOverAgent'
+    GameOverAgent = 'gameOverAgent',
+    Coin = 'coin'
 }
 
 export type DisplayEntityData = {
@@ -92,6 +93,7 @@ export class AutoRpgDisplay {
     buildings: BuildingData[] = [];
     ruins: SelectableDisplayEntityData[] = [];
     gameOverAgents:GameOverAgentData[] = [];
+    coins: DisplayEntityData[] = [];
     
     // Layers
     mobUi: Phaser.GameObjects.Container;
@@ -127,7 +129,7 @@ export class AutoRpgDisplay {
         this.overlayUi = scene.add.container();
         this.airShadow = scene.add.container();
         this.air = scene.add.container();
-
+        
         this.outlinePlugin  = scene.plugins.get('rexOutlinePipeline') as OutlinePipelinePlugin;
         
         EventBus.on(GameEvents.EntityTap, (entityId: number) => {
@@ -147,6 +149,7 @@ export class AutoRpgDisplay {
         this.updateBuildings();
         this.updateRuins();
         this.updateGameOverAgents();
+        this.updateCopins();
         
         this.modules.forEach(module => module.update(delta));
 
@@ -334,5 +337,24 @@ export class AutoRpgDisplay {
         });
         
         this.ruins = ruins;
+    }
+
+    private updateCopins() {
+        const entities = this.ecs.getEntitiesWithComponent(Coin);
+        
+        const coins = entities.map(entity => {
+            const position = this.ecs.getComponent(entity, Position);
+            
+            return {
+                id: entity,
+                x: position?.x || 0,
+                y: position?.y || 0,
+                subtype: 'Gold',
+                isSelected: this.selectedEntity == entity,
+                type: DisplayEntityType.Coin
+            } as DisplayEntityData;
+        });
+        
+        this.coins = coins;
     }
 }

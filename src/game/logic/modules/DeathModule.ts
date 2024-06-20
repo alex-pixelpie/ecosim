@@ -97,6 +97,9 @@ class DropsSystem extends GameSystem {
                         case DropType.Ruin:
                             this.dropRuin(entity);
                             break;
+                        case DropType.Coin:
+                            this.dropCoin(entity);
+                            break;
                     }
                 }
             }
@@ -134,6 +137,22 @@ class DropsSystem extends GameSystem {
             log.logs = [...frameLog.logs];
             this.game.ecs.addComponent(ruinEntity, log);
         }
+    }
+
+    private dropCoin(entity: number, value: number = 1) {
+        const position = this.game.ecs.getComponent(entity, Position);
+
+        if (position){
+            const coinEntity = this.game.ecs.addEntity();
+            this.game.ecs.addComponent(coinEntity, new Coin(value));
+            this.game.ecs.addComponent(coinEntity, new Position(position.x, position.y));
+        }
+    }
+}
+
+export class Coin extends Component {
+    public constructor(public value: number) {
+        super();
     }
 }
 

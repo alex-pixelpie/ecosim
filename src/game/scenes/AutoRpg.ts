@@ -27,6 +27,7 @@ import {TargetingModule} from "../logic/modules/TargetingModule.ts";
 import {MobsModule} from "../logic/modules/MobsModule.ts";
 import {GoapModule} from "../logic/modules/goap/GoapModule.ts";
 import {SensoryModule} from "../logic/modules/SensoryModule.ts";
+import {CoinsDisplayModule} from "../display/autorpg/CoinsDisplayModule.ts";
 
 export class AutoRpg extends Scene
 {
@@ -80,6 +81,7 @@ export class AutoRpg extends Scene
             new RuinsDisplayModule(),
             new BuildingsDisplayModule(),
             new CorpsesDisplayModule(),
+            new CoinsDisplayModule(),
             new FloatingNumbersDisplay(),
             new GameOverDisplayModule()
         ]);
