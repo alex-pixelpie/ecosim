@@ -2,7 +2,8 @@ import {AutoRpgDisplay, MobData} from "../AutoRpgDisplay.ts";
 
 export abstract class MobView {
     sprite: Phaser.GameObjects.Sprite;
-    
+    container: Phaser.GameObjects.Container;
+
     public constructor(public display: AutoRpgDisplay, public id: number, x: number = 0, y: number = 0) {
         this.init(x, y);
     }

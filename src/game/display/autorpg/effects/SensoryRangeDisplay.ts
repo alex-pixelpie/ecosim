@@ -1,4 +1,5 @@
 import {AutoRpgDisplay} from "../AutoRpgDisplay.ts";
+import Container = Phaser.GameObjects.Container;
 
 export class SensoryRangeDisplay {
     private circle: Phaser.GameObjects.Graphics;
@@ -8,7 +9,7 @@ export class SensoryRangeDisplay {
         display.groundUi.add(this.circle);
     }
 
-    update(sprite: Phaser.GameObjects.Sprite, radius: number, targetsInRange: number): void {
+    update(container: Container, radius: number, targetsInRange: number): void {
         if (!this.circle) {
             return;
         }
@@ -16,7 +17,7 @@ export class SensoryRangeDisplay {
         this.circle.clear();
         this.circle.lineStyle(2, targetsInRange ? 0xff0000 : 0x00ff00, 1); // Thin green line
         this.circle.strokeCircle(0, 0, radius);
-        this.circle.setPosition(sprite.x, sprite.y);
+        this.circle.setPosition(container.x, container.y);
     }
 
     destroy(): void {

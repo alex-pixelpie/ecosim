@@ -7,6 +7,7 @@ export class MoveAction extends Action {
     effects = {[GoapStateConst.isAtMoveTarget]: true};
     cost: number = 10;
     type: string = MoveAction.name;
+    name: string = "Move";
 
     override hasCompleted(entity: number, game: GameLogic): boolean {
         const areEffectsImplemented = super.hasCompleted(entity, game);

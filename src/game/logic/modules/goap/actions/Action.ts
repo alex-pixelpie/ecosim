@@ -6,7 +6,8 @@ export abstract class Action {
     effects: Record<string, boolean>;
     cost: number;
     type: string;
-
+    name: string;
+    
     isValid(state: Record<string, boolean>): boolean {
         const keys = Object.keys(this.preconditions);
         

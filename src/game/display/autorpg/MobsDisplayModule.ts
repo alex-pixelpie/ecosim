@@ -4,8 +4,6 @@ import {MobView} from "./mobs/MobView.ts";
 import {SkeletonView} from "./mobs/SkeletonView.ts";
 import {ElfArcherView} from "./mobs/ElfArcherView.ts";
 import {MobType} from "../../configs/MobsConfig.ts";
-import OutlinePipelinePlugin from "phaser3-rex-plugins/plugins/outlinepipeline-plugin";
-import {SpritesMobView} from "./mobs/SpritesMobView.ts";
 
 export namespace MobsDisplayModule {
     export class MobsDisplayModule extends DisplayModule<AutoRpgDisplay> {
@@ -28,7 +26,7 @@ export namespace MobsDisplayModule {
             this.display.mobs.forEach(mob => {
                 let view = this.mobs.get(mob.id);
                 if (!view) {
-                    const TypeConstructor = mob.type == MobType.Skeleton ? SkeletonView : ElfArcherView;
+                    const TypeConstructor = mob.subtype == MobType.Skeleton ? SkeletonView : ElfArcherView;
                     view = new TypeConstructor(this.display, mob.id, mob.x, mob.y);
                     this.mobs.set(mob.id, view);
                 }

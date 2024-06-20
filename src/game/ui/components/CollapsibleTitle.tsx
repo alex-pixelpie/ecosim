@@ -52,7 +52,6 @@ const styles = {
     content: {
         overflow: 'hidden',
         transition: 'height 0.3s ease',
-        padding: '10px',
     },
 };
 

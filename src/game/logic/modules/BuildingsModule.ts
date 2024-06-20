@@ -3,7 +3,7 @@ import {GameLogicModule } from "../GameLogicModule.ts";
 import {Component} from "../../core/ECS.ts";
 import {Corpse, Dead, DieAndDrop, Health} from "./DeathModule.ts";
 import {FrameLog} from "./FrameLogModule.ts";
-import {Targetable, TargetGroup} from "./TargetingModule.ts";
+import {Targetable, Targeted, TargetGroup, TargetOfAttack} from "./TargetingModule.ts";
 import {Configs} from "../../configs/Configs.ts";
 import {BuildingConfig, BuildingType} from "../../configs/BuildingsConfig.ts";
 import {MobSpawnDefinition, MobType} from "../../configs/MobsConfig.ts";
@@ -74,9 +74,14 @@ export class BuildingsModule extends GameLogicModule {
         game.ecs.addComponent(building, new Building(config.type));
         game.ecs.addComponent(building, new DieAndDrop(config.drops));
         game.ecs.addComponent(building, new Health(config.health));
-        game.ecs.addComponent(building, new TargetGroup(group));
-        game.ecs.addComponent(building, new Targetable());
         game.ecs.addComponent(building, new FrameLog());
+
+
+        // game.ecs.addComponent(building, new TargetGroup(group));
+        // game.ecs.addComponent(building, new Targetable());
+        // game.ecs.addComponent(building, new Targeted());
+        // game.ecs.addComponent(building, new TargetOfAttack(config.size/2));
+        
         game.addPhysicalComponents({entity: building, x, y, radius: config.size, isStatic: true});
         return building;
     }

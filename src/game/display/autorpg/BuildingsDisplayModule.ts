@@ -1,14 +1,18 @@
 import {DisplayModule} from "../DisplayModule.ts";
-import {AutoRpgDisplay} from "./AutoRpgDisplay.ts";
+import {AutoRpgDisplay, BuildingData} from "./AutoRpgDisplay.ts";
 import {Healthbar, HealthData} from "./effects/Healthbar.ts";
 import {GroupRing} from "./effects/GroupRing.ts";
+import {Tap} from "phaser3-rex-plugins/plugins/gestures";
+import {EventBus, GameEvents} from "../../EventBus.ts";
 
 class BuildingView {
     sprite: Phaser.GameObjects.Sprite;
     healthbar:Healthbar;
     groupRing:GroupRing;
+    tap: Tap;
+    wasSelected:boolean;
 
-    constructor(public display: AutoRpgDisplay, public x: number, public y: number, public type: string, offset:{x:number, y:number} = {x:0, y:0}) {
+    constructor(public display: AutoRpgDisplay, id:number, public x: number, public y: number, public type: string, offset:{x:number, y:number} = {x:0, y:0}) {
         this.sprite = display.scene.add.sprite(x, y, type);
         display.mobsLayer.add(this.sprite);
         this.sprite.setOrigin(0.5, 0.5);
@@ -20,12 +24,47 @@ class BuildingView {
         
         // Initialize group ring
         // this.groupRing = new GroupRing(this.display, 5);
+
+        this.tap = new Tap(this.sprite, {
+
+        });
+        
+        this.tap.on('tap', function () {
+            EventBus.emit(GameEvents.EntityTap, id);
+        });
     }
 
     destroy(): void {
         this.sprite.destroy();
         this.healthbar.destroy();
         this.groupRing?.destroy();
+        this.tap.destroy();
+    }
+    
+    update(building:BuildingData){
+        this.healthbar?.update(building as HealthData, this.sprite);
+        this.groupRing?.update(building, this.sprite);
+        const destructionFactor = 1 - (building.health as number) / (building.maxHealth as number);
+        this.sprite.setFrame(Math.floor(destructionFactor * destructionStages));
+        
+        if (building.isSelected){
+            if (this.wasSelected){
+                return;
+            }
+            this.display.outlinePlugin.add(this.sprite, {
+                thickness: 5,
+                outlineColor: 0xff0000,
+                quality: 0.1
+            });
+        } else {
+            if (!this.wasSelected){
+                return;
+            }
+            this.display.outlinePlugin.remove(this.sprite);
+
+        }
+
+        this.wasSelected = !!building.isSelected;
     }
 }
 
@@ -55,13 +94,10 @@ export class BuildingsDisplayModule extends DisplayModule<AutoRpgDisplay> {
         this.display.buildings.forEach(building => {
             let view = this.buildings.get(building.id);
             if (!view) {
-                view = new BuildingView(this.display, building.x, building.y, BuildingKeys[building.type  as any as keyof typeof BuildingKeys], {x:0, y:-25});
+                view = new BuildingView(this.display, building.id, building.x, building.y, BuildingKeys[building.subtype  as any as keyof typeof BuildingKeys], {x:0, y:-25});
                 this.buildings.set(building.id, view);
             }
-            view.healthbar?.update(building as HealthData, view.sprite);
-            view.groupRing?.update(building, view.sprite);
-            const destructionFactor = 1 - (building.health as number) / (building.maxHealth as number);
-            view.sprite.setFrame(Math.floor(destructionFactor * destructionStages));
+            view.update(building);
         });
     }
 }

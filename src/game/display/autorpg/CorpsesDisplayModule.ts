@@ -1,15 +1,50 @@
 import {DisplayModule} from "../DisplayModule.ts";
-import {AutoRpgDisplay} from "./AutoRpgDisplay.ts";
+import {AutoRpgDisplay, CorpseData} from "./AutoRpgDisplay.ts";
+import {Tap} from "phaser3-rex-plugins/plugins/gestures";
+import {EventBus, GameEvents} from "../../EventBus.ts";
 
 class CorpseView {
     sprite: Phaser.GameObjects.Sprite;
-    constructor(public display: AutoRpgDisplay, public x: number, public y: number, public type: string) {
+    private tap: Tap;
+    private wasSelected: boolean;
+    constructor(public display: AutoRpgDisplay, public id:number, public x: number, public y: number, public type: string) {
         this.sprite = display.scene.add.sprite(x, y, type);
         display.corpsesLayer.add(this.sprite);
+
+        this.tap = new Tap(this.sprite, {
+
+        });
+        
+        this.tap.on('tap', function () {
+            EventBus.emit(GameEvents.EntityTap, id);
+        });
     }
 
     destroy(): void {
         this.sprite.destroy();
+        this.tap.destroy();
+    }
+
+    update(corpse: CorpseData) {
+        this.sprite.setAlpha(corpse.rotFactor);
+
+        if (corpse.isSelected){
+            if (this.wasSelected){
+                return;
+            }
+            this.display.outlinePlugin.add(this.sprite, {
+                thickness: 5,
+                outlineColor: 0xff0000,
+                quality: 0.1
+            });
+        } else {
+            if (!this.wasSelected){
+                return;
+            }
+            this.display.outlinePlugin.remove(this.sprite);
+        }
+
+        this.wasSelected = !!corpse.isSelected;
     }
 }
 
@@ -38,13 +73,13 @@ export class CorpsesDisplayModule extends DisplayModule<AutoRpgDisplay> {
         this.display.corpses.forEach(corpse => {
             let view = this.corpses.get(corpse.id);
             if (!view) {
-                view = new CorpseView(this.display, corpse.x, corpse.y, corpse.type);
-                const anim = DeathKeys[corpse.type  as any as keyof typeof DeathKeys];
+                view = new CorpseView(this.display, corpse.id, corpse.x, corpse.y, corpse.subtype);
+                const anim = DeathKeys[corpse.subtype  as any as keyof typeof DeathKeys];
                 view.sprite.play(anim, true);
                 this.corpses.set(corpse.id, view);
                 view.sprite.scaleX = Math.random() > 0.5 ? 1 : -1;
             }
-            view.sprite.setAlpha(corpse.rotFactor)
+            view.update(corpse);            
         });
     }
 

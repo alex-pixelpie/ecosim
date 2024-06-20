@@ -1,4 +1,5 @@
 import {AutoRpgDisplay} from "../AutoRpgDisplay.ts";
+import Container = Phaser.GameObjects.Container;
 import Sprite = Phaser.GameObjects.Sprite;
 
 export interface HealthData {
@@ -22,14 +23,14 @@ export class Healthbar {
         this.healthBar.destroy();
     }
 
-    update(healthData: HealthData, sprite: Sprite): void {
+    update(healthData: HealthData, container: Container | Sprite): void {
         if (!this.healthBar) {
             return;
         }
 
         this.maxWidth = this.calculateWidth(healthData.maxHealth);
-        const spriteBottomY = this.onTop ? sprite.y - sprite.displayHeight / 2 + this.offsetBottom : sprite.y + sprite.displayHeight / 2 + this.offsetBottom;
-        const healthBarX = sprite.x - this.maxWidth / 2;
+        const spriteBottomY = this.onTop ? container.y - container.displayHeight / 2 + this.offsetBottom : container.y + container.displayHeight / 2 + this.offsetBottom;
+        const healthBarX = container.x - this.maxWidth / 2;
 
         this.healthBar.clear();
         this.healthBar.fillStyle(0x000000, 0.5);

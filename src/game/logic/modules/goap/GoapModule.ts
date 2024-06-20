@@ -37,6 +37,7 @@ export interface Goal {
     desiredState: Record<string, boolean>;
     priority: number;
     updatePriority(state: Record<string, boolean>): void;
+    name: string;
 }
 
 export class GoalsComponent implements Component {

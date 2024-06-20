@@ -6,7 +6,6 @@ import {TilesModule} from "../logic/modules/TilesModule.ts";
 import {AutoRpgDisplay} from "../display/autorpg/AutoRpgDisplay.ts";
 import {CameraModule} from "../display/autorpg/CameraModule.ts";
 import {DungeonFloorDisplayModule} from "../display/autorpg/DungeonFloorDisplayModule.ts";
-import {TileSelectionModule} from "../display/autorpg/TileSelectionModule.ts";
 import {MobsDisplayModule} from "../display/autorpg/MobsDisplayModule.ts";
 import MobsDisplay = MobsDisplayModule.MobsDisplayModule;
 import {PhaserPhysicsModule} from "../logic/modules/PhaserPhysicsModule.ts";
@@ -53,7 +52,7 @@ export class AutoRpg extends Scene
 
         var postFxPlugin = this.plugins.get('rexOutlinePipeline');
         console.log(postFxPlugin ? 'rexOutlinePipeline found' : 'rexOutlinePipeline not found');
-        
+
         const ecs = new ECS();
         
         this.gameLogic = new GameLogic( ecs, this, [
@@ -81,7 +80,6 @@ export class AutoRpg extends Scene
             new RuinsDisplayModule(),
             new BuildingsDisplayModule(),
             new CorpsesDisplayModule(),
-            new TileSelectionModule(),
             new FloatingNumbersDisplay(),
             new GameOverDisplayModule()
         ]);

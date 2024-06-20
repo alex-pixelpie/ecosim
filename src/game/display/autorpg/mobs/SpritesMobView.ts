@@ -4,6 +4,8 @@ import {MobData} from "../AutoRpgDisplay.ts";
 import { GroupRing } from "../effects/GroupRing.ts";
 import {SensoryRangeDisplay} from "../effects/SensoryRangeDisplay.ts";
 import {WeaponRangeDisplay} from "../effects/WeaponRangeDisplay.ts";
+import { Tap } from 'phaser3-rex-plugins/plugins/gestures.js';
+import {EventBus, GameEvents} from "../../../EventBus.ts";
 
 export class SpritesMobView extends MobView {
     sprites: Map<string, Phaser.GameObjects.Sprite>;
@@ -14,6 +16,8 @@ export class SpritesMobView extends MobView {
     walkAnimName: string;
     attackAnimName: string;
     idleAnimName: string;
+    tap: Tap;
+    wasSelected:boolean;
     
     protected init(x: number, y: number): void {
         if (this.sprites) {
@@ -21,13 +25,18 @@ export class SpritesMobView extends MobView {
         }
 
         this.sprites = new Map();
+        this.container = this.display.scene.add.container(x, y);
+        this.container.setSize(40, 40); // TODO - get proper size from sprite
+        
         this.sprites.set(this.attackAnimName, this.display.scene.add.sprite(x, y, this.attackAnimName).setVisible(false));
         this.sprites.set(this.idleAnimName, this.display.scene.add.sprite(x, y, this.idleAnimName).setVisible(false));
         this.sprites.set(this.walkAnimName, this.display.scene.add.sprite(x, y, this.walkAnimName).setVisible(false));
 
         this.sprites.forEach(sprite => {
-            this.display.mobsLayer.add(sprite);
+            this.container.add(sprite);
         });
+
+        this.display.mobsLayer.add(this.container);
 
         // Initialize health bar
         this.healthbar = new Healthbar(this.display, true);
@@ -40,24 +49,27 @@ export class SpritesMobView extends MobView {
         
         // Initialize weapon range display
         this.weaponRangeDisplay = new WeaponRangeDisplay(this.display);
+
+        this.tap = new Tap(this.container, {
+            
+        });
         
-        this.sprites.forEach(sprite => {
-            this.display.outlinePlugin.add(sprite, {
-                thickness: 5,
-                outlineColor: 0xff0000,
-                quality: 0.1,
-                name: 'rexOutlinePostFx'
-            });
+        const id = this.id;
+        
+        this.tap.on('tap', function () {
+            EventBus.emit(GameEvents.EntityTap, id);
         });
     }
 
     destroy(): void {
+        this.container.destroy();
         this.sprites.forEach(sprite => sprite.destroy());
         this.sprites.clear();
         this.healthbar.destroy();
         this.groupRing.destroy();
         this.sensorRangeDisplay.destroy();
         this.weaponRangeDisplay.destroy();
+        this.tap.destroy();
     }
 
     public update(mob: MobData): void {
@@ -92,20 +104,38 @@ export class SpritesMobView extends MobView {
             });
         }
 
-        this.healthbar.update(mob as HealthData, this.sprite);
-        this.groupRing.update(mob, this.sprite);
-        this.sensorRangeDisplay.update(this.sprite, mob.sensoryRange || 0, mob.targetsInRange || 0);
-        this.weaponRangeDisplay.update(this.sprite, mob.minAttackRange || 0, mob.maxAttackRange || 0);
+        this.healthbar.update(mob as HealthData, this.container);
+        this.groupRing.update(mob, this.container);
+        this.sensorRangeDisplay.update(this.container, mob.sensoryRange || 0, mob.targetsInRange || 0);
+        this.weaponRangeDisplay.update(this.container, mob.minAttackRange || 0, mob.maxAttackRange || 0);
 
-        this.sprite.x = mob.x + 20; // Offset can be adjusted as needed
-        this.sprite.y = mob.y;
-        this.sprite.scaleX = mob.state.direction;
+        this.container.x = mob.x+ 20; // Offset can be adjusted as needed
+        this.container.y = mob.y;
+        this.container.scaleX = mob.state.direction;
+        
         this.sprite.visible = true;
         
-        this.sprites.forEach(sprite => {
-            sprite.x = this.sprite.x;
-            sprite.y = this.sprite.y;
-        });
+        if (mob.isSelected){
+            if (this.wasSelected){
+                return;
+            }
+            this.sprites.forEach(sprite => {
+                this.display.outlinePlugin.add(sprite, {
+                    thickness: 5,
+                    outlineColor: 0xff0000,
+                    quality: 0.1
+                });
+            });
+        } else {
+            if (!this.wasSelected){
+                return;
+            }
+            this.sprites.forEach(sprite => {
+                this.display.outlinePlugin.remove(sprite);
+            });
+        }
+        
+        this.wasSelected = !!mob.isSelected;
     }
 }
     

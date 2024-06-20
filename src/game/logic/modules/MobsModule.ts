@@ -155,10 +155,11 @@ export class LairMobsSpawner extends Component {
     
     public spawn(now:number, mob:number): void {
         this.timeOfLastSpawn = now;
-        this.spawns.add(mob);;
+        this.spawns.add(mob);
     }
     
-    public despawn(mob:number): void {
+    public despawn(mob: number, now: number): void {
+        this.timeOfLastSpawn = now;
         this.spawns.delete(mob);
     }
 }
@@ -189,7 +190,7 @@ class LairMobsSpawnerSystem extends GameSystem {
             
             spawner.spawns.forEach(mob => {
                 if (!this.game.mobs.has(mob)){
-                    spawner.despawn(mob);
+                    spawner.despawn(mob, now);
                 }
             });
         });

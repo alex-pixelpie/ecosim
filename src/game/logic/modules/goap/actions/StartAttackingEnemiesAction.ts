@@ -7,7 +7,8 @@ export class StartAttackingEnemiesAction extends Action {
     effects = {[GoapStateConst.isAttackingEnemy]: true, [GoapStateConst.hasMoveTarget]:true};
     cost: number = 10;
     type: string = StartAttackingEnemiesAction.name;
-    
+    name: string = "Start Attack";
+
     override hasCompleted(entity: number, game: GameLogic): boolean {
         const areEffectsImplemented = super.hasCompleted(entity, game);
         return areEffectsImplemented || !game.ecs.getComponent(entity, GoapStateComponent)?.state[GoapStateConst.seeEnemies];

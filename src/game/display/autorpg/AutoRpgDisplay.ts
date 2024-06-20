@@ -12,6 +12,8 @@ import {Tile} from "../../logic/modules/TilesModule.ts";
 import {Configs} from "../../configs/Configs.ts";
 import {Senses} from "../../logic/modules/SensoryModule.ts";
 import OutlinePipelinePlugin from "phaser3-rex-plugins/plugins/outlinepipeline-plugin";
+import {EventBus, GameEvents, UiEvents} from "../../EventBus.ts";
+import {ActionComponent, GoalsComponent} from "../../logic/modules/goap/GoapModule.ts";
 
 export type AutoRpgDisplayModule = DisplayModule<AutoRpgDisplay>;
 
@@ -19,32 +21,45 @@ export class TileDisplayData {
     public position: {x: number, y: number};
 }
 
-export type CorpseData = {
-    rotFactor: number;
+export enum DisplayEntityType {
+    Mob = 'mob',
+    Corpse = 'corpse',
+    Building = 'building',
+    Ruin = 'ruin',
+    GameOverAgent = 'gameOverAgent'
+}
+
+export type DisplayEntityData = {
     id: number;
     x: number;
     y: number;
-    type: string;
+    subtype: string;
+    type: DisplayEntityType;
+}
+
+export type SelectableData ={
+    isSelected?:boolean;
+}
+
+export type SelectableDisplayEntityData = DisplayEntityData & SelectableData;
+
+export type DamageSustainedData = {
     damage?: number;
     criticalMultiplier?: number;
 }
 
-export type RuinData = {
-    id: number;
-    x: number;
-    y: number;
-    type: string;
+export type HealthData = {
+    health: number | string;
+    maxHealth?: number;
 }
 
-export type GameOverAgentData = {
-    id: number;
-    x: number;
-    y: number;
-    type: string;
-}
+export type CorpseData = {
+    rotFactor: number;
+} & DisplayEntityData & DamageSustainedData & SelectableData;
+
+export type GameOverAgentData = DisplayEntityData & SelectableData;
 
 export type MobData = {
-    id: number;
     state: {
         attacking: boolean;
         direction: number;
@@ -52,30 +67,19 @@ export type MobData = {
         damage?: number;
         criticalMultiplier?: number;
     },
-    health: number | string;
-    maxHealth?: number;
-    type: string;
-    x: number;
-    y: number;
     group:number;
     rotationToTarget: number;
     sensoryRange?: number;
     targetsInRange?: number;
     minAttackRange?: number;
     maxAttackRange?: number;
-}
+    goal:string;
+    action:string;
+} & DisplayEntityData & DamageSustainedData & SelectableData & HealthData;
 
 export type BuildingData = {
-    id: number;
-    x: number;
-    y: number;
-    type: string;
     group:number;
-    health: number | string;
-    maxHealth?: number;
-    damage?: number;
-    criticalMultiplier?: number;
-}
+} & DisplayEntityData & DamageSustainedData & SelectableData & HealthData;
 
 export class AutoRpgDisplay {
     mapDisplay: MapDisplay;
@@ -86,7 +90,7 @@ export class AutoRpgDisplay {
     mobs: MobData[] = [];
     corpses: CorpseData[] = [];
     buildings: BuildingData[] = [];
-    ruins: RuinData[] = [];
+    ruins: SelectableDisplayEntityData[] = [];
     gameOverAgents:GameOverAgentData[] = [];
     
     // Layers
@@ -101,6 +105,8 @@ export class AutoRpgDisplay {
     timeFromStart: number = 0;
     
     outlinePlugin:OutlinePipelinePlugin;
+    
+    selectedEntity:number;
     
     constructor(scene: Phaser.Scene, ecs:ECS, modules: AutoRpgDisplayModule[]) {
         const mapConfig = Configs.mapConfig;
@@ -123,6 +129,14 @@ export class AutoRpgDisplay {
         this.air = scene.add.container();
 
         this.outlinePlugin  = scene.plugins.get('rexOutlinePipeline') as OutlinePipelinePlugin;
+        
+        EventBus.on(GameEvents.EntityTap, (entityId: number) => {
+            if (this.selectedEntity == entityId){
+                this.selectedEntity = -1;
+            } else {
+                this.selectedEntity = entityId;
+            }
+        });
     }
  
     update(delta: number) {
@@ -138,6 +152,13 @@ export class AutoRpgDisplay {
 
         this.mobsLayer.sort('y');
 
+        const selected = [...this.mobs,
+            ...this.corpses,
+            ...this.buildings,
+            ...this.ruins,
+            ...this.gameOverAgents].find(entity => entity.id == this.selectedEntity);
+
+        EventBus.emit(UiEvents.EntitySelected, {selected});
     }
     
     private updateGameOverAgents() {
@@ -151,8 +172,9 @@ export class AutoRpgDisplay {
                 id: entity,
                 x: position?.x || 0,
                 y: position?.y || 0,
-                type: 'bat-0'
-            };
+                subtype: 'bat-0',
+                type: DisplayEntityType.GameOverAgent,
+            } as GameOverAgentData;
         });
         
         this.gameOverAgents = gameOverAgents;
@@ -201,6 +223,9 @@ export class AutoRpgDisplay {
             const damage = log?.logs.reduce((acc, log) => log.type === FrameLogType.TakeDamage ? acc + log.value : acc, 0);
             const criticalMultiplier = log?.logs.reduce((acc, log) => log.type === FrameLogType.TakeCriticalDamage ? log.value : acc, 0);
             
+            const action = this.ecs.getComponent(entity, ActionComponent);
+            const goal = this.ecs.getComponent(entity, GoalsComponent);
+            
             return {
                 id: entity,
                 state: {
@@ -212,7 +237,7 @@ export class AutoRpgDisplay {
                 },
                 health: health?.value || 'N/A',
                 maxHealth: health?.maxValue,
-                type: mob?.type || 'skeleton',
+                subtype: mob?.type || 'skeleton',
                 x: body?.x || 0,
                 y: body?.y || 0,
                 group: group?.id || 0,
@@ -220,7 +245,11 @@ export class AutoRpgDisplay {
                 sensoryRange: senses?.range || 0,
                 targetsInRange: senses?.entitiesInRange.length,
                 minAttackRange: targeting?.minAttackRange || 0,
-                maxAttackRange: targeting?.maxAttackRange || 0
+                maxAttackRange: targeting?.maxAttackRange || 0,
+                isSelected: this.selectedEntity == entity,
+                type: DisplayEntityType.Mob,
+                goal: goal?.goal.name || 'N/A',
+                action: action?.currentAction?.name || 'N/A'
             } as MobData;
         });
 
@@ -245,11 +274,13 @@ export class AutoRpgDisplay {
                 id: entity,
                 x: corpse?.x || 0,
                 y: corpse?.y || 0,
-                type: corpse?.type || 'skeleton',
+                subtype: corpse?.type || 'skeleton',
                 damage,
                 criticalMultiplier,
-                rotFactor
-            };
+                rotFactor,
+                isSelected: this.selectedEntity == entity,
+                type: DisplayEntityType.Corpse
+            } as CorpseData;
         });
         
         this.corpses = corpses;
@@ -272,13 +303,15 @@ export class AutoRpgDisplay {
                 id: entity,
                 x: position?.x || 0,
                 y: position?.y || 0,
-                type: building?.type || 'castle',
+                subtype: building?.type || 'castle',
                 health: health?.value || 'N/A',
                 maxHealth: health?.maxValue,
                 group: group?.id || 0,
                 damage,
-                criticalMultiplier
-            };
+                criticalMultiplier,
+                isSelected: this.selectedEntity == entity,
+                type: DisplayEntityType.Building
+            } as BuildingData;
         });
 
         this.buildings = buildings;
@@ -294,8 +327,10 @@ export class AutoRpgDisplay {
                 id: entity,
                 x: ruin?.x || 0,
                 y: ruin?.y || 0,
-                type: ruin?.type || 'castle'
-            };
+                subtype: ruin?.type || 'castle',
+                isSelected: this.selectedEntity == entity,
+                type: DisplayEntityType.Ruin
+            } as SelectableDisplayEntityData;
         });
         
         this.ruins = ruins;

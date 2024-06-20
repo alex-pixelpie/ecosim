@@ -37,7 +37,7 @@ export class RuinsDisplayModule extends DisplayModule<AutoRpgDisplay> {
         this.display.ruins.forEach(ruin => {
             let view = this.ruins.get(ruin.id);
             if (!view) {
-                view = new RuinView(this.display, ruin.x, ruin.y, RuinKeys[ruin.type  as any as keyof typeof RuinKeys]);
+                view = new RuinView(this.display, ruin.x, ruin.y, RuinKeys[ruin.subtype  as any as keyof typeof RuinKeys]);
                 this.ruins.set(ruin.id, view);
             }
         });
