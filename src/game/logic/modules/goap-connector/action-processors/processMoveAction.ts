@@ -23,7 +23,9 @@ export const processMoveAction: ActionProcessor = (game: GameLogic, entity: numb
         return;
     }
 
-    const vectorToTarget = locomotionTarget.tooClose(position, size) ? MathUtils.subtract(position, locomotionTarget) : MathUtils.subtract(locomotionTarget, position);
+    const tooClose = locomotionTarget.tooClose(position, size);
+
+    const vectorToTarget = tooClose ? MathUtils.subtract(position, locomotionTarget) : MathUtils.subtract(locomotionTarget, position);
     const impulseToTarget = MathUtils.multiply(MathUtils.normalize(vectorToTarget), intensity);
     
     steering.impulses.push(impulseToTarget);

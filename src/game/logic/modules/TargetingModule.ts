@@ -100,6 +100,7 @@ export class UpdateTargetsSystem extends GameSystem {
             locomotionTarget.x = attackTarget.x;
             locomotionTarget.y = attackTarget.y;
             locomotionTarget.minDistance = attackTarget.minAttackRange;
+            locomotionTarget.maxDistance = attackTarget.maxAttackRange;
         });
     }
 }

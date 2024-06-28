@@ -7,7 +7,7 @@ export class LootGoal implements Goal {
     name = "Loot";
     
     updatePriority(state: GoapState): void {
-        this.priority = state.seeLoot ? 20 : 0;
+        this.priority = state.seeLoot ? 1 : 0;
     }
 }
 

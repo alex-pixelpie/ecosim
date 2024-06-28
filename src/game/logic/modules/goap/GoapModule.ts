@@ -124,6 +124,7 @@ class ActionSystem extends GameSystem {
         goalsComponent.goal = goals[0];
 
         actionComponent.plan = this.planner.plan(availableActionsComponent.actions, goalsComponent.goal, stateComponent.state);
+        actionComponent.currentAction = null;
     }
 }
 

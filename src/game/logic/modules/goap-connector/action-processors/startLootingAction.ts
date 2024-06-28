@@ -56,4 +56,5 @@ export const startLootingAction: ActionProcessor = (game: GameLogic, entity: num
     ownLocomotionTarget.x = targetPosition.x;
     ownLocomotionTarget.y = targetPosition.y;
     ownLocomotionTarget.minDistance = 0;
+    ownLocomotionTarget.maxDistance = 0;
 }

@@ -5,7 +5,7 @@ import {FrameLog} from "./FrameLogModule.ts";
 import {Building} from "./BuildingsModule.ts";
 import {Configs} from "../../configs/Configs.ts";
 import {BuildingType} from "../../configs/BuildingsConfig.ts";
-import {GroupType, MobsFactory} from "./MobsModule.ts";
+import {GroupType, LairMobsSpawner, MobsFactory} from "./MobsModule.ts";
 import {MobSpawnDefinition, MobType} from "../../configs/MobsConfig.ts";
 import {PatrolGoal} from "./goap/goals/PatrolGoal.ts";
 import {MoveAction} from "./goap/actions/MoveAction.ts";
@@ -67,19 +67,19 @@ export class TestGameModule extends GameLogicModule {
         game.ecs.addComponent(building, new DieAndDrop(config.drops));
         game.ecs.addComponent(building, new Health(config.health));
         game.ecs.addComponent(building, new FrameLog());
-        game.ecs.addComponent(building, new TargetGroup(GroupType.Green));
+        game.ecs.addComponent(building, new TargetGroup(GroupType.Red));
         game.addPhysicalComponents({entity: building, x:centerPos, y:centerPos, radius: config.size, isStatic: true});
 
-        // const greenSkeletonConfig:MobSpawnDefinition = {
-        //     config:Configs.mobsConfig.getMobConfig(MobType.Skeleton),
-        //     x:centerPos,
-        //     y:centerPos,
-        //     group:GroupType.Green,
-        //     goals:[PatrolGoal.name],
-        //     actions:[StartPatrolAction.name, MoveAction.name],
-        //     patrol: {maxFrequency: 10, minFrequency: 5, range:500, targetRadius: 200, targetPosition: {x: centerPos, y: centerPos}}
-        // };
+        const greenSkeletonConfig:MobSpawnDefinition = {
+            config:Configs.mobsConfig.getMobConfig(MobType.Skeleton),
+            x:centerPos,
+            y:centerPos,
+            group:GroupType.Red,
+            goals:[PatrolGoal.name],
+            actions:[StartPatrolAction.name, MoveAction.name],
+            patrol: {maxFrequency: 10, minFrequency: 5, range:500, targetRadius: 200, targetPosition: {x: centerPos, y: centerPos}}
+        };
 
-        // game.ecs.addComponent(building, new LairMobsSpawner(0, 2, greenSkeletonConfig));
+        game.ecs.addComponent(building, new LairMobsSpawner(1, 2, greenSkeletonConfig));
     }
 }

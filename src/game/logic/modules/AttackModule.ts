@@ -31,8 +31,8 @@ class AttackSystem extends GameSystem {
             
             const weaponComponent = game.ecs.getComponent(entity, Weapon);
 
-            attackComponent.minAttackRange = weaponComponent.config.rangeMax;
-            attackComponent.maxAttackRange = weaponComponent.config.rangeMin;
+            attackComponent.minAttackRange = weaponComponent.config.rangeMin;
+            attackComponent.maxAttackRange = weaponComponent.config.rangeMax;
             if (!weaponComponent.inUse) {
                 continue;
             }
