@@ -20,7 +20,7 @@ export abstract class Action {
         return !result;
     }
 
-    successState(state: Record<string, boolean>): Record<string, boolean> {
+    completionState(state: Record<string, boolean>): Record<string, boolean> {
         return { ...state, ...this.effects };
     }
 

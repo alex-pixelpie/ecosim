@@ -2,7 +2,7 @@ import {ECS} from "../../core/ECS.ts";
 import {MapDisplay} from "./../MapDisplay.ts";
 import {FrameLog, FrameLogType} from "../../logic/modules/FrameLogModule.ts";
 import {Mob} from "../../logic/modules/MobsModule.ts";
-import {Coin, Corpse, Health, Ruin} from "../../logic/modules/DeathModule.ts";
+import {Corpse, Health, Ruin} from "../../logic/modules/DeathModule.ts";
 import {Building} from "../../logic/modules/BuildingsModule.ts";
 import {GameOverAgent} from "../../logic/modules/GameOverModule.ts";
 import {PhysicsBody, Position} from "../../logic/modules/PhaserPhysicsModule.ts";
@@ -14,6 +14,7 @@ import {Senses} from "../../logic/modules/SensoryModule.ts";
 import OutlinePipelinePlugin from "phaser3-rex-plugins/plugins/outlinepipeline-plugin";
 import {EventBus, GameEvents, UiEvents} from "../../EventBus.ts";
 import {ActionComponent, GoalsComponent} from "../../logic/modules/goap/GoapModule.ts";
+import {Inventory, Loot} from "../../logic/modules/LootModule.ts";
 
 export type AutoRpgDisplayModule = DisplayModule<AutoRpgDisplay>;
 
@@ -76,6 +77,7 @@ export type MobData = {
     maxAttackRange?: number;
     goal:string;
     action:string;
+    coins?: number;
 } & DisplayEntityData & DamageSustainedData & SelectableData & HealthData;
 
 export type BuildingData = {
@@ -149,7 +151,7 @@ export class AutoRpgDisplay {
         this.updateBuildings();
         this.updateRuins();
         this.updateGameOverAgents();
-        this.updateCopins();
+        this.updateCoins();
         
         this.modules.forEach(module => module.update(delta));
 
@@ -229,6 +231,8 @@ export class AutoRpgDisplay {
             const action = this.ecs.getComponent(entity, ActionComponent);
             const goal = this.ecs.getComponent(entity, GoalsComponent);
             
+            const inventory = this.ecs.getComponent(entity, Inventory);
+            
             return {
                 id: entity,
                 state: {
@@ -246,13 +250,14 @@ export class AutoRpgDisplay {
                 group: group?.id || 0,
                 rotationToTarget,
                 sensoryRange: senses?.range || 0,
-                targetsInRange: senses?.entitiesInRange.length,
+                targetsInRange: senses?.targetablesInRange.length,
                 minAttackRange: targeting?.minAttackRange || 0,
                 maxAttackRange: targeting?.maxAttackRange || 0,
                 isSelected: this.selectedEntity == entity,
                 type: DisplayEntityType.Mob,
                 goal: goal?.goal.name || 'N/A',
-                action: action?.currentAction?.name || 'N/A'
+                action: action?.currentAction?.name || 'N/A',
+                coins: inventory?.coins || 0
             } as MobData;
         });
 
@@ -339,8 +344,8 @@ export class AutoRpgDisplay {
         this.ruins = ruins;
     }
 
-    private updateCopins() {
-        const entities = this.ecs.getEntitiesWithComponent(Coin);
+    private updateCoins() {
+        const entities = this.ecs.getEntitiesWithComponent(Loot);
         
         const coins = entities.map(entity => {
             const position = this.ecs.getComponent(entity, Position);

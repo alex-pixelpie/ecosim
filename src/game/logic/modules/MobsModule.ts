@@ -17,7 +17,6 @@ import {
 } from "./goap/GoapModule.ts";
 import {Targeting, Targetable, Targeted, TargetGroup, TargetOfAttack} from "./TargetingModule.ts";
 import {MobSpawnDefinition, MobType, WeaponConfig} from "../../configs/MobsConfig.ts";
-import {Configs} from "../../configs/Configs.ts";
 import {PatrolGoal} from "./goap/goals/PatrolGoal.ts";
 import {StartPatrolAction} from "./goap/actions/StartPatrolAction.ts";
 import {MoveAction} from "./goap/actions/MoveAction.ts";
@@ -26,6 +25,10 @@ import {Senses} from "./SensoryModule.ts";
 import {KillEnemiesGoal} from "./goap/goals/KillEnemiesGoal.ts";
 import {StartAttackingEnemiesAction} from "./goap/actions/StartAttackingEnemiesAction.ts";
 import {AttackAction} from "./goap/actions/AttackAction.ts";
+import {Inventory, Looter} from "./LootModule.ts";
+import {LootGoal} from "./goap/goals/LootGoal.ts";
+import {StartLootingAction} from "./goap/actions/StartLootingAction.ts";
+import {LootAction} from "./goap/actions/LootAction.ts";
 
 export enum GroupType {
     Red = 0,
@@ -45,19 +48,22 @@ const ActionTypeToAction = new Map<string, Action>(
         [StartPatrolAction.name, new StartPatrolAction()],
         [MoveAction.name, new MoveAction()],
         [StartAttackingEnemiesAction.name, new StartAttackingEnemiesAction()],
-        [AttackAction.name, new AttackAction()]
+        [AttackAction.name, new AttackAction()],
+        [StartLootingAction.name, new StartLootingAction()],
+        [LootAction.name, new LootAction()]
     ]
 );
 
 const GoalTypeToGoal = new Map<string, Goal>(
     [
         [PatrolGoal.name, new PatrolGoal()],
-        [KillEnemiesGoal.name, new KillEnemiesGoal()]
+        [KillEnemiesGoal.name, new KillEnemiesGoal()],
+        [LootGoal.name, new LootGoal()]
     ]
 );
 
 export class MobsFactory {
-    static makeMob(game: GameLogic, {config,x, y, group, goals, actions, patrol}:MobSpawnDefinition) {
+    static makeMob(game: GameLogic, {config,x, y, group, goals, actions, patrol, looting}:MobSpawnDefinition) {
         const mob = game.ecs.addEntity();
         
         game.ecs.addComponent(mob, new Mob(config.type));
@@ -89,6 +95,12 @@ export class MobsFactory {
         if (patrol){
             game.ecs.addComponent(mob, new Patrol(patrol, config.size));
         }
+        
+        if (looting){
+            game.ecs.addComponent(mob, new Looter(config.size));
+            game.ecs.addComponent(mob, new Inventory());
+        }
+        
         game.mobs.add(mob);
 
         return mob;
@@ -201,30 +213,5 @@ export class MobsModule extends GameLogicModule {
     public init(game: GameLogic): void {
         const lairMobsSpawnerSystem = new LairMobsSpawnerSystem(game);
         game.ecs.addSystem(lairMobsSpawnerSystem);
-        
-        
-        // Initial spawn
-        const pos = Configs.mapConfig.pixelsSize/2;
-        const redSkeletonConfig:MobSpawnDefinition = {
-            config:Configs.mobsConfig.getMobConfig(MobType.Skeleton),
-            x:pos,
-            y:pos,
-            group:GroupType.Red,
-            goals:[PatrolGoal.name],
-            actions:[StartPatrolAction.name,MoveAction.name],
-            patrol: {maxFrequency: 10, minFrequency: 5, range:500, targetRadius: 200, targetPosition: {x: pos, y: pos}}
-        };
-        const redSkeleton = MobsFactory.makeMob(game, redSkeletonConfig);
-
-        
-        const greenSkeletonConfig:MobSpawnDefinition = {
-            config:Configs.mobsConfig.getMobConfig(MobType.Skeleton), 
-            x:pos-450, 
-            y:pos,
-            group:GroupType.Green,
-            goals:[KillEnemiesGoal.name], 
-            actions:[StartAttackingEnemiesAction.name, MoveAction.name, AttackAction.name]
-        };
-        const greenSkeleton = MobsFactory.makeMob(game, greenSkeletonConfig);
     }
 }

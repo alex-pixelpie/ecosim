@@ -1,12 +1,13 @@
 import {Component} from "../../core/ECS.ts";
 import {Mob} from "./MobsModule.ts";
 import {GameLogic, GameSystem} from "../GameLogic.ts";
-import { GameLogicModule } from "../GameLogicModule.ts";
+import {GameLogicModule} from "../GameLogicModule.ts";
 import {FrameLog} from "./FrameLogModule.ts";
 import {Building} from "./BuildingsModule.ts";
 import {Position} from "./PhaserPhysicsModule.ts";
 import {DropDefinition, DropType, MobType} from "../../configs/MobsConfig.ts";
 import {BuildingType} from "../../configs/BuildingsConfig.ts";
+import {Loot, Lootable, LootType} from "./LootModule.ts";
 
 export class Health extends Component {
     maxValue: number;
@@ -144,15 +145,10 @@ class DropsSystem extends GameSystem {
 
         if (position){
             const coinEntity = this.game.ecs.addEntity();
-            this.game.ecs.addComponent(coinEntity, new Coin(value));
+            this.game.ecs.addComponent(coinEntity, new Loot(LootType.Coin, 10, value));
             this.game.ecs.addComponent(coinEntity, new Position(position.x, position.y));
+            this.game.ecs.addComponent(coinEntity, new Lootable());
         }
-    }
-}
-
-export class Coin extends Component {
-    public constructor(public value: number) {
-        super();
     }
 }
 

@@ -4,7 +4,7 @@ import {GameLogic} from "../../../GameLogic.ts";
 
 export class MoveAction extends Action {
     preconditions = {[GoapStateConst.isAtMoveTarget]: false, [GoapStateConst.hasMoveTarget]:true};
-    effects = {[GoapStateConst.isAtMoveTarget]: true};
+    effects = {[GoapStateConst.isAtMoveTarget]: true, [GoapStateConst.hasMoveTarget]: false};
     cost: number = 10;
     type: string = MoveAction.name;
     name: string = "Move";

@@ -24,12 +24,12 @@ export class LocomotionTarget extends Component {
     }
 
     tooClose(from: Pos, otherSize:number): boolean {
-        let distance = MathUtils.distance(from, this) - otherSize;
+        let distance = Math.floor(MathUtils.distance(from, this) - otherSize);
         return distance <= this.minDistance;
     }
     
     inRange(from: Pos, otherSize:number): boolean {
-        let distance = MathUtils.distance(from, this) - otherSize;
+        let distance = Math.floor(MathUtils.distance(from, this) - otherSize);
         return distance <= this.size && distance >= this.minDistance;
     }
 }

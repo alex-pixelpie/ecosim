@@ -28,6 +28,8 @@ import {MobsModule} from "../logic/modules/MobsModule.ts";
 import {GoapModule} from "../logic/modules/goap/GoapModule.ts";
 import {SensoryModule} from "../logic/modules/SensoryModule.ts";
 import {CoinsDisplayModule} from "../display/autorpg/CoinsDisplayModule.ts";
+import {LootModule} from "../logic/modules/LootModule.ts";
+import {TestGameModule} from "../logic/modules/TestGameModule.ts";
 
 export class AutoRpg extends Scene
 {
@@ -51,9 +53,6 @@ export class AutoRpg extends Scene
     create () {
         EventBus.on(GameEvents.GameStart, this.changeScene, this);
 
-        var postFxPlugin = this.plugins.get('rexOutlinePipeline');
-        console.log(postFxPlugin ? 'rexOutlinePipeline found' : 'rexOutlinePipeline not found');
-
         const ecs = new ECS();
         
         this.gameLogic = new GameLogic( ecs, this, [
@@ -71,6 +70,8 @@ export class AutoRpg extends Scene
             new SensoryModule(),
             new TargetingModule(),
             new BuildingsModule(),
+            new LootModule(),
+            new TestGameModule(),
             new GameOverModule()
         ]);
         

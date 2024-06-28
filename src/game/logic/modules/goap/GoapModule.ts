@@ -5,11 +5,15 @@ import {GoapStateComponent} from "./GoapStateComponent.ts";
 import {Action} from "./actions/Action.ts";
 
 class Planner {
+    static maxLoops = 100;
+
     plan(actions: Action[], goal: Goal, initialState: Record<string, boolean>): Action[] {
         let openSet: Action[] = [];
         let currentState = { ...initialState };
 
-        while (!this.goalAchieved(currentState, goal.desiredState)) {
+        let loops = 0;
+        
+        while (!this.goalAchieved(currentState, goal.desiredState) && loops++ < Planner.maxLoops) {
             let validActions = actions.filter(action => action.isValid(currentState));
             if (validActions.length === 0) {
                 return openSet;
@@ -17,7 +21,11 @@ class Planner {
 
             let bestAction = validActions.sort((a, b) => a.cost - b.cost)[0];
             openSet.push(bestAction);
-            currentState = bestAction.successState(currentState);
+            currentState = bestAction.completionState(currentState);
+        }
+        
+        if (loops >= Planner.maxLoops) {
+            console.error("GOAP: max loops reached");
         }
 
         return openSet;
@@ -92,9 +100,9 @@ class ActionSystem extends GameSystem {
                 return;
             }
             
-            if (actionComponent.currentAction) {
-                stateComponent.state = actionComponent.currentAction.successState(stateComponent.state);
-            }
+            // if (actionComponent.currentAction) {
+            //     stateComponent.state = actionComponent.currentAction.successState(stateComponent.state);
+            // }
             
             if (actionComponent.plan.length === 0) {
                 this.createPlan(entity);

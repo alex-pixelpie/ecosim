@@ -7,6 +7,7 @@ export enum FrameLogType {
     TakeDamage = 'TakeDamage',
     TakeCriticalDamage = 'TakeCriticalDamage',
     MoveTargetReached = 'MoveTargetReached',
+    CollectCoins = 'CollectCoins',
 }
 
 export interface FrameLogEntry {

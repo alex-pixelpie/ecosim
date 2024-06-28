@@ -4,6 +4,7 @@ import {Position} from "../../PhaserPhysicsModule.ts";
 import {Patrol} from "../GoapConnectorModule.ts";
 import {Senses} from "../../SensoryModule.ts";
 import {Targeting, TargetGroup, TargetOfAttack} from "../../TargetingModule.ts";
+import {Looter} from "../../LootModule.ts";
 
 export class GoapStateUpdateSystem extends GameSystem {
     public componentsRequired: Set<Function> = new Set([GoapStateComponent]);
@@ -19,6 +20,7 @@ export class GoapStateUpdateSystem extends GameSystem {
             this.updatePatrolStates(entity, state);
             this.updateSensoryStates(entity, state);
             this.updateAttackStates(entity, state);
+            this.updateLootingStates(entity, state);
         });
     }
 
@@ -65,10 +67,12 @@ export class GoapStateUpdateSystem extends GameSystem {
             return;
         }
         
-        state.state[GoapStateConst.seeEnemies] = senses.entitiesInRange.some(entity => {
+        state.state[GoapStateConst.seeEnemies] = senses.targetablesInRange.some(entity => {
             const mobGroup = this.game.ecs.getComponent(entity, TargetGroup);
             return targeting.has(mobGroup?.id);
         });
+        
+        state.state[GoapStateConst.seeLoot] = senses.lootablesInRange.length > 0;
     }
 
     private updateAttackStates(entity: number, state: GoapStateComponent) {
@@ -93,7 +97,32 @@ export class GoapStateUpdateSystem extends GameSystem {
 
         const position = this.game.ecs.getComponent(entity, Position);
         state.state.hasMoveTarget = !state.state.isAtMoveTarget;
-        state.state.inRangeToAttackEnemy = state.state.isAtMoveTarget;
         state.state.isAtMoveTarget = attackTarget.inRange(position);
+        state.state.inRangeToAttackEnemy = state.state.isAtMoveTarget;
+    }
+
+    private updateLootingStates(entity: number, state: GoapStateComponent) {
+        state.state.wantLoot = state.state[GoapStateConst.seeLoot] && !state.state[GoapStateConst.seeEnemies];
+        
+        const looter = this.game.ecs.getComponent(entity, Looter);
+        if (!looter) {
+            return;
+        }
+            
+        const wasLooting = state.state.hasLootTarget;
+        state.state.hasLootTarget = looter.looting;
+
+        if (!looter.looting){
+            if (wasLooting){
+                state.state.hasMoveTarget = false;
+                state.state.isAtMoveTarget = false;
+                state.state.hasLootTarget = false;
+            }
+            return;
+        }
+
+        const position = this.game.ecs.getComponent(entity, Position);
+        state.state.isAtMoveTarget = looter.inRange(position);
+        state.state.hasMoveTarget = true;
     }
 }

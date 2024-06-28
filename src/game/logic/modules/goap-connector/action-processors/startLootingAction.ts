@@ -1,15 +1,15 @@
 import {ActionProcessor} from "../systems/GoapActionProcessorSystem.ts";
 import {GameLogic} from "../../../GameLogic.ts";
 import {MathUtils} from "../../../../utils/Math.ts";
-import {TargetOfAttack, TargetGroup, Targeting} from "../../TargetingModule.ts";
 import {Senses} from "../../SensoryModule.ts";
 import {Position, Size} from "../../PhaserPhysicsModule.ts";
 import {LocomotionTarget} from "../../LocomotionModule.ts";
+import {Looter} from "../../LootModule.ts";
 
-export const startAttackingEnemiesAction: ActionProcessor = (game: GameLogic, entity: number): void => {
-    const attackTarget = game.ecs.getComponent(entity, TargetOfAttack);
+export const startLootingAction: ActionProcessor = (game: GameLogic, entity: number): void => {
+    const looter = game.ecs.getComponent(entity, Looter);
 
-    if (!attackTarget || attackTarget.attacking) {
+    if (!looter || looter.looting) {
         return;
     }
 
@@ -18,15 +18,7 @@ export const startAttackingEnemiesAction: ActionProcessor = (game: GameLogic, en
         return;
     }
     
-    const targeting = game.ecs.getComponent(entity, Targeting);
-    if (!targeting) {
-        return;
-    }
-    
-    const targets = senses.targetablesInRange.filter(target => {
-        const targetGroup = game.ecs.getComponent(target, TargetGroup);
-        return targeting.targetGroups.has(targetGroup?.id);
-    }).sort((a, b) => {
+    const targets = senses.lootablesInRange.sort((a, b) => {
         const aPosition = game.ecs.getComponent(a, Position);
         const bPosition = game.ecs.getComponent(b, Position);
         if (!aPosition || !bPosition) {
@@ -43,11 +35,15 @@ export const startAttackingEnemiesAction: ActionProcessor = (game: GameLogic, en
     }
     
     const targetPosition = game.ecs.getComponent(target, Position);
+    if (!targetPosition) {
+        return;
+    }
+    
     const targetSize = game.ecs.getComponent(target, Size);
+
+    looter.startLooting(target, targetSize?.radius || 10, targetPosition.x, targetPosition.y);
     
-    attackTarget.attack(target, targetSize?.radius, targetPosition.x, targetPosition.y);
-    
-    const inRange = attackTarget.inRange(game.ecs.getComponent(entity, Position));
+    const inRange = looter.inRange(game.ecs.getComponent(entity, Position));
     if (inRange) {
         return;
     }
@@ -59,4 +55,5 @@ export const startAttackingEnemiesAction: ActionProcessor = (game: GameLogic, en
     
     ownLocomotionTarget.x = targetPosition.x;
     ownLocomotionTarget.y = targetPosition.y;
+    ownLocomotionTarget.minDistance = 0;
 }

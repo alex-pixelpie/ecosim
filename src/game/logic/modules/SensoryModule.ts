@@ -4,10 +4,12 @@ import {Component} from "../../core/ECS.ts";
 import {Position} from "./PhaserPhysicsModule.ts";
 import {MathUtils} from "../../utils/Math.ts";
 import {Targetable} from "./TargetingModule.ts";
+import {Lootable} from "./LootModule.ts";
 
 export class Senses extends Component {
-    public entitiesInRange: number[] = [];
-
+    public targetablesInRange: number[] = [];
+    public lootablesInRange: number[] = [];
+    
     public constructor(public range: number) {
         super();
     }
@@ -25,7 +27,8 @@ class SensorySystem extends GameSystem {
             const senses = this.game.ecs.getComponent(entity, Senses);
             const position = this.game.ecs.getComponent(entity, Position);
 
-            senses.entitiesInRange = [];
+            senses.targetablesInRange = [];
+            senses.lootablesInRange = [];
             
             this.game.ecs.getEntitiesWithComponents([Position, Targetable]).forEach(otherEntity => {
                 if (entity === otherEntity) {
@@ -38,7 +41,22 @@ class SensorySystem extends GameSystem {
                 
                 const distance = MathUtils.distance(position, otherPosition);
                 if (distance < senses.range) {
-                    senses.entitiesInRange.push(otherEntity);
+                    senses.targetablesInRange.push(otherEntity);
+                }
+            });
+            
+            this.game.ecs.getEntitiesWithComponents([Position, Lootable]).forEach(otherEntity => {
+                if (entity === otherEntity) {
+                    return;
+                }
+                const otherPosition = this.game.ecs.getComponent(otherEntity, Position);
+                if (!otherPosition) {
+                    return;
+                }
+                
+                const distance = MathUtils.distance(position, otherPosition);
+                if (distance < senses.range) {
+                    senses.lootablesInRange.push(otherEntity);
                 }
             });
         });

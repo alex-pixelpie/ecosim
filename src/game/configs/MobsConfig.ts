@@ -55,6 +55,7 @@ export interface MobSpawnDefinition {
     goals?: string[];
     actions?: string[];
     patrol?:PatrolConfig;
+    looting?: boolean;
 }
 
 export enum WeaponEffect {
@@ -90,9 +91,9 @@ export const SkeletonConfig: MobConfig = {
     health: 100,
     speed: 200,
     size: 16,
-    sensoryRange: 500,
+    sensoryRange: 300,
     survivalSecondsToOverwhelm: 0,
-    drops: [{ type: DropType.Corpse }, { type: DropType.Coin, value: 1, chance: 0.5 }],
+    drops: [{ type: DropType.Corpse }, { type: DropType.Coin, value: 1, chance: 1 }],
     actions: [StartPatrolAction.name, MoveAction.name, StartAttackingEnemiesAction.name],
     goals: [PatrolGoal.name, KillEnemiesGoal.name],
     avoidWalls: true
