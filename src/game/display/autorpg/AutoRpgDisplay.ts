@@ -13,8 +13,8 @@ import {Configs} from "../../configs/Configs.ts";
 import {Senses} from "../../logic/modules/SensoryModule.ts";
 import OutlinePipelinePlugin from "phaser3-rex-plugins/plugins/outlinepipeline-plugin";
 import {EventBus, GameEvents, UiEvents} from "../../EventBus.ts";
-import {ActionComponent, GoalsComponent} from "../../logic/modules/goap/GoapModule.ts";
 import {Inventory, Loot} from "../../logic/modules/LootModule.ts";
+import {UtilityBehavior} from "../../logic/modules/utility-behavior/UtilityBehaviorModule.ts";
 
 export type AutoRpgDisplayModule = DisplayModule<AutoRpgDisplay>;
 
@@ -75,8 +75,7 @@ export type MobData = {
     targetsInRange?: number;
     minAttackRange?: number;
     maxAttackRange?: number;
-    goal:string;
-    action:string;
+    behavior:string;
     coins?: number;
 } & DisplayEntityData & DamageSustainedData & SelectableData & HealthData;
 
@@ -228,10 +227,8 @@ export class AutoRpgDisplay {
             const damage = log?.logs.reduce((acc, log) => log.type === FrameLogType.TakeDamage ? acc + log.value : acc, 0);
             const criticalMultiplier = log?.logs.reduce((acc, log) => log.type === FrameLogType.TakeCriticalDamage ? log.value : acc, 0);
             
-            const action = this.ecs.getComponent(entity, ActionComponent);
-            const goal = this.ecs.getComponent(entity, GoalsComponent);
-            
             const inventory = this.ecs.getComponent(entity, Inventory);
+            const behavior = this.ecs.getComponent(entity, UtilityBehavior);
             
             return {
                 id: entity,
@@ -255,8 +252,7 @@ export class AutoRpgDisplay {
                 maxAttackRange: targeting?.maxAttackRange || 0,
                 isSelected: this.selectedEntity == entity,
                 type: DisplayEntityType.Mob,
-                goal: goal?.goal.name || 'N/A',
-                action: action?.currentAction?.name || 'N/A',
+                behavior: behavior?.currentBehavior?.name || 'None',
                 coins: inventory?.coins || 0
             } as MobData;
         });

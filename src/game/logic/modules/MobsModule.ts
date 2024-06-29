@@ -1,34 +1,19 @@
 import {GameLogic, GameSystem} from "../GameLogic.ts";
 import { GameLogicModule } from "../GameLogicModule.ts";
 import {Component} from "../../core/ECS.ts";
-import {defaultGoapState, GoapStateComponent} from "./goap/GoapStateComponent.ts";
 import {Weapon} from "./weapons/Weapons.ts";
 import {Steering, WallsAvoider} from "./SteeringModule.ts";
 import {FrameLog} from "./FrameLogModule.ts";
-import {GlideLocomotion, LocomotionTarget} from "./LocomotionModule.ts";
-import {Action} from "./goap/actions/Action.ts";
+import {GlideLocomotion} from "./LocomotionModule.ts";
 import {OverwhelmComponent} from "./OverwhelmModule.ts";
 import {DieAndDrop, Health, Mortality} from "./DeathModule.ts";
-import {
-    AvailableActionsComponent,
-    Goal,
-    GoalsComponent,
-    ActionComponent
-} from "./goap/GoapModule.ts";
 import {Targeting, Targetable, Targeted, TargetGroup, TargetOfAttack} from "./TargetingModule.ts";
 import {MobSpawnDefinition, MobType, WeaponConfig} from "../../configs/MobsConfig.ts";
-import {PatrolGoal} from "./goap/goals/PatrolGoal.ts";
-import {StartPatrolAction} from "./goap/actions/StartPatrolAction.ts";
-import {MoveAction} from "./goap/actions/MoveAction.ts";
-import {Patrol} from "./goap-connector/GoapConnectorModule.ts";
 import {Senses} from "./SensoryModule.ts";
-import {KillEnemiesGoal} from "./goap/goals/KillEnemiesGoal.ts";
-import {StartAttackingEnemiesAction} from "./goap/actions/StartAttackingEnemiesAction.ts";
-import {AttackAction} from "./goap/actions/AttackAction.ts";
 import {Inventory, Looter} from "./LootModule.ts";
-import {LootGoal} from "./goap/goals/LootGoal.ts";
-import {StartLootingAction} from "./goap/actions/StartLootingAction.ts";
-import {LootAction} from "./goap/actions/LootAction.ts";
+import {Patrol, PatrolBehavior} from "./utility-behavior/PatrolBehavior.ts";
+import {IdleBehavior} from "./utility-behavior/IdleBehavior.ts";
+import {IUtilityBehavior, UtilityBehavior} from "./utility-behavior/UtilityBehaviorModule.ts";
 
 export enum GroupType {
     Red = 0,
@@ -43,37 +28,20 @@ export class Mob extends Component {
     }
 }
 
-const ActionTypeToAction = new Map<string, Action>(
-    [
-        [StartPatrolAction.name, new StartPatrolAction()],
-        [MoveAction.name, new MoveAction()],
-        [StartAttackingEnemiesAction.name, new StartAttackingEnemiesAction()],
-        [AttackAction.name, new AttackAction()],
-        [StartLootingAction.name, new StartLootingAction()],
-        [LootAction.name, new LootAction()]
-    ]
-);
-
-const GoalTypeToGoal = new Map<string, Goal>(
-    [
-        [PatrolGoal.name, new PatrolGoal()],
-        [KillEnemiesGoal.name, new KillEnemiesGoal()],
-        [LootGoal.name, new LootGoal()]
-    ]
-);
+const behaviorsMap = new Map<string, Function>([
+    [PatrolBehavior.name, PatrolBehavior],
+    [IdleBehavior.name, IdleBehavior]
+]);
 
 export class MobsFactory {
-    static makeMob(game: GameLogic, {config,x, y, group, goals, actions, patrol, looting}:MobSpawnDefinition) {
+    static makeMob(game: GameLogic, {config,x, y, group, patrol, looting, behaviors}:MobSpawnDefinition) {
         const mob = game.ecs.addEntity();
         
         game.ecs.addComponent(mob, new Mob(config.type));
         
         // Common
         MobsFactory.addCommonComponents(game, mob, group);
-        
-        // GOAP
-        MobsFactory.addGoap(game, mob, (actions || config.actions).map(action => ActionTypeToAction.get(action) as Action), (goals || config.goals).map(goal => GoalTypeToGoal.get(goal) as Goal));
-        
+
         // Drops
         game.ecs.addComponent(mob, new DieAndDrop(config.drops));
         
@@ -101,16 +69,15 @@ export class MobsFactory {
             game.ecs.addComponent(mob, new Inventory());
         }
         
+        if (behaviors){
+            game.ecs.addComponent(mob, new UtilityBehavior(behaviors.map(behaviorName => {
+                return new (behaviorsMap.get(behaviorName) as any)() as IUtilityBehavior;
+            })));
+        }
+        
         game.mobs.add(mob);
 
         return mob;
-    }
-    
-    static addGoap(game: GameLogic, entity: number, actions: Action[], goals: Goal[]){
-        game.ecs.addComponent(entity, new GoapStateComponent({...defaultGoapState}));
-        game.ecs.addComponent(entity, new GoalsComponent(goals));
-        game.ecs.addComponent(entity, new AvailableActionsComponent(actions));
-        game.ecs.addComponent(entity, new ActionComponent());
     }
 
     static addTargeting(game: GameLogic, entity: number, ownGroup: number, size: number, sensoryRange: number){
@@ -126,7 +93,6 @@ export class MobsFactory {
     static addMovement(game: GameLogic, entity: number, speed: number, avoidWalls = true){
         game.ecs.addComponent(entity, new GlideLocomotion(speed));
         game.ecs.addComponent(entity, new Steering());
-        game.ecs.addComponent(entity, new LocomotionTarget(0, 0, 16, 0))
         avoidWalls && game.ecs.addComponent(entity, new WallsAvoider());
     }
 

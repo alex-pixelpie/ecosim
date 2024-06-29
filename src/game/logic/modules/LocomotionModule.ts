@@ -2,7 +2,7 @@ import {Component} from "../../core/ECS.ts";
 import {GameLogic, GameSystem} from "../GameLogic.ts";
 import { GameLogicModule } from "../GameLogicModule.ts";
 import {Steering} from "./SteeringModule.ts";
-import {MathUtils, Pos} from "../../utils/Math.ts";
+import {MathUtils} from "../../utils/Math.ts";
 import {PhysicsBody} from "./PhaserPhysicsModule.ts";
 
 export class GlideLocomotion extends Component {
@@ -13,24 +13,6 @@ export class GlideLocomotion extends Component {
         super();
         this.speed = speed;
         this.maxSpeed = speed;
-    }
-}
-
-export class LocomotionTarget extends Component {
-    
-    // Size is the distance from the center of the target to the edge
-    constructor(public x: number, public y: number, public size: number, public minDistance: number = 0, public maxDistance: number = 0) {
-        super();
-    }
-
-    tooClose(from: Pos, otherSize:number): boolean {
-        let distance = Math.floor(MathUtils.distance(from, this) - otherSize);
-        return distance < this.minDistance;
-    }
-    
-    inRange(from: Pos, otherSize:number): boolean {
-        let distance = Math.floor(MathUtils.distance(from, this) - otherSize);
-        return distance <= this.maxDistance && distance >= this.minDistance;
     }
 }
 

@@ -6,8 +6,6 @@ import {GlideLocomotion} from "./LocomotionModule.ts";
 import {Steering} from "./SteeringModule.ts";
 import {Position} from "./PhaserPhysicsModule.ts";
 import {TargetOfAttack} from "./TargetingModule.ts";
-import {defaultGoapState, GoapStateComponent} from "./goap/GoapStateComponent.ts";
-import {ActionComponent} from "./goap/GoapModule.ts";
 import {Configs} from "../../configs/Configs.ts";
 
 export class GameOverAgent extends Component {
@@ -98,11 +96,8 @@ export class GameOverModule extends GameLogicModule {
         game.ecs.addComponent(entity, new SlowOnApproach(300));
 
         game.addPhysicalComponents({entity, x, y, radius: 2, isGameOver: true});
-
-        game.ecs.addComponent(entity, new GoapStateComponent({...defaultGoapState}));
-        // game.ecs.addComponent(entity, new GoalsComponent([new GetToTargetGoal()]));
-        // game.ecs.addComponent(entity, new AvailableActionsComponent([new MoveToTargetAction()]));
-        game.ecs.addComponent(entity, new ActionComponent());
+        
+        // Something missing here?
     }
 
     private getRandomStartPosition(): {x: number, y: number} {

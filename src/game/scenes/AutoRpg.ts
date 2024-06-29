@@ -13,7 +13,6 @@ import {FloatingNumbersDisplay} from "../display/autorpg/FloatingNumbersDisplay.
 import {AttackModule} from "../logic/modules/AttackModule.ts";
 import {SteeringModule} from "../logic/modules/SteeringModule.ts";
 import {LocomotionModule} from "../logic/modules/LocomotionModule.ts";
-import {GoapConnectorModule} from "../logic/modules/goap-connector/GoapConnectorModule.ts";
 import {OverwhelmModule} from "../logic/modules/OverwhelmModule.ts";
 import {CorpsesDisplayModule} from "../display/autorpg/CorpsesDisplayModule.ts";
 import {DeathModule} from "../logic/modules/DeathModule.ts";
@@ -25,11 +24,11 @@ import {GameOverModule} from "../logic/modules/GameOverModule.ts";
 import {FrameLogModule} from "../logic/modules/FrameLogModule.ts";
 import {TargetingModule} from "../logic/modules/TargetingModule.ts";
 import {MobsModule} from "../logic/modules/MobsModule.ts";
-import {GoapModule} from "../logic/modules/goap/GoapModule.ts";
 import {SensoryModule} from "../logic/modules/SensoryModule.ts";
 import {CoinsDisplayModule} from "../display/autorpg/CoinsDisplayModule.ts";
 import {LootModule} from "../logic/modules/LootModule.ts";
 import {TestGameModule} from "../logic/modules/TestGameModule.ts";
+import {UtilityBehaviorModule} from "../logic/modules/utility-behavior/UtilityBehaviorModule.ts";
 
 export class AutoRpg extends Scene
 {
@@ -65,8 +64,7 @@ export class AutoRpg extends Scene
             new AttackModule(),
             new OverwhelmModule(),
             new SteeringModule(),
-            new GoapModule(),
-            new GoapConnectorModule(),
+            new UtilityBehaviorModule(),
             new SensoryModule(),
             new TargetingModule(),
             new BuildingsModule(),

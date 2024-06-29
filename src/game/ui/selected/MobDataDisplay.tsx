@@ -16,10 +16,7 @@ const MobDataDisplay: React.FC<{ mobData: MobData }> = ({ mobData }) => (
         {mobData.maxAttackRange !== undefined && <div>Max Attack Range: {mobData.maxAttackRange}</div>}
         <HealthDataDisplay healthData={mobData} />
         <div>Coins: {mobData.coins}</div>
-        <ul>
-            <li>Goal: {mobData.goal}</li>
-            <li>Action: {mobData.action}</li>
-        </ul>
+        <div>Behavior: {mobData.behavior}</div>
     </div>
 );
 

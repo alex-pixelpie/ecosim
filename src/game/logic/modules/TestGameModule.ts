@@ -7,19 +7,15 @@ import {Configs} from "../../configs/Configs.ts";
 import {BuildingType} from "../../configs/BuildingsConfig.ts";
 import {GroupType, LairMobsSpawner, MobsFactory} from "./MobsModule.ts";
 import {MobSpawnDefinition, MobType} from "../../configs/MobsConfig.ts";
-import {PatrolGoal} from "./goap/goals/PatrolGoal.ts";
-import {MoveAction} from "./goap/actions/MoveAction.ts";
 import {TargetGroup} from "./TargetingModule.ts";
-import {KillEnemiesGoal} from "./goap/goals/KillEnemiesGoal.ts";
-import {LootGoal} from "./goap/goals/LootGoal.ts";
-import {StartAttackingEnemiesAction} from "./goap/actions/StartAttackingEnemiesAction.ts";
-import {AttackAction} from "./goap/actions/AttackAction.ts";
-import {StartLootingAction} from "./goap/actions/StartLootingAction.ts";
-import {LootAction} from "./goap/actions/LootAction.ts";
 import {Loot, Lootable, LootType} from "./LootModule.ts";
 import {Position} from "./PhaserPhysicsModule.ts";
 import {MathUtils} from "../../utils/Math.ts";
-import {StartPatrolAction} from "./goap/actions/StartPatrolAction.ts";
+import {UtilityBehavior} from "./utility-behavior/UtilityBehaviorModule.ts";
+import {LootBehavior} from "./utility-behavior/LootBehavior.ts";
+import {PatrolBehavior} from "./utility-behavior/PatrolBehavior.ts";
+import {IdleBehavior} from "./utility-behavior/IdleBehavior.ts";
+import {FightBehavior} from "./utility-behavior/FightBehavior.ts";
 
 export class TestGameModule extends GameLogicModule {
     init(game: GameLogic): void {
@@ -37,16 +33,17 @@ export class TestGameModule extends GameLogicModule {
             x:centerPos-450,
             y:centerPos,
             group:GroupType.Green,
-            goals:[KillEnemiesGoal.name, LootGoal.name, PatrolGoal.name],
-            actions:[StartAttackingEnemiesAction.name, MoveAction.name, AttackAction.name, StartLootingAction.name, LootAction.name, StartPatrolAction.name],
             looting: true,
             patrol: {maxFrequency: 10, minFrequency: 5, range:500, targetRadius: 200, targetPosition: {x: centerPos, y: centerPos}}
         };
 
         greenSkeletonConfig.config.weaponConfig.damageMax = 1000;
         greenSkeletonConfig.config.sensoryRange = 500;
-        
-        MobsFactory.makeMob(game, greenSkeletonConfig);
+
+        const hero = MobsFactory.makeMob(game, greenSkeletonConfig);
+
+        // Utility behavior
+        game.ecs.addComponent(hero, new UtilityBehavior([new LootBehavior(), new PatrolBehavior(), new IdleBehavior(), new FightBehavior()]));
     }
 
     private addCoins(game: GameLogic, centerPos: number, count = 30) {
@@ -75,11 +72,10 @@ export class TestGameModule extends GameLogicModule {
             x:centerPos,
             y:centerPos,
             group:GroupType.Red,
-            goals:[PatrolGoal.name],
-            actions:[StartPatrolAction.name, MoveAction.name],
-            patrol: {maxFrequency: 10, minFrequency: 5, range:500, targetRadius: 200, targetPosition: {x: centerPos, y: centerPos}}
+            patrol: {maxFrequency: 10, minFrequency: 5, range:500, targetRadius: 200, targetPosition: {x: centerPos, y: centerPos}},
+            behaviors: [PatrolBehavior.name, IdleBehavior.name]
         };
 
-        game.ecs.addComponent(building, new LairMobsSpawner(1, 2, greenSkeletonConfig));
+        game.ecs.addComponent(building, new LairMobsSpawner(8, 2, greenSkeletonConfig));
     }
 }

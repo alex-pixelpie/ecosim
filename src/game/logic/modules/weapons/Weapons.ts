@@ -50,11 +50,11 @@ export class Weapon extends Component {
     }
 
     public isSwinging(timeFromStart: number): boolean {
-        return this.lastAttackTime + this.config.swingSeconds > timeFromStart;
+        return this.inUse && this.lastAttackTime + this.config.swingSeconds > timeFromStart;
     }
 
     public isAttacking(timeFromStart: number): boolean {
-        return this.lastAttackTime + this.config.attackDuration > timeFromStart;
+        return this.inUse && this.lastAttackTime + this.config.attackDuration > timeFromStart;
     }
 
     public ApplyEffect(game: GameLogic, owner:number): void {

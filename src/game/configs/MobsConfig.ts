@@ -1,9 +1,4 @@
 import {Pos} from "../utils/Math.ts";
-import {PatrolGoal} from "../logic/modules/goap/goals/PatrolGoal.ts";
-import {StartPatrolAction} from "../logic/modules/goap/actions/StartPatrolAction.ts";
-import {MoveAction} from "../logic/modules/goap/actions/MoveAction.ts";
-import {KillEnemiesGoal} from "../logic/modules/goap/goals/KillEnemiesGoal.ts";
-import {StartAttackingEnemiesAction} from "../logic/modules/goap/actions/StartAttackingEnemiesAction.ts";
 
 export interface DropDefinition {
     chance?: number;
@@ -41,8 +36,7 @@ export interface MobConfig {
     sensoryRange: number;
     survivalSecondsToOverwhelm: number;
     drops: DropDefinition[];
-    actions: string[]; // Action class names
-    goals: string[]; // Goal class names
+    behaviors?: string[];
     patrol?:PatrolConfig;
     avoidWalls?: boolean;
 }
@@ -52,8 +46,7 @@ export interface MobSpawnDefinition {
     x: number;
     y: number;
     group: number;
-    goals?: string[];
-    actions?: string[];
+    behaviors?: string[];
     patrol?:PatrolConfig;
     looting?: boolean;
 }
@@ -94,8 +87,6 @@ export const SkeletonConfig: MobConfig = {
     sensoryRange: 300,
     survivalSecondsToOverwhelm: 0,
     drops: [{ type: DropType.Corpse }, { type: DropType.Coin, value: 1, chance: 1 }],
-    actions: [StartPatrolAction.name, MoveAction.name, StartAttackingEnemiesAction.name],
-    goals: [PatrolGoal.name, KillEnemiesGoal.name],
     avoidWalls: true
 };
 
@@ -119,8 +110,6 @@ export const ElfArcherConfig : MobConfig = {
     size: 16,
     survivalSecondsToOverwhelm: 3,
     drops: [{ type: DropType.Corpse }, { type: DropType.Coin, value: 1, chance: 0.5 }],
-    actions: [StartPatrolAction.name, MoveAction.name],
-    goals: [PatrolGoal.name],
     avoidWalls: true
 };
 

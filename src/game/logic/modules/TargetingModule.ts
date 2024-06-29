@@ -2,7 +2,6 @@ import {Component} from "../../core/ECS.ts";
 import {MathUtils, Pos} from "../../utils/Math.ts";
 import {GameLogic, GameSystem} from "../GameLogic.ts";
 import {GameLogicModule } from "../GameLogicModule.ts";
-import {LocomotionTarget} from "./LocomotionModule.ts";
 import {Position} from "./PhaserPhysicsModule.ts";
 
 export class TargetOfAttack implements Component {
@@ -34,9 +33,14 @@ export class TargetOfAttack implements Component {
         this.target = null;
     }
     
+    tooClose(from: Pos): boolean {
+        let distance = MathUtils.distance(from, this) - this.targetSize - this.ownSize;
+        return distance < this.minAttackRange;
+    }
+    
     inRange(from: Pos): boolean {
         let distance = MathUtils.distance(from, this) - this.targetSize - this.ownSize;
-        return distance <= this.minAttackRange && distance >= this.maxAttackRange;
+        return distance >= this.minAttackRange && distance <= this.maxAttackRange;
     }
 }
 
@@ -87,20 +91,6 @@ export class UpdateTargetsSystem extends GameSystem {
 
             attackTarget.x = position.x;
             attackTarget.y = position.y;
-            
-            if (attackTarget.inRange(position)) {
-                return;
-            }
-            
-            const locomotionTarget = this.game.ecs.getComponent(entity, LocomotionTarget);
-            if (!locomotionTarget) {
-                return;
-            }
-            
-            locomotionTarget.x = attackTarget.x;
-            locomotionTarget.y = attackTarget.y;
-            locomotionTarget.minDistance = attackTarget.minAttackRange;
-            locomotionTarget.maxDistance = attackTarget.maxAttackRange;
         });
     }
 }
