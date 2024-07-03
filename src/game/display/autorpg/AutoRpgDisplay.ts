@@ -142,6 +142,19 @@ export class AutoRpgDisplay {
         });
     }
  
+    public destroy() {
+        this.modules.forEach(module => module.destroy());
+        
+        this.corpsesLayer.destroy();
+        this.groundShadow.destroy();
+        this.groundUi.destroy();
+        this.mobsLayer.destroy();
+        this.mobUi.destroy();
+        this.overlayUi.destroy();
+        this.airShadow.destroy();
+        this.air.destroy();
+    }
+    
     update(delta: number) {
         this.timeFromStart += delta;
         this.updateTiles();

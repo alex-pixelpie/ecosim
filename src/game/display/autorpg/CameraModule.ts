@@ -1,5 +1,7 @@
 import {DisplayModule} from "../DisplayModule.ts";
 import {AutoRpgDisplay} from "./AutoRpgDisplay.ts";
+import {EventBus, GameEvents} from "../../EventBus.ts";
+import Sprite = Phaser.GameObjects.Sprite;
 
 class ControlledCamera {
     static maxTimeBetweenClicks = 200;
@@ -18,7 +20,17 @@ class ControlledCamera {
     public constructor(scene: Phaser.Scene, cameraWidth: number, cameraHeight: number) {
         this.scene = scene;
         this.setupCamera(cameraWidth, cameraHeight);
+        EventBus.on(GameEvents.FollowSpriteSelected, this.handleFollowSpriteSelected, this);
     }
+    
+    public destroy() {
+        this.scene.input.off('pointerdown', this.handlePointerDown, this);
+        this.scene.input.off('pointerup', this.handlePointerUp, this);
+        this.scene.input.off('pointermove', this.handlePointerMove, this);
+        this.scene.input.off("wheel", this.handleWheel, this);
+        EventBus.off(GameEvents.FollowSpriteSelected, this.handleFollowSpriteSelected, this);
+    }
+    
     private resetZoom(){
         this.camera.pan(this.camera.width/2, this.camera.height/2, 0.3, 'Linear', true);
         this.camera.zoomTo(ControlledCamera.minZoom, 0.3);
@@ -81,6 +93,8 @@ class ControlledCamera {
             return;
         }
 
+        this.camera.stopFollow();
+        
         this.dragInertia.x = pointer.x - pointer.prevPosition.x;
         this.dragInertia.y = pointer.y - pointer.prevPosition.y;
 
@@ -118,6 +132,10 @@ class ControlledCamera {
 
         this.resetZoom();
     }
+
+    private handleFollowSpriteSelected(sprite:Sprite) {
+        this.camera.startFollow(sprite, true, 0.1, 0.1);
+    }
 }
 
 export class CameraModule extends DisplayModule<AutoRpgDisplay> {
@@ -129,5 +147,9 @@ export class CameraModule extends DisplayModule<AutoRpgDisplay> {
 
     override update(delta: number) {
         this.Camera?.update(delta);
+    }
+    
+    override destroy() {
+        this.Camera?.destroy();
     }
 }

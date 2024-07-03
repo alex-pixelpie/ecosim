@@ -7,6 +7,7 @@ import OutlinePipelinePlugin from "phaser3-rex-plugins/plugins/outlinepipeline-p
 export class Selection {
     tap: Tap;
     wasSelected:boolean;
+    followTarget: GameObject;
     
     constructor(public tapTarget: GameObject, public selectionTargets:GameObject[], public plugin:OutlinePipelinePlugin ,public id: number) {
         this.tap = new Tap(tapTarget, {
@@ -16,6 +17,8 @@ export class Selection {
         this.tap.on('tap', function () {
             EventBus.emit(GameEvents.EntityTap, id);
         });
+
+        this.followTarget = tapTarget;
     }
 
     destroy(): void {
@@ -27,6 +30,8 @@ export class Selection {
             if (this.wasSelected){
                 return;
             }
+            EventBus.emit(GameEvents.FollowSpriteSelected, this.followTarget);
+
             this.selectionTargets.forEach(sprite => {
                 this.plugin.add(sprite, {
                     thickness: 1,

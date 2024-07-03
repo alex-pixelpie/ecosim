@@ -16,6 +16,7 @@ import {LootBehavior} from "./utility-behavior/LootBehavior.ts";
 import {PatrolBehavior} from "./utility-behavior/PatrolBehavior.ts";
 import {IdleBehavior} from "./utility-behavior/IdleBehavior.ts";
 import {FightBehavior} from "./utility-behavior/FightBehavior.ts";
+import {EventBus, GameEvents} from "../../EventBus.ts";
 
 export class TestGameModule extends GameLogicModule {
     init(game: GameLogic): void {
@@ -44,6 +45,10 @@ export class TestGameModule extends GameLogicModule {
 
         // Utility behavior
         game.ecs.addComponent(hero, new UtilityBehavior([new LootBehavior(), new PatrolBehavior(), new IdleBehavior(), new FightBehavior()]));
+
+        game.scene.time.delayedCall(300, () => {
+        EventBus.emit(GameEvents.EntityTap, hero);});
+
     }
 
     private addCoins(game: GameLogic, centerPos: number, count = 30) {

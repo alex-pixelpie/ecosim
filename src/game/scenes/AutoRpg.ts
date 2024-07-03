@@ -84,12 +84,18 @@ export class AutoRpg extends Scene
             new FloatingNumbersDisplay(),
             new GameOverDisplayModule()
         ]);
+
+        const gd = this.gameDisplay;
         
+        this.events.once('destroy', function () {
+            gd.destroy();
+        }, this);
+    
         EventBus.emit('current-scene-ready', this);
 
         // EventBus.emit(GameEvents.GameOver, {victory: true});
     }
-
+    
     changeScene () {
         EventBus.off(GameEvents.GameStart, this.changeScene, this);
         this.scene.start('AutoRpg');

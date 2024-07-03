@@ -1,6 +1,6 @@
 
 export class MapConfig {
-    tilesInMapSide: number = 64;
+    tilesInMapSide: number = 120;
     tileSize: number = 32;
     
     public get pixelsSize(): number {
