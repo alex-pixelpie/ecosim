@@ -3,7 +3,7 @@ import {GameLogic} from "../../GameLogic.ts";
 import {Senses} from "../SensoryModule.ts";
 import {Position, Size} from "../PhaserPhysicsModule.ts";
 import {MathUtils} from "../../../utils/Math.ts";
-import {TargetGroup, Targeting, TargetOfAttack} from "../TargetingModule.ts";
+import {Targeting, TargetOfAttack} from "../TargetingModule.ts";
 import {Weapon} from "../weapons/Weapons.ts";
 import {Steering} from "../SteeringModule.ts";
 
@@ -61,7 +61,7 @@ export class FightBehavior implements IUtilityBehavior {
 
     updateState(game: GameLogic, entity: number, state: State): void {
         const senses = game.ecs.getComponent(entity, Senses);
-        state.seeEnemies = senses?.targetablesInRange.length > 0;
+        state.seeEnemies = senses?.enemies.length > 0;
     }
 
     private static ChooseTarget(game: GameLogic, entity: number, attackTarget: TargetOfAttack) {
@@ -75,21 +75,19 @@ export class FightBehavior implements IUtilityBehavior {
             return;
         }
 
-        const targets = senses.targetablesInRange.filter(target => {
-            const targetGroup = game.ecs.getComponent(target, TargetGroup);
-            return targeting.targetGroups.has(targetGroup?.id);
-        }).sort((a, b) => {
-            const aPosition = game.ecs.getComponent(a, Position);
-            const bPosition = game.ecs.getComponent(b, Position);
-            if (!aPosition || !bPosition) {
-                return 0;
-            }
-            const distanceA = MathUtils.distance(aPosition, game.ecs.getComponent(entity, Position));
-            const distanceB = MathUtils.distance(bPosition, game.ecs.getComponent(entity, Position));
-            return distanceA - distanceB;
-        });
+        const targets = senses.enemies;
+        let closest = Number.MAX_VALUE;
+        let target = null;
+        
+        targets.forEach(enemy => {
 
-        const target = targets[0];
+            const distance = senses.distances.get(enemy) || Number.MAX_VALUE;
+            if (distance < closest) {
+                closest = distance;
+                target = enemy;
+            }
+        });
+        
         if (!target) {
             return;
         }

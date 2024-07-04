@@ -46,8 +46,11 @@ export class TestGameModule extends GameLogicModule {
         // Utility behavior
         game.ecs.addComponent(hero, new UtilityBehavior([new LootBehavior(), new PatrolBehavior(), new IdleBehavior(), new FightBehavior()]));
 
-        game.scene.time.delayedCall(300, () => {
-        EventBus.emit(GameEvents.EntityTap, hero);});
+        // Select this motherfucker
+        game.scene.time.delayedCall(100, () => {
+            EventBus.emit(GameEvents.EntityTap, hero);
+            }
+        );
 
     }
 

@@ -43,7 +43,7 @@ export class LootBehavior implements IUtilityBehavior {
 
     updateState(game: GameLogic, entity: number, state: State): void {
         const senses = game.ecs.getComponent(entity, Senses);
-        state.seeLoot = senses?.lootablesInRange.length > 0;
+        state.seeLoot = senses?.loot.length > 0;
     }
 
     private static StartLooting(game: GameLogic, entity: number, looter: Looter) {
@@ -57,7 +57,7 @@ export class LootBehavior implements IUtilityBehavior {
             return;
         }
 
-        const targets = senses.lootablesInRange.sort((a, b) => {
+        const targets = senses.loot.sort((a, b) => {
             const aPosition = game.ecs.getComponent(a, Position);
             const bPosition = game.ecs.getComponent(b, Position);
             if (!aPosition || !bPosition) {

@@ -3,12 +3,14 @@ import {GameLogicModule} from "../GameLogicModule.ts";
 import {Component} from "../../core/ECS.ts";
 import {Position} from "./PhaserPhysicsModule.ts";
 import {MathUtils} from "../../utils/Math.ts";
-import {Targetable} from "./TargetingModule.ts";
+import {Targetable, TargetGroup, Targeting} from "./TargetingModule.ts";
 import {Lootable} from "./LootModule.ts";
 
 export class Senses extends Component {
-    public targetablesInRange: number[] = [];
-    public lootablesInRange: number[] = [];
+    public enemies: number[] = [];
+    public allies: number[] = [];
+    public loot: number[] = [];
+    public distances = new Map<number, number>();
     
     public constructor(public range: number) {
         super();
@@ -23,40 +25,51 @@ class SensorySystem extends GameSystem {
     }
 
     public update(entities: Set<number>, _: number): void {
-            entities.forEach(entity => {
-            const senses = this.game.ecs.getComponent(entity, Senses);
-            const position = this.game.ecs.getComponent(entity, Position);
+        const game = this.game;
+        
+        entities.forEach(entity => {
+            const senses = game.ecs.getComponent(entity, Senses);
+            const position = game.ecs.getComponent(entity, Position);
+            const targeting = game.ecs.getComponent(entity, Targeting);
 
-            senses.targetablesInRange = [];
-            senses.lootablesInRange = [];
+            senses.enemies = [];
+            senses.allies = [];
+            senses.loot = [];
+            senses.distances.clear();
             
-            this.game.ecs.getEntitiesWithComponents([Position, Targetable]).forEach(otherEntity => {
+            game.ecs.getEntitiesWithComponents([Position, Targetable]).forEach(otherEntity => {
                 if (entity === otherEntity) {
                     return;
                 }
-                const otherPosition = this.game.ecs.getComponent(otherEntity, Position);
+                
+                const otherPosition = game.ecs.getComponent(otherEntity, Position);
                 if (!otherPosition) {
                     return;
                 }
                 
                 const distance = MathUtils.distance(position, otherPosition);
+                
                 if (distance < senses.range) {
-                    senses.targetablesInRange.push(otherEntity);
+                    senses.distances.set(otherEntity, distance);
+
+                    const targetGroup = game.ecs.getComponent(otherEntity, TargetGroup);
+                    const bucket = targeting.targetGroups.has(targetGroup?.id) ? senses.enemies : senses.allies;
+                    bucket.push(otherEntity);
                 }
             });
             
-            this.game.ecs.getEntitiesWithComponents([Position, Lootable]).forEach(otherEntity => {
+            game.ecs.getEntitiesWithComponents([Position, Lootable]).forEach(otherEntity => {
                 if (entity === otherEntity) {
                     return;
                 }
-                const otherPosition = this.game.ecs.getComponent(otherEntity, Position);
+                const otherPosition = game.ecs.getComponent(otherEntity, Position);
                 if (!otherPosition) {
                     return;
                 }
                 
                 const distance = MathUtils.distance(position, otherPosition);
                 if (distance < senses.range) {
-                    senses.lootablesInRange.push(otherEntity);
+                    senses.loot.push(otherEntity);
                 }
             });
         });

@@ -260,7 +260,7 @@ export class AutoRpgDisplay {
                 group: group?.id || 0,
                 rotationToTarget,
                 sensoryRange: senses?.range || 0,
-                targetsInRange: senses?.targetablesInRange.length,
+                targetsInRange: senses?.enemies.length,
                 minAttackRange: targeting?.minAttackRange || 0,
                 maxAttackRange: targeting?.maxAttackRange || 0,
                 isSelected: this.selectedEntity == entity,
