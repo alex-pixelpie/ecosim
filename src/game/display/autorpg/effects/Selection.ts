@@ -1,6 +1,6 @@
 import {Tap} from "phaser3-rex-plugins/plugins/gestures";
 import {EventBus, GameEvents} from "../../../EventBus.ts";
-import {SelectableData} from "../AutoRpgDisplay.ts";
+import {ObservableData, SelectableData} from "../AutoRpgDisplay.ts";
 import GameObject = Phaser.GameObjects.GameObject;
 import OutlinePipelinePlugin from "phaser3-rex-plugins/plugins/outlinepipeline-plugin.js";
 
@@ -8,24 +8,33 @@ export class Selection {
     tap: Tap;
     wasSelected:boolean;
     followTarget: GameObject;
+    isObserved: boolean = false;
     
     constructor(public tapTarget: GameObject, public selectionTargets:GameObject[], public plugin:OutlinePipelinePlugin ,public id: number) {
         this.tap = new Tap(tapTarget, {
 
         });
 
-        this.tap.on('tap', function () {
-            EventBus.emit(GameEvents.EntityTap, id);
-        });
+        this.tap.on('tap', this.onTap.bind(this));
 
         this.followTarget = tapTarget;
     }
 
+    onTap(){
+        if (!this.isObserved){
+            return;
+        }
+        
+        EventBus.emit(GameEvents.EntityTap, this.id);
+    }
+    
     destroy(): void {
         this.tap.destroy();
     }
     
-    update(selectable:SelectableData): void {
+    update(selectable:SelectableData&ObservableData): void {
+        this.isObserved = selectable.isObserved;
+        
         if (selectable.isSelected){
             if (this.wasSelected){
                 return;

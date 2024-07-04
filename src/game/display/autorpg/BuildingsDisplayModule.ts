@@ -41,6 +41,8 @@ class BuildingView {
         this.selection.update(building);
         this.healthbar?.update(building as HealthData, this.sprite);
         this.groupRing?.update(building, this.sprite);
+        
+        this.sprite.alpha = building.isObserved ? 1 : 0;
     }
 }
 
@@ -52,6 +54,9 @@ enum BuildingKeys {
 const destructionStages = 4; // TODO - config this shit
 
 export class BuildingsDisplayModule extends DisplayModule<AutoRpgDisplay> {
+    public destroy(): void {
+    }
+    
     private display: AutoRpgDisplay;
     private buildings = new Map<number, BuildingView>();
     

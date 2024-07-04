@@ -3,7 +3,8 @@ import {GameLogic} from "../../GameLogic.ts";
 
 export class IdleBehavior implements IUtilityBehavior {
     name: string = "Idle";
-    
+    group: number;
+
     public updateState(game: GameLogic, entity: number, state: State): void {
         // Do nothing
     }

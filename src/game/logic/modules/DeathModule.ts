@@ -8,6 +8,7 @@ import {Position} from "./PhaserPhysicsModule.ts";
 import {DropDefinition, DropType, MobType} from "../../configs/MobsConfig.ts";
 import {BuildingType} from "../../configs/BuildingsConfig.ts";
 import {Loot, Lootable, LootType} from "./LootModule.ts";
+import {Observable} from "./SensoryModule.ts";
 
 export class Health extends Component {
     maxValue: number;
@@ -115,6 +116,8 @@ class DropsSystem extends GameSystem {
         if (position && mob && frameLog){
             const corpseEntity = this.game.ecs.addEntity();
             this.game.ecs.addComponent(corpseEntity, new Corpse(mob.type, position.x, position.y));
+            this.game.ecs.addComponent(corpseEntity, new Observable());
+
             this.game.ecs.removeComponent(entity, DieAndDrop);
             
             // Copy the frame log to the corpse
@@ -132,6 +135,7 @@ class DropsSystem extends GameSystem {
         if (position && building && frameLog){
             const ruinEntity = this.game.ecs.addEntity();
             this.game.ecs.addComponent(ruinEntity, new Ruin(building.type, position.x, position.y));
+            this.game.ecs.addComponent(ruinEntity, new Observable());
 
             // Copy the frame log to the ruin
             const log = new FrameLog();
@@ -148,6 +152,8 @@ class DropsSystem extends GameSystem {
             this.game.ecs.addComponent(coinEntity, new Loot(LootType.Coin, 10, value));
             this.game.ecs.addComponent(coinEntity, new Position(position.x, position.y));
             this.game.ecs.addComponent(coinEntity, new Lootable());
+            this.game.ecs.addComponent(coinEntity, new Observable());
+
         }
     }
 }

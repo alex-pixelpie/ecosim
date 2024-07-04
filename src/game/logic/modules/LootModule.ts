@@ -99,7 +99,7 @@ class LootingSystem extends GameSystem {
             log.logs.push({
                 type: FrameLogType.CollectCoins,
                 value: loot.value,
-                timestamp: this.game.currentTime,
+                timestamp: this.game.time,
             });
         }
     }

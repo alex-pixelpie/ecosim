@@ -24,7 +24,7 @@ export class DungeonFloorDisplayModule extends DisplayModule<AutoRpgDisplay> {
         });
 
         display.tiles.forEach((column, x) => {
-            column.forEach((_, y) => {
+            column.forEach((tile, y) => {
                 const mapTile = this.layer.getTileAt(x, y, false);
 
                 if (mapTile == null) {
@@ -32,8 +32,8 @@ export class DungeonFloorDisplayModule extends DisplayModule<AutoRpgDisplay> {
                 }
 
                 let displayValue = GroundVisualState.Rich;
-
-                mapTile.setAlpha(1);
+                
+                mapTile.setAlpha(tile.isObserved ? 1 : 0);
                 mapTile.index = displayValue;
                 this.layer.putTileAt(mapTile, x, y, false);
             });
@@ -41,6 +41,16 @@ export class DungeonFloorDisplayModule extends DisplayModule<AutoRpgDisplay> {
     }
 
     public update(_: number): void {
-
+        this.display.tiles.forEach((column, x) => {
+            column.forEach((tile, y) => {
+                const mapTile = this.layer.getTileAt(x, y, false);
+                mapTile.setAlpha(tile.isObserved ? 1 : 0);
+            });
+        });
     }
+    
+    public destroy(): void {
+        this.layer.destroy();
+    }
+
 }

@@ -5,12 +5,14 @@ import {GameLogic} from "../../GameLogic.ts";
 import {Position} from "../PhaserPhysicsModule.ts";
 import {Steering} from "../SteeringModule.ts";
 import {Component} from "../../../core/ECS.ts";
+import { GroupType } from "../MobsModule.ts";
 
 export class Patrol extends Component {
     public lastPatrolEndTime: number = 0;
     public onPatrol: boolean = false;
-    public patrolTarget: Pos = { x: 0, y: 0 };
+    public patrolTarget: Pos = {x: 0, y: 0};
     private readonly currentFrequency: number = 0;
+    group: number;
 
     constructor(public config: PatrolConfig, public ownRadius: number) {
         super();
@@ -39,10 +41,11 @@ export class Patrol extends Component {
 }
 
 export class PatrolBehavior implements IUtilityBehavior {
+    group: GroupType;
     name: string = "Patrolling";
     getUtility(game: GameLogic, entity: number, state: State): number {
         const patrol = game.ecs.getComponent(entity, Patrol);
-        if (!patrol || patrol.isOnCooldown(game.currentTime)) {
+        if (!patrol || patrol.isOnCooldown(game.time)) {
             return -1;
         }
         
@@ -56,7 +59,7 @@ export class PatrolBehavior implements IUtilityBehavior {
             return;
         }
         
-        if (patrol.isOnCooldown(game.currentTime)) {
+        if (patrol.isOnCooldown(game.time)) {
             return;
         }
 
@@ -73,7 +76,7 @@ export class PatrolBehavior implements IUtilityBehavior {
         
         // End patrol if target reached
         if (patrol.inRange(position)){
-            patrol.endPatrol(game.currentTime);
+            patrol.endPatrol(game.time);
             return;
         }
         

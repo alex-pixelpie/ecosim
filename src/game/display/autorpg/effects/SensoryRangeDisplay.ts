@@ -9,12 +9,17 @@ export class SensoryRangeDisplay {
         display.groundUi.add(this.circle);
     }
 
-    update(container: Container, radius: number, targetsInRange: number): void {
+    update(container: Container, radius: number, targetsInRange: number, isObserved:boolean): void {
         if (!this.circle) {
             return;
         }
 
         this.circle.clear();
+        
+        if (!isObserved) {
+            return;
+        }
+        
         this.circle.lineStyle(2, targetsInRange ? 0xff0000 : 0x00ff00, 1); // Thin green line
         this.circle.strokeCircle(0, 0, radius);
         this.circle.setPosition(container.x, container.y);

@@ -1,6 +1,7 @@
 import {AutoRpgDisplay, TileDisplayData} from "./AutoRpgDisplay.ts";
+import {DisplayModule} from "../DisplayModule.ts";
 
-export abstract class AutoRpgDisplayModule extends DisplayModule {
+export abstract class TileLayersDisplayModule extends DisplayModule<AutoRpgDisplay> {
     protected layer: Phaser.Tilemaps.TilemapLayer;
     protected display: AutoRpgDisplay;
 

@@ -4,6 +4,12 @@ import {Component} from "../../core/ECS.ts";
 import {GameObjects} from "phaser";
 import {Configs} from "../../configs/Configs.ts";
 
+export class MapPosition extends Component {
+    public constructor(public x: number, public y: number) {
+        super();
+    }
+}
+
 export class Position extends Component {
     public constructor(public x: number, public y: number) {
         super();

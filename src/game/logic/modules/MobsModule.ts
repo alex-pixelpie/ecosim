@@ -9,7 +9,7 @@ import {OverwhelmComponent} from "./OverwhelmModule.ts";
 import {DieAndDrop, Health, Mortality} from "./DeathModule.ts";
 import {Targeting, Targetable, Targeted, TargetGroup, TargetOfAttack} from "./TargetingModule.ts";
 import {MobSpawnDefinition, MobType, WeaponConfig} from "../../configs/MobsConfig.ts";
-import {Senses} from "./SensoryModule.ts";
+import {Observable, Observed, Senses} from "./SensoryModule.ts";
 import {Inventory, Looter} from "./LootModule.ts";
 import {Patrol, PatrolBehavior} from "./utility-behavior/PatrolBehavior.ts";
 import {IdleBehavior} from "./utility-behavior/IdleBehavior.ts";
@@ -70,9 +70,7 @@ export class MobsFactory {
         }
         
         if (behaviors){
-            game.ecs.addComponent(mob, new UtilityBehavior(behaviors.map(behaviorName => {
-                return new (behaviorsMap.get(behaviorName) as any)() as IUtilityBehavior;
-            })));
+            game.ecs.addComponent(mob, new UtilityBehavior(behaviors.map(behaviorName => new (behaviorsMap.get(behaviorName) as any)() as IUtilityBehavior), group));
         }
         
         game.mobs.add(mob);
@@ -109,6 +107,12 @@ export class MobsFactory {
     static addCommonComponents(game: GameLogic, entity: number, group:number){
         game.ecs.addComponent(entity, new FrameLog());
         game.ecs.addComponent(entity, new TargetGroup(group));
+        game.ecs.addComponent(entity, new Observable());
+        if (group == GroupType.Green){
+            const observed = new Observed();
+            observed.alwaysOn = true;
+            game.ecs.addComponent(entity, observed);
+        }
     }
 }
 
@@ -156,7 +160,7 @@ class LairMobsSpawnerSystem extends GameSystem {
     }
     
     public update(entities: Set<number>, _: number): void {
-        const now = this.game.currentTime;
+        const now = this.game.time;
         
         entities.forEach(entity => {
             const spawner = this.game.ecs.getComponent<LairMobsSpawner>(entity, LairMobsSpawner);

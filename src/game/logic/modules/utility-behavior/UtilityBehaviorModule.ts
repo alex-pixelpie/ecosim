@@ -1,6 +1,7 @@
 import {GameLogic, GameSystem} from "../../GameLogic.ts";
 import {GameLogicModule} from "../../GameLogicModule.ts";
 import {Component} from "../../../core/ECS.ts";
+import {GroupType} from "../MobsModule.ts";
 
 export const LootState = {
     seeLoot: "seeLoot"
@@ -31,6 +32,7 @@ export const defaultState: Record<StateKey, boolean> = Object.keys(StateConst).r
 
 export interface IUtilityBehavior {
     name:string;
+    group: GroupType;
     
     updateState(game: GameLogic, entity: number, state:State): void;
     getUtility(game: GameLogic, entity: number, state:State): number;
@@ -42,10 +44,12 @@ export class UtilityBehavior extends Component {
     public behaviors: IUtilityBehavior[] = [];
     public state: State = {...defaultState};
     public currentBehavior: IUtilityBehavior | null = null;
+    public group: GroupType;
     
-    public constructor(behaviors: IUtilityBehavior[]) {
+    public constructor(behaviors: IUtilityBehavior[], group: GroupType) {
         super();
         this.behaviors = behaviors;
+        this.group = group;
     }
 }
 
@@ -64,6 +68,7 @@ class UtilityBehaviorSystem extends GameSystem {
             }
 
             utilityBehavior.behaviors.forEach(behavior => {
+                behavior.group = utilityBehavior.group;
                 behavior.updateState(this.game, entity, utilityBehavior.state);
             });
 

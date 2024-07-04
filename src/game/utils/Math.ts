@@ -56,4 +56,23 @@ export class MathUtils {
         const y = position.y + radius * Math.sin(angle);
         return { x, y };
     }
+    
+    static closestValue(position: Pos, values: Set<number>, positions: Map<number, Pos>): number | undefined {
+        let closest = Number.MAX_VALUE;
+        let target = undefined;
+        
+        values.forEach(value => {
+            const pos = positions.get(value);
+            if (!pos) {
+                return;
+            }
+            const distance = MathUtils.distance(position, pos);
+            if (distance < closest) {
+                closest = distance;
+                target = value;
+            }
+        });
+        
+        return target;
+    }
 }

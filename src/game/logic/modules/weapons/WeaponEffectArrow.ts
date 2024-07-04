@@ -25,6 +25,6 @@ export const WeaponEffectArrow: WeaponEffectFunction = (game: GameLogic, owner: 
     weapon.appliedEffectThisAttack = true;
 
     const targetLog = game.ecs.getComponent(target, FrameLog);
-    targetLog?.logs.push({ type: FrameLogType.TakeDamage, value: totalDamage, timestamp: game.currentTime });
-    crit > 1 && targetLog?.logs.push({ type: FrameLogType.TakeCriticalDamage, value: crit, timestamp: game.currentTime });
+    targetLog?.logs.push({ type: FrameLogType.TakeDamage, value: totalDamage, timestamp: game.time });
+    crit > 1 && targetLog?.logs.push({ type: FrameLogType.TakeCriticalDamage, value: crit, timestamp: game.time });
 };

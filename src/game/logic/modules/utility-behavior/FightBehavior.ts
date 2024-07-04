@@ -1,14 +1,15 @@
 import { IUtilityBehavior, State } from "./UtilityBehaviorModule.ts";
 import {GameLogic} from "../../GameLogic.ts";
-import {Senses} from "../SensoryModule.ts";
+import {GroupAwareness} from "../SensoryModule.ts";
 import {Position, Size} from "../PhaserPhysicsModule.ts";
 import {MathUtils} from "../../../utils/Math.ts";
-import {Targeting, TargetOfAttack} from "../TargetingModule.ts";
+import {TargetOfAttack} from "../TargetingModule.ts";
 import {Weapon} from "../weapons/Weapons.ts";
 import {Steering} from "../SteeringModule.ts";
 
 export class FightBehavior implements IUtilityBehavior {
     name: string = "Attacking";
+    group: number;
 
     getUtility(game: GameLogic, entity: number, state: State): number {
         return state.seeEnemies ? 6 : -100;
@@ -60,41 +61,37 @@ export class FightBehavior implements IUtilityBehavior {
     }
 
     updateState(game: GameLogic, entity: number, state: State): void {
-        const senses = game.ecs.getComponent(entity, Senses);
-        state.seeEnemies = senses?.enemies.length > 0;
-    }
-
-    private static ChooseTarget(game: GameLogic, entity: number, attackTarget: TargetOfAttack) {
-        const senses = game.ecs.getComponent(entity, Senses);
+        const senses = GroupAwareness.getAwareness(game.ecs, entity);
         if (!senses) {
             return;
         }
+        state.seeEnemies = senses?.enemies.size > 0;
+    }
 
-        const targeting = game.ecs.getComponent(entity, Targeting);
-        if (!targeting) {
+    private static ChooseTarget(game: GameLogic, entity: number, attackTarget: TargetOfAttack) {
+        const senses = GroupAwareness.getAwareness(game.ecs, entity);
+        if (!senses) {
             return;
         }
-
-        const targets = senses.enemies;
-        let closest = Number.MAX_VALUE;
-        let target = null;
         
-        targets.forEach(enemy => {
-
-            const distance = senses.distances.get(enemy) || Number.MAX_VALUE;
-            if (distance < closest) {
-                closest = distance;
-                target = enemy;
-            }
-        });
+        const position = game.ecs.getComponent(entity, Position);
+        if (!position) {
+            return;
+        }
         
-        if (!target) {
+        const target = MathUtils.closestValue(position, senses.enemies, senses.positions);
+
+        if (target == undefined) {
             return;
         }
 
         const targetPosition = game.ecs.getComponent(target, Position);
         const targetSize = game.ecs.getComponent(target, Size);
 
+        if (!targetPosition || !targetSize) {
+            return;
+        }
+        
         attackTarget.attack(target, targetSize?.radius, targetPosition.x, targetPosition.y);
     }
 }

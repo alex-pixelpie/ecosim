@@ -1,16 +1,16 @@
 import {ECS} from "../../core/ECS.ts";
 import {MapDisplay} from "./../MapDisplay.ts";
 import {FrameLog, FrameLogType} from "../../logic/modules/FrameLogModule.ts";
-import {Mob} from "../../logic/modules/MobsModule.ts";
+import {GroupType, Mob} from "../../logic/modules/MobsModule.ts";
 import {Corpse, Health, Ruin} from "../../logic/modules/DeathModule.ts";
 import {Building} from "../../logic/modules/BuildingsModule.ts";
 import {GameOverAgent} from "../../logic/modules/GameOverModule.ts";
-import {PhysicsBody, Position} from "../../logic/modules/PhaserPhysicsModule.ts";
+import {MapPosition, PhysicsBody, Position} from "../../logic/modules/PhaserPhysicsModule.ts";
 import {TargetGroup, TargetOfAttack} from "../../logic/modules/TargetingModule.ts";
 import {DisplayModule} from "../DisplayModule.ts";
 import {Tile} from "../../logic/modules/TilesModule.ts";
 import {Configs} from "../../configs/Configs.ts";
-import {Senses} from "../../logic/modules/SensoryModule.ts";
+import {GroupAwareness, Observed, Senses} from "../../logic/modules/SensoryModule.ts";
 import OutlinePipelinePlugin from "phaser3-rex-plugins/plugins/outlinepipeline-plugin";
 import {EventBus, GameEvents, UiEvents} from "../../EventBus.ts";
 import {Inventory, Loot} from "../../logic/modules/LootModule.ts";
@@ -18,9 +18,9 @@ import {UtilityBehavior} from "../../logic/modules/utility-behavior/UtilityBehav
 
 export type AutoRpgDisplayModule = DisplayModule<AutoRpgDisplay>;
 
-export class TileDisplayData {
-    public position: {x: number, y: number};
-}
+export type TileDisplayData  = {
+    position: {x: number, y: number};
+} & ObservableData;
 
 export enum DisplayEntityType {
     Mob = 'mob',
@@ -43,7 +43,15 @@ export type SelectableData ={
     isSelected?:boolean;
 }
 
+export type ObservableData = {
+    isObserved: boolean;
+}
+
 export type SelectableDisplayEntityData = DisplayEntityData & SelectableData;
+
+export type RuinData = SelectableDisplayEntityData & ObservableData;
+
+export type LootData = DisplayEntityData & ObservableData;
 
 export type DamageSustainedData = {
     damage?: number;
@@ -57,7 +65,7 @@ export type HealthData = {
 
 export type CorpseData = {
     rotFactor: number;
-} & DisplayEntityData & DamageSustainedData & SelectableData;
+} & DisplayEntityData & DamageSustainedData & SelectableData & ObservableData;
 
 export type GameOverAgentData = DisplayEntityData & SelectableData;
 
@@ -77,11 +85,11 @@ export type MobData = {
     maxAttackRange?: number;
     behavior:string;
     coins?: number;
-} & DisplayEntityData & DamageSustainedData & SelectableData & HealthData;
+} & DisplayEntityData & DamageSustainedData & SelectableData & HealthData & ObservableData;
 
 export type BuildingData = {
     group:number;
-} & DisplayEntityData & DamageSustainedData & SelectableData & HealthData;
+} & DisplayEntityData & DamageSustainedData & SelectableData & HealthData & ObservableData;
 
 export class AutoRpgDisplay {
     mapDisplay: MapDisplay;
@@ -92,9 +100,9 @@ export class AutoRpgDisplay {
     mobs: MobData[] = [];
     corpses: CorpseData[] = [];
     buildings: BuildingData[] = [];
-    ruins: SelectableDisplayEntityData[] = [];
+    ruins: RuinData[] = [];
     gameOverAgents:GameOverAgentData[] = [];
-    coins: DisplayEntityData[] = [];
+    coins: LootData[] = [];
     
     // Layers
     mobUi: Phaser.GameObjects.Container;
@@ -119,7 +127,12 @@ export class AutoRpgDisplay {
         this.modules = modules;
         this.mapDisplay = new MapDisplay(scene, mapConfig.tilesInMapSide);
 
-        this.tiles = Array.from({length: mapConfig.tilesInMapSide}, () => Array.from({length: mapConfig.tilesInMapSide}, () => new TileDisplayData()));
+        this.tiles = Array.from({length: mapConfig.tilesInMapSide}, () => Array.from({length: mapConfig.tilesInMapSide}, () => {
+            return {
+                position: {x: 0, y: 0},
+                isObserved: false
+            };
+        }));
         modules.forEach(module => module.init(this));
 
         this.corpsesLayer = scene.add.container();
@@ -197,15 +210,17 @@ export class AutoRpgDisplay {
         this.gameOverAgents = gameOverAgents;
     }
     
-    
     private updateTiles(){
         const entities = this.ecs.getEntitiesWithComponent(Tile);
         
         entities.forEach(entity => {
-            const position = this.ecs.getComponent(entity, Position);
+            const position = this.ecs.getComponent(entity, MapPosition);
+            const observed = this.ecs.getComponent(entity, Observed);
+            const isObserved = !!(observed?.alwaysOn || observed?.visibleToGroup.get(GroupType.Green));
             
             this.tiles[position.x][position.y] = {
-                position: {x: position.x, y: position.y}
+                position: {x: position.x, y: position.y},
+                isObserved
             };
         });
     }
@@ -221,7 +236,8 @@ export class AutoRpgDisplay {
             const log = this.ecs.getComponent(entity, FrameLog);
             const group = this.ecs.getComponent(entity, TargetGroup);
             const senses = this.ecs.getComponent(entity, Senses);
-            
+            const awareness = GroupAwareness.getAwareness(this.ecs, entity);
+
             let direction = 1;
             
             const target = targeting?.target;
@@ -242,6 +258,8 @@ export class AutoRpgDisplay {
             
             const inventory = this.ecs.getComponent(entity, Inventory);
             const behavior = this.ecs.getComponent(entity, UtilityBehavior);
+            const observed = this.ecs.getComponent(entity, Observed);
+            const isObserved = !!(observed?.alwaysOn || observed?.visibleToGroup.get(GroupType.Green));
             
             return {
                 id: entity,
@@ -260,13 +278,14 @@ export class AutoRpgDisplay {
                 group: group?.id || 0,
                 rotationToTarget,
                 sensoryRange: senses?.range || 0,
-                targetsInRange: senses?.enemies.length,
+                targetsInRange: awareness?.enemies.size,
                 minAttackRange: targeting?.minAttackRange || 0,
                 maxAttackRange: targeting?.maxAttackRange || 0,
                 isSelected: this.selectedEntity == entity,
                 type: DisplayEntityType.Mob,
                 behavior: behavior?.currentBehavior?.name || 'None',
-                coins: inventory?.coins || 0
+                coins: inventory?.coins || 0,
+                isObserved
             } as MobData;
         });
 
@@ -285,7 +304,9 @@ export class AutoRpgDisplay {
             
             const currentAge = corpse.age;
             const maxAge = corpse.maxAge;
-            const rotFactor = 1 - (currentAge / maxAge); 
+            const rotFactor = 1 - (currentAge / maxAge);
+            const observed = this.ecs.getComponent(entity, Observed);
+            const isObserved = !!(observed?.alwaysOn || observed?.visibleToGroup.get(GroupType.Green));
             
             return {
                 id: entity,
@@ -296,7 +317,8 @@ export class AutoRpgDisplay {
                 criticalMultiplier,
                 rotFactor,
                 isSelected: this.selectedEntity == entity,
-                type: DisplayEntityType.Corpse
+                type: DisplayEntityType.Corpse,
+                isObserved
             } as CorpseData;
         });
         
@@ -316,6 +338,9 @@ export class AutoRpgDisplay {
             const damage = log?.logs.reduce((acc, log) => log.type === FrameLogType.TakeDamage ? acc + log.value : acc, 0);
             const criticalMultiplier = log?.logs.reduce((acc, log) => log.type === FrameLogType.TakeCriticalDamage ? log.value : acc, 0);
             
+            const observed = this.ecs.getComponent(entity, Observed);
+            const isObserved = !!(observed?.alwaysOn || observed?.visibleToGroup.get(GroupType.Green));
+            
             return {
                 id: entity,
                 x: position?.x || 0,
@@ -327,7 +352,8 @@ export class AutoRpgDisplay {
                 damage,
                 criticalMultiplier,
                 isSelected: this.selectedEntity == entity,
-                type: DisplayEntityType.Building
+                type: DisplayEntityType.Building,
+                isObserved
             } as BuildingData;
         });
 
@@ -339,6 +365,9 @@ export class AutoRpgDisplay {
         
         const ruins = entities.map(entity => {
             const ruin = this.ecs.getComponent(entity, Ruin);
+
+            const observed = this.ecs.getComponent(entity, Observed);
+            const isObserved = !!(observed?.alwaysOn || observed?.visibleToGroup.get(GroupType.Green));
             
             return {
                 id: entity,
@@ -346,8 +375,9 @@ export class AutoRpgDisplay {
                 y: ruin?.y || 0,
                 subtype: ruin?.type || 'castle',
                 isSelected: this.selectedEntity == entity,
-                type: DisplayEntityType.Ruin
-            } as SelectableDisplayEntityData;
+                type: DisplayEntityType.Ruin,
+                isObserved
+            } as RuinData;
         });
         
         this.ruins = ruins;
@@ -358,6 +388,9 @@ export class AutoRpgDisplay {
         
         const coins = entities.map(entity => {
             const position = this.ecs.getComponent(entity, Position);
+
+            const observed = this.ecs.getComponent(entity, Observed);
+            const isObserved = !!(observed?.alwaysOn || observed?.visibleToGroup.get(GroupType.Green));
             
             return {
                 id: entity,
@@ -365,8 +398,9 @@ export class AutoRpgDisplay {
                 y: position?.y || 0,
                 subtype: 'Gold',
                 isSelected: this.selectedEntity == entity,
-                type: DisplayEntityType.Coin
-            } as DisplayEntityData;
+                type: DisplayEntityType.Coin,
+                isObserved
+            } as LootData;
         });
         
         this.coins = coins;

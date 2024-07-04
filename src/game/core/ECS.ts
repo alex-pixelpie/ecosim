@@ -258,12 +258,16 @@ export class ECS {
     private checkES(entity: Entity, system: System): void {
         let have = this.entities.get(entity);
         let need = system.componentsRequired;
-        if (have.hasAll(need)) {
+        if (have!.hasAll(need)) {
             // should be in system
-            this.systems.get(system).add(entity); // no-op if in
+            this.systems.get(system)!.add(entity); // no-op if in
         } else {
             // should not be in system
-            this.systems.get(system).delete(entity); // no-op if out
+            this.systems.get(system)!.delete(entity); // no-op if out
         }
+    }
+
+    hasEntity(enemy: number) {
+        return this.entities.has(enemy);
     }
 }

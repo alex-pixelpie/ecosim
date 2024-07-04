@@ -17,6 +17,7 @@ import {PatrolBehavior} from "./utility-behavior/PatrolBehavior.ts";
 import {IdleBehavior} from "./utility-behavior/IdleBehavior.ts";
 import {FightBehavior} from "./utility-behavior/FightBehavior.ts";
 import {EventBus, GameEvents} from "../../EventBus.ts";
+import {Observable} from "./SensoryModule.ts";
 
 export class TestGameModule extends GameLogicModule {
     init(game: GameLogic): void {
@@ -39,12 +40,12 @@ export class TestGameModule extends GameLogicModule {
         };
 
         greenSkeletonConfig.config.weaponConfig.damageMax = 1000;
-        greenSkeletonConfig.config.sensoryRange = 500;
+        greenSkeletonConfig.config.sensoryRange = 250;
 
         const hero = MobsFactory.makeMob(game, greenSkeletonConfig);
 
         // Utility behavior
-        game.ecs.addComponent(hero, new UtilityBehavior([new LootBehavior(), new PatrolBehavior(), new IdleBehavior(), new FightBehavior()]));
+        game.ecs.addComponent(hero, new UtilityBehavior([new LootBehavior(), new PatrolBehavior(), new IdleBehavior(), new FightBehavior()], GroupType.Green));
 
         // Select this motherfucker
         game.scene.time.delayedCall(100, () => {
@@ -61,6 +62,7 @@ export class TestGameModule extends GameLogicModule {
             game.ecs.addComponent(coin, new Loot(LootType.Coin, 10, 1));
             game.ecs.addComponent(coin, new Position(pos.x, pos.y));
             game.ecs.addComponent(coin, new Lootable());
+            game.ecs.addComponent(coin, new Observable());
         }
     }
     
@@ -73,6 +75,7 @@ export class TestGameModule extends GameLogicModule {
         game.ecs.addComponent(building, new Health(config.health));
         game.ecs.addComponent(building, new FrameLog());
         game.ecs.addComponent(building, new TargetGroup(GroupType.Red));
+        game.ecs.addComponent(building, new Observable());
         game.addPhysicalComponents({entity: building, x:centerPos, y:centerPos, radius: config.size, isStatic: true});
 
         const greenSkeletonConfig:MobSpawnDefinition = {

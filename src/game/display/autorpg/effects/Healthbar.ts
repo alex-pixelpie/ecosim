@@ -5,7 +5,9 @@ import Sprite = Phaser.GameObjects.Sprite;
 export interface HealthData {
     health: number;
     maxHealth: number;
+    isObserved: boolean;
 }
+
 export class Healthbar {
     healthBar: Phaser.GameObjects.Graphics;
     maxWidth: number;
@@ -27,7 +29,12 @@ export class Healthbar {
         if (!this.healthBar) {
             return;
         }
-
+        
+        if (!healthData.isObserved) {
+            this.healthBar.clear();
+            return;
+        }
+        
         this.maxWidth = this.calculateWidth(healthData.maxHealth);
         const spriteBottomY = this.onTop ? container.y - container.displayHeight / 2 + this.offsetBottom : container.y + container.displayHeight / 2 + this.offsetBottom;
         const healthBarX = container.x - this.maxWidth / 2;

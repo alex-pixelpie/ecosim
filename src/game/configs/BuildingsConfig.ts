@@ -1,9 +1,7 @@
 import {
     DropDefinition,
     DropType,
-    ElfArcherConfig,
     MobSpawnDefinition,
-    SkeletonConfig,
 } from "./MobsConfig.ts";
 
 export enum BuildingType {
@@ -14,21 +12,19 @@ export enum BuildingType {
 export interface BuildingConfig {
     drops: DropDefinition[];
     health: number;
-    spawn: MobSpawnDefinition[];
+    spawn?: MobSpawnDefinition[];
     size: number;
     type?: BuildingType;
 }
 
 const enemyBaseConfig: BuildingConfig = {
     health: 1000,
-    spawn: [{ config: { ...SkeletonConfig }, count: 3 }, { config: { ...ElfArcherConfig }, count: 2 }],
     drops: [{ type: DropType.Ruin }],
     size: 140
 };
 
 const playerBaseConfig: BuildingConfig = {
     health: 1000,
-    spawn: [{ config: { ...SkeletonConfig }, count: 3 }, { config: { ...ElfArcherConfig }, count: 2 }],
     drops: [{ type: DropType.Ruin }],
     size: 140
 };

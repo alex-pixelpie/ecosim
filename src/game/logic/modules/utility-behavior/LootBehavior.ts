@@ -1,14 +1,15 @@
 import { IUtilityBehavior, State } from "./UtilityBehaviorModule.ts";
 import {GameLogic} from "../../GameLogic.ts";
 import {Looter} from "../LootModule.ts";
-import {Senses} from "../SensoryModule.ts";
+import {GroupAwareness} from "../SensoryModule.ts";
 import {Position, Size} from "../PhaserPhysicsModule.ts";
 import {MathUtils} from "../../../utils/Math.ts";
 import {Steering} from "../SteeringModule.ts";
 
 export class LootBehavior implements IUtilityBehavior {
     name: string = "Looting";
-
+    group: number;
+    
     getUtility(game: GameLogic, entity: number, state: State): number {
         return state.seeLoot ? 3 : -100;
     }
@@ -42,12 +43,15 @@ export class LootBehavior implements IUtilityBehavior {
     }
 
     updateState(game: GameLogic, entity: number, state: State): void {
-        const senses = game.ecs.getComponent(entity, Senses);
-        state.seeLoot = senses?.loot.length > 0;
+        const senses = GroupAwareness.getAwareness(game.ecs, entity);
+        if (!senses) {
+            return;
+        }
+        state.seeLoot = senses?.loot.size > 0;
     }
 
     private static StartLooting(game: GameLogic, entity: number, looter: Looter) {
-        const senses = game.ecs.getComponent(entity, Senses);
+        const senses = GroupAwareness.getAwareness(game.ecs, entity);
         if (!senses) {
             return;
         }
@@ -57,19 +61,9 @@ export class LootBehavior implements IUtilityBehavior {
             return;
         }
 
-        const targets = senses.loot.sort((a, b) => {
-            const aPosition = game.ecs.getComponent(a, Position);
-            const bPosition = game.ecs.getComponent(b, Position);
-            if (!aPosition || !bPosition) {
-                return 0;
-            }
-            const distanceA = MathUtils.distance(aPosition, position);
-            const distanceB = MathUtils.distance(bPosition, position);
-            return distanceA - distanceB;
-        });
+        const target = MathUtils.closestValue(position, senses.loot, senses.positions);
 
-        const target = targets[0];
-        if (!target) {
+        if (target == undefined) {
             return;
         }
 

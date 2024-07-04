@@ -99,12 +99,12 @@ export class SpritesMobView extends MobView {
         this.container.y = mob.y;
         this.container.scaleX = mob.state.direction;
         
-        this.sprite.visible = true;
+        this.sprite.visible = mob.isObserved;
         
         this.healthbar.update(mob as HealthData, this.container);
         this.groupRing.update(mob, this.container);
-        this.sensorRangeDisplay.update(this.container, mob.sensoryRange || 0, mob.targetsInRange || 0);
-        this.weaponRangeDisplay.update(this.container, mob.minAttackRange || 0, mob.maxAttackRange || 0);
+        this.sensorRangeDisplay.update(this.container, mob.sensoryRange || 0, mob.targetsInRange || 0, mob.isObserved);
+        this.weaponRangeDisplay.update(this.container, mob.minAttackRange || 0, mob.maxAttackRange || 0, mob.isObserved);
         this.selection.update(mob as MobData);
     }
 }

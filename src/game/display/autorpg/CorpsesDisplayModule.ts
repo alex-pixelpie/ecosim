@@ -19,7 +19,7 @@ class CorpseView {
     }
 
     update(corpse: CorpseData) {
-        this.sprite.setAlpha(corpse.rotFactor);
+        this.sprite.setAlpha(corpse.isObserved ? corpse.rotFactor : 0);
         this.selection.update(corpse);
     }
 }
@@ -75,5 +75,8 @@ export class CorpsesDisplayModule extends DisplayModule<AutoRpgDisplay> {
             frameRate: 12,
             repeat: 0
         });
+    }
+
+    public destroy(): void {
     }
 }

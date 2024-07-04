@@ -38,6 +38,8 @@ export class CoinsDisplayModule extends DisplayModule<AutoRpgDisplay> {
                 view.sprite.play("coin", true);
                 this.coins.set(coin.id, view);
             }
+            
+            view.sprite.alpha = coin.isObserved ? 1 : 0;
         });
     }
 
@@ -50,5 +52,9 @@ export class CoinsDisplayModule extends DisplayModule<AutoRpgDisplay> {
             frameRate: 12,
             repeat: -1
         });
+    }
+
+    public destroy(): void {
+        this.coins.forEach(view => view.destroy());
     }
 }

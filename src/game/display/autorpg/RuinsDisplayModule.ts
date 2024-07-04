@@ -40,6 +40,11 @@ export class RuinsDisplayModule extends DisplayModule<AutoRpgDisplay> {
                 view = new RuinView(this.display, ruin.x, ruin.y, RuinKeys[ruin.subtype  as any as keyof typeof RuinKeys]);
                 this.ruins.set(ruin.id, view);
             }
+            view.sprite.alpha = ruin.isObserved ? 1 : 0;
         });
     }
+    
+    public destroy(): void {
+    }
+
 }

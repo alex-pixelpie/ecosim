@@ -3,6 +3,7 @@ import {GameLogic} from "../../GameLogic.ts";
 
 export class ExploreBehavior implements IUtilityBehavior {
     name: string = "Exploring";
+    group: number;
 
     getUtility(game: GameLogic, entity: number, state: State): number {
         if (state.seeEnemies || state.seeLoot) {

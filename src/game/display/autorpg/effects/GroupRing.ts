@@ -5,6 +5,7 @@ import Container = Phaser.GameObjects.Container;
 export interface GroupRingUpdateData {
     rotationToTarget?: number;
     group: number;
+    isObserved: boolean;
 }
 
 export class GroupRing {
@@ -17,14 +18,14 @@ export class GroupRing {
         display.groundUi.add(this.ring);
     }
     
-    update({rotationToTarget = 0, group}: GroupRingUpdateData, container:Container | Sprite): void {
+    update({rotationToTarget = 0, group, isObserved}: GroupRingUpdateData, container:Container | Sprite): void {
         if (!this.ring) {
             return;
         }
         
         const spriteTopY = container.y + this.ring.displayHeight / 4;
         this.ring.setPosition(container.x, spriteTopY);
-        this.ring.alpha = 0.5;
+        this.ring.alpha = isObserved? 0.5 : 0;
         this.ring.rotation = rotationToTarget + Math.PI / 2;
         this.ring.setTint(group? 0x00ff00 : 0xff0000);
     }

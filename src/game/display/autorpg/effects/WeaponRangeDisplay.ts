@@ -12,7 +12,7 @@ export class WeaponRangeDisplay {
         display.groundUi.add(this.maxRange);
     }
 
-    update(container: Container, minRange: number, maxRange: number): void {
+    update(container: Container, minRange: number, maxRange: number, isObserved:boolean): void {
         if (!this.minRange || !this.maxRange) {
             return;
         }
@@ -21,6 +21,10 @@ export class WeaponRangeDisplay {
         this.minRange.clear();
         this.maxRange.clear();
 
+        if (!isObserved) {
+            return;
+        }
+        
         // Set line style for both circles
         this.minRange.lineStyle(2, 0xffff00, 1); // Thin yellow line for min range
         this.maxRange.lineStyle(2, 0xffff00, 1); // Thin yellow line for max range
