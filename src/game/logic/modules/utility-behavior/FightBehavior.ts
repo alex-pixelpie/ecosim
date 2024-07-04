@@ -12,6 +12,10 @@ export class FightBehavior implements IUtilityBehavior {
     group: number;
 
     getUtility(game: GameLogic, entity: number, state: State): number {
+        if (state.attacking){
+            return 10;
+        }
+        
         return state.seeEnemies ? 6 : -100;
     }
     
@@ -34,17 +38,31 @@ export class FightBehavior implements IUtilityBehavior {
             return;
         }
         
-        const targetPosition = game.ecs.getComponent(attackTarget.target, Position);
-        if (!targetPosition){
+        if (!game.mobs.has(attackTarget.target)){
+            weapon.inUse = false;
+            attackTarget.stopAttacking();
             return;
         }
-        
-        attackTarget.x = targetPosition.x;
-        attackTarget.y = targetPosition.y;
+
+        const senses = GroupAwareness.getAwareness(game.ecs, entity);
+        const isVisible = senses?.enemies.has(attackTarget.target);
+
+        if (isVisible){
+            const targetPosition = game.ecs.getComponent(attackTarget.target, Position);
+            if (!targetPosition){
+                return;
+            }
+            attackTarget.x = targetPosition.x;
+            attackTarget.y = targetPosition.y;
+        }
         
         if (attackTarget.inRange(ownPosition)){
-            weapon.inUse = true;
-            return;
+            if (isVisible){
+                weapon.inUse = true;
+                return;
+            }
+            weapon.inUse = false;
+            attackTarget.stopAttacking();
         }
         
         // Steering
@@ -66,6 +84,7 @@ export class FightBehavior implements IUtilityBehavior {
             return;
         }
         state.seeEnemies = senses?.enemies.size > 0;
+        state.attacking = game.ecs.getComponent(entity, TargetOfAttack)?.attacking || false;
     }
 
     private static ChooseTarget(game: GameLogic, entity: number, attackTarget: TargetOfAttack) {

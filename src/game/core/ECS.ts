@@ -161,11 +161,11 @@ export class ECS {
     }
 
     public getComponents(entity: Entity): ComponentContainer {
-        return this.entities.get(entity);
+        return this.entities.get(entity)!;
     }
 
     public getComponent<T extends Component>(entity: Entity, componentClass: ComponentClass<T>): T {
-        return this.entities.get(entity)?.get(componentClass);
+        return this.entities.get(entity)?.get(componentClass)!;
     }
     public removeComponent(
         entity: Entity, componentClass: Function
@@ -229,7 +229,7 @@ export class ECS {
         // Remove any entities that were marked for deletion during the
         // update.
         while (this.entitiesToDestroy.length > 0) {
-            this.destroyEntity(this.entitiesToDestroy.pop());
+            this.destroyEntity(this.entitiesToDestroy.pop()!);
         }
     }
 
@@ -237,7 +237,7 @@ export class ECS {
 
     private destroyEntity(entity: Entity): void {
         for (let componentClass of this.components.keys()) {
-            if (this.entities.get(entity)!.has(componentClass)) {
+            if (this.entities.get(entity)?.has(componentClass)) {
                 this.removeComponent(entity, componentClass);
             }
         }

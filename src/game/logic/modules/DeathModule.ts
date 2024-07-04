@@ -116,6 +116,7 @@ class DropsSystem extends GameSystem {
         if (position && mob && frameLog){
             const corpseEntity = this.game.ecs.addEntity();
             this.game.ecs.addComponent(corpseEntity, new Corpse(mob.type, position.x, position.y));
+            this.game.ecs.addComponent(corpseEntity, new Position(position.x, position.y));
             this.game.ecs.addComponent(corpseEntity, new Observable());
 
             this.game.ecs.removeComponent(entity, DieAndDrop);
@@ -153,7 +154,6 @@ class DropsSystem extends GameSystem {
             this.game.ecs.addComponent(coinEntity, new Position(position.x, position.y));
             this.game.ecs.addComponent(coinEntity, new Lootable());
             this.game.ecs.addComponent(coinEntity, new Observable());
-
         }
     }
 }

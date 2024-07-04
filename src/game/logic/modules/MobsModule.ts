@@ -108,10 +108,13 @@ export class MobsFactory {
         game.ecs.addComponent(entity, new FrameLog());
         game.ecs.addComponent(entity, new TargetGroup(group));
         game.ecs.addComponent(entity, new Observable());
+        const observed = new Observed();
+        game.ecs.addComponent(entity, observed);
+
         if (group == GroupType.Green){
-            const observed = new Observed();
             observed.alwaysOn = true;
-            game.ecs.addComponent(entity, observed);
+        } else {
+            observed.forgetImmediately = true;
         }
     }
 }

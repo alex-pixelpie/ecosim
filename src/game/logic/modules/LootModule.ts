@@ -80,13 +80,18 @@ class LootingSystem extends GameSystem {
     }
     
     private grabLoot(entity:number, looter: Looter): void {
+        const loot = this.game.ecs.getComponent(looter.target!, Loot);
+        if (!loot) {
+            looter.stopLooting();
+            return;
+        }
+        
         const inventory = this.game.ecs.getComponent(entity, Inventory);
         if (!inventory) {
             looter.stopLooting();
             return;
         }
 
-        const loot = this.game.ecs.getComponent(looter.target!, Loot);
 
         // TODO - handle non-coin loot
         inventory.coins += loot.value;

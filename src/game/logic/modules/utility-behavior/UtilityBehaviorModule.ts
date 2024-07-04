@@ -12,7 +12,8 @@ export const PatrolState = {
 } as const;
 
 export const AttackState = {
-    seeEnemies: "seeEnemies"
+    seeEnemies: "seeEnemies",
+    attacking: "attacking"
 } as const;
 
 export const ExploreState = {

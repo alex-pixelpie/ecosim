@@ -43,9 +43,11 @@ export class TestGameModule extends GameLogicModule {
         greenSkeletonConfig.config.sensoryRange = 250;
 
         const hero = MobsFactory.makeMob(game, greenSkeletonConfig);
+        const hero2 = MobsFactory.makeMob(game, greenSkeletonConfig);
 
         // Utility behavior
         game.ecs.addComponent(hero, new UtilityBehavior([new LootBehavior(), new PatrolBehavior(), new IdleBehavior(), new FightBehavior()], GroupType.Green));
+        game.ecs.addComponent(hero2, new UtilityBehavior([new LootBehavior(), new PatrolBehavior(), new IdleBehavior(), new FightBehavior()], GroupType.Green));
 
         // Select this motherfucker
         game.scene.time.delayedCall(100, () => {
@@ -79,7 +81,7 @@ export class TestGameModule extends GameLogicModule {
         game.addPhysicalComponents({entity: building, x:centerPos, y:centerPos, radius: config.size, isStatic: true});
 
         const greenSkeletonConfig:MobSpawnDefinition = {
-            config:Configs.mobsConfig.getMobConfig(MobType.Skeleton),
+            config: {...Configs.mobsConfig.getMobConfig(MobType.Skeleton)},
             x:centerPos,
             y:centerPos,
             group:GroupType.Red,
@@ -87,6 +89,8 @@ export class TestGameModule extends GameLogicModule {
             behaviors: [PatrolBehavior.name, IdleBehavior.name]
         };
 
+        greenSkeletonConfig.config.speed = 500;
+        greenSkeletonConfig.config.sensoryRange = 500;
         game.ecs.addComponent(building, new LairMobsSpawner(8, 2, greenSkeletonConfig));
     }
 }

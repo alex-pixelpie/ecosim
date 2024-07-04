@@ -1,7 +1,7 @@
 import {GameLogic, GameSystem} from "../GameLogic.ts";
 import {GameLogicModule} from "../GameLogicModule.ts";
 import {Component, ECS, Entity} from "../../core/ECS.ts";
-import {Position} from "./PhaserPhysicsModule.ts";
+import {Position, Size} from "./PhaserPhysicsModule.ts";
 import {MathUtils, Pos} from "../../utils/Math.ts";
 import {Targetable, TargetGroup, Targeting} from "./TargetingModule.ts";
 import {Lootable} from "./LootModule.ts";
@@ -113,9 +113,6 @@ class ObservedSystem extends GameSystem {
             observed.lastSeen.forEach((time, group) => {
                 const visible = currentTime - time < (observed.forgetImmediately ? 0.1 : secondsToForgetObserved)
                 observed.visibleToGroup.set(group, visible);
-                if (visible){
-                    return;
-                }
             });
         });
     }
@@ -147,15 +144,20 @@ class SensorySystem extends GameSystem {
         });
         
         entities.forEach(entity => {
-            const senses = game.ecs.getComponent(entity, Senses);
-            const position = game.ecs.getComponent(entity, Position);
-            const targeting = game.ecs.getComponent(entity, Targeting);
             const group = game.ecs.getComponent(entity, TargetGroup);
-            const awareness = groupAwareness.get(group.id);
+            const awareness = groupAwareness.get(group?.id);
             
             if (!awareness){
                 return;
             }
+
+            const targeting = game.ecs.getComponent(entity, Targeting);
+            const senses = game.ecs.getComponent(entity, Senses);
+            const position = game.ecs.getComponent(entity, Position);
+            const size = game.ecs.getComponent(entity, Size);
+            
+            const hs = -size.radius/2;
+            const pos = {x: hs + position.x, y:hs + position.y};
             
             game.ecs.getEntitiesWithComponents([Observable]).forEach(otherEntity => {
                 if (entity === otherEntity) {
@@ -167,7 +169,7 @@ class SensorySystem extends GameSystem {
                     return;
                 }
                 
-                const distance = MathUtils.distance(position, otherPosition);
+                const distance = MathUtils.distance(pos, otherPosition);
                 
                 if (distance < senses.range) {
                     if (group.id == GroupType.Green) SensorySystem.updateObserved(game, otherEntity, group.id);
