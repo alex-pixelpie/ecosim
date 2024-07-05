@@ -29,6 +29,7 @@ import {CoinsDisplayModule} from "../display/autorpg/CoinsDisplayModule.ts";
 import {LootModule} from "../logic/modules/LootModule.ts";
 import {TestGameModule} from "../logic/modules/TestGameModule.ts";
 import {UtilityBehaviorModule} from "../logic/modules/utility-behavior/UtilityBehaviorModule.ts";
+import {Configs} from "../configs/Configs.ts";
 
 export class AutoRpg extends Scene
 {
@@ -42,10 +43,14 @@ export class AutoRpg extends Scene
     update(time: number, delta: number) {
         super.update(time, delta);
 
-        const secondsDelta = delta / 1000;
+        const timeScale = Configs.sessionConfig.speed;
+        this.updateTimeScale(timeScale);
+        
+        const secondsDelta = timeScale ? ((delta / 1000) / timeScale) : 0;
+        
         this.gameLogic.update(secondsDelta);
         this.gameDisplay.update(secondsDelta);
-
+        
         EventBus.emit(UiEvents.GameUpdate, this);
     }
 
@@ -99,5 +104,22 @@ export class AutoRpg extends Scene
     changeScene () {
         EventBus.off(GameEvents.GameStart, this.changeScene, this);
         this.scene.start('AutoRpg');
+    }
+
+    private updateTimeScale(timeScale: number) {
+        if (timeScale == 0){
+            this.tweens.pauseAll();
+            this.physics.pause();
+            this.anims.pauseAll();
+        } else {
+
+            this.tweens.resumeAll();
+            this.physics.resume();
+            this.anims.resumeAll();
+
+            this.tweens.timeScale = timeScale;
+            this.physics.world.timeScale = timeScale;
+            this.time.timeScale = timeScale;
+        }
     }
 }

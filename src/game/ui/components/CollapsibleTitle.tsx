@@ -34,6 +34,7 @@ const styles = {
         marginBottom: '10px',
         overflow: 'hidden' as 'hidden',
         transition: 'height 0.3s ease',
+        color: 'white'
     },
     header: {
         display: 'flex',

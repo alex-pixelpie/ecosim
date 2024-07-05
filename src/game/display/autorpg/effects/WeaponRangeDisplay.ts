@@ -1,5 +1,6 @@
 import {AutoRpgDisplay} from "../AutoRpgDisplay.ts";
 import Container = Phaser.GameObjects.Container;
+import {Configs} from "../../../configs/Configs.ts";
 
 export class WeaponRangeDisplay {
     private minRange: Phaser.GameObjects.Graphics;
@@ -21,7 +22,7 @@ export class WeaponRangeDisplay {
         this.minRange.clear();
         this.maxRange.clear();
 
-        if (!isObserved) {
+        if (!isObserved || !Configs.sessionConfig.showWeaponRange) {
             return;
         }
         

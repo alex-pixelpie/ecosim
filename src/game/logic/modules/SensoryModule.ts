@@ -18,6 +18,7 @@ export class GroupAwareness extends Component {
     public enemies: Set<number> = new Set();
     public allies: Set<number> = new Set();
     public loot: Set<number> = new Set();
+    public lootDibs: Map<number, number> = new Map();
     public positions = new Map<number, Pos>();
     
     public constructor(public group: GroupType) {

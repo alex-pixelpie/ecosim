@@ -1,5 +1,6 @@
 import {AutoRpgDisplay} from "../AutoRpgDisplay.ts";
 import Container = Phaser.GameObjects.Container;
+import {Configs} from "../../../configs/Configs.ts";
 
 export class SensoryRangeDisplay {
     private circle: Phaser.GameObjects.Graphics;
@@ -16,7 +17,7 @@ export class SensoryRangeDisplay {
 
         this.circle.clear();
         
-        if (!isObserved) {
+        if (!isObserved || !Configs.sessionConfig.showSensorRange) {
             return;
         }
         

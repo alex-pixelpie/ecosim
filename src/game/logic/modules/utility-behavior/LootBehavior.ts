@@ -61,7 +61,9 @@ export class LootBehavior implements IUtilityBehavior {
             return;
         }
 
-        const target = MathUtils.closestValue(position, senses.loot, senses.positions);
+        const unclaimedLoot = new Set(Array.from(senses.loot).filter(loot => !senses.lootDibs.has(loot)));
+        
+        const target = MathUtils.closestValue(position, unclaimedLoot, senses.positions);
 
         if (target == undefined) {
             return;
@@ -74,6 +76,7 @@ export class LootBehavior implements IUtilityBehavior {
 
         const targetSize = game.ecs.getComponent(target, Size);
         looter.startLooting(target, targetSize?.radius || 10, targetPosition.x, targetPosition.y);
+        senses.lootDibs.set(target, entity);
     }
     
     stop(game: GameLogic, entity: number, state: State) {
@@ -81,6 +84,9 @@ export class LootBehavior implements IUtilityBehavior {
         if (!looter) {
             return;
         }
+        
+        const senses = GroupAwareness.getAwareness(game.ecs, entity);
+        senses.lootDibs.delete(looter.target!);
 
         looter.stopLooting();
     }
