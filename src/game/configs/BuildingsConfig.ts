@@ -23,6 +23,7 @@ export interface BuildingConfig {
     conquest?: ConquestConfig;
     type: BuildingType;
     size: number;
+    sensoryRange?: number;
 }
 
 const mobTowerConfig: BuildingConfig = {
@@ -31,7 +32,8 @@ const mobTowerConfig: BuildingConfig = {
     conquest: {
         cost: 1000,
         replaceWith: BuildingType.PlayerTower
-    }
+    },
+    sensoryRange: 500,
 };
 
 const playerBaseConfig: BuildingConfig = {
@@ -40,7 +42,8 @@ const playerBaseConfig: BuildingConfig = {
     conquest: {
         cost: 1000,
         replaceWith: BuildingType.MobTower
-    }
+    },
+    sensoryRange: 500
 };
 
 export class BuildingsConfig {

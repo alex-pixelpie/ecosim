@@ -3,7 +3,7 @@ import {MapDisplay} from "./../MapDisplay.ts";
 import {FrameLog, FrameLogType} from "../../logic/modules/FrameLogModule.ts";
 import {GroupType, Mob} from "../../logic/modules/MobsModule.ts";
 import {Corpse, Health, Ruin} from "../../logic/modules/DeathModule.ts";
-import {Building} from "../../logic/modules/BuildingsModule.ts";
+import {Building, Conquerable} from "../../logic/modules/BuildingsModule.ts";
 import {GameOverAgent} from "../../logic/modules/GameOverModule.ts";
 import {MapPosition, PhysicsBody, Position} from "../../logic/modules/PhaserPhysicsModule.ts";
 import {TargetGroup, Attacker} from "../../logic/modules/TargetingModule.ts";
@@ -59,7 +59,7 @@ export type DamageSustainedData = {
 }
 
 export type HealthData = {
-    health: number | string;
+    health: number;
     maxHealth?: number;
 }
 
@@ -89,6 +89,7 @@ export type MobData = {
 
 export type BuildingData = {
     group:number;
+    conqueredFactor: number;
 } & DisplayEntityData & DamageSustainedData & SelectableData & HealthData & ObservableData;
 
 export class AutoRpgDisplay {
@@ -332,6 +333,7 @@ export class AutoRpgDisplay {
             const position = this.ecs.getComponent(entity, Position);
             const building = this.ecs.getComponent(entity, Building);
             const health = this.ecs.getComponent(entity, Health);
+            const conquest = this.ecs.getComponent(entity, Conquerable);
             const group = this.ecs.getComponent(entity, TargetGroup);
             const log = this.ecs.getComponent(entity, FrameLog);
 
@@ -346,14 +348,15 @@ export class AutoRpgDisplay {
                 x: position?.x || 0,
                 y: position?.y || 0,
                 subtype: building?.config.type || 'castle',
-                health: health?.value || 'N/A',
+                health: health?.value,
                 maxHealth: health?.maxValue,
                 group: group?.id || 0,
                 damage,
                 criticalMultiplier,
                 isSelected: this.selectedEntity == entity,
                 type: DisplayEntityType.Building,
-                isObserved
+                isObserved,
+                conqueredFactor: conquest?.conquestPoints / conquest?.conquestCost
             } as BuildingData;
         });
 

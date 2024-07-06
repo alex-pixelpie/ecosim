@@ -14,7 +14,8 @@ export class Healthbar {
     height: number = 5;
     offsetBottom: number = 10; // Distance from the bottom of the sprite
     onTop: boolean;
-
+    fillColor:number = 0xff0000;
+    
     constructor(display: AutoRpgDisplay, isOnTop: boolean = false) {
         this.onTop = isOnTop;
         this.healthBar = display.scene.add.graphics();
@@ -26,7 +27,7 @@ export class Healthbar {
     }
 
     update(healthData: HealthData, container: Container | Sprite): void {
-        if (!this.healthBar) {
+        if (!this.healthBar || healthData.health == null) {
             return;
         }
         
@@ -42,7 +43,7 @@ export class Healthbar {
         this.healthBar.clear();
         this.healthBar.fillStyle(0x000000, 0.5);
         this.healthBar.fillRect(healthBarX, spriteBottomY, this.maxWidth, this.height); // Background bar
-        this.healthBar.fillStyle(0xff0000, 1);
+        this.healthBar.fillStyle(this.fillColor, 1);
         const healthWidth = ((healthData.health as number) / (healthData.maxHealth || 1)) * this.maxWidth;
         this.healthBar.fillRect(healthBarX, spriteBottomY, healthWidth, this.height); // Foreground bar
     }

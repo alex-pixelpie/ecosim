@@ -24,7 +24,7 @@ export enum GroupType {
     Green = 1
 }
 
-const groupTypeValues = Object.values(GroupType) as number[];
+export const groupTypeValues = Object.values(GroupType) as number[];
 
 export class Mob extends Component {
     public constructor(public type: MobType) {

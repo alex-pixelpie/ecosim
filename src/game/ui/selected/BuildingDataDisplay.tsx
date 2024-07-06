@@ -10,7 +10,8 @@ const BuildingDataDisplay: React.FC<{ buildingData: BuildingData }> = ({ buildin
         <div>Subtype: {buildingData.subtype}</div>
         <div>Type: {buildingData.type}</div>
         <div>Group: {buildingData.group ? "Green" : "Red"}</div>
-        <HealthDataDisplay healthData={buildingData} />
+        <div>Conquered: {buildingData.conqueredFactor.toFixed(2)}</div>
+        {buildingData.health ? <HealthDataDisplay healthData={buildingData}/> : null}
     </div>
 );
 

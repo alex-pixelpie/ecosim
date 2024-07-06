@@ -4,9 +4,9 @@ import {Component, Entity} from "../../core/ECS.ts";
 import {BuildingConfig} from "../../configs/BuildingsConfig.ts";
 import {Position} from "./PhaserPhysicsModule.ts";
 import {FrameLog} from "./FrameLogModule.ts";
-import {Observable} from "./SensoryModule.ts";
-import {GroupType, LairMobsSpawner} from "./MobsModule.ts";
-import {TargetGroup} from "./TargetingModule.ts";
+import {Observable, Senses} from "./SensoryModule.ts";
+import {GroupType, groupTypeValues, LairMobsSpawner} from "./MobsModule.ts";
+import {TargetGroup, Targeting} from "./TargetingModule.ts";
 import {Configs} from "../../configs/Configs.ts";
 import {MathUtils, Pos} from "../../utils/Math.ts";
 
@@ -18,18 +18,25 @@ export interface BuildingSpawnDefinition {
 }
 
 export class BuildingsFactory {
-    static makeBuilding(game: GameLogic, {config, x, y, group}: BuildingSpawnDefinition) : Entity {
+    static makeBuilding(game: GameLogic, {config, x, y, group:ownGroup}: BuildingSpawnDefinition) : Entity {
         const building = game.ecs.addEntity();
         
         game.ecs.addComponent(building, new Building(config));
-        config.conquest && game.ecs.addComponent(building, new Conquerable(config.conquest.cost, group));
+        config.conquest && game.ecs.addComponent(building, new Conquerable(config.conquest.cost, ownGroup));
         game.ecs.addComponent(building, new Position(x, y));
         game.ecs.addComponent(building, new FrameLog());
         game.ecs.addComponent(building, new Observable());
-        game.ecs.addComponent(building, new TargetGroup(group));
+        game.ecs.addComponent(building, new TargetGroup(ownGroup));
+        
         game.addPhysicalComponents({entity: building, x, y, radius: config.size, isStatic: true});
+        
         config.spawn && game.ecs.addComponent(building, new LairMobsSpawner(config.spawn.maxMobs, config.spawn.spawnIntervalSeconds, config.spawn.mobConfig));
-
+        
+        if (ownGroup == GroupType.Green && config.sensoryRange){
+            game.ecs.addComponent(building, new Senses(config.sensoryRange));
+            game.ecs.addComponent(building, new Targeting(groupTypeValues.filter(group => group !== ownGroup).reduce((acc, group) => acc.add(group), new Set<number>()) as Set<number>));
+        }
+        
         return building;
     }
 }
@@ -52,10 +59,6 @@ export class Conqueror extends Component {
 
     constructor(public conquestPerSecond: number, public ownSize:number) {
         super();
-    }
-
-    distanceFromTarget(from: Pos): number {
-        return MathUtils.distance(from, this) - this.ownSize;
     }
 
     startConquering(target: number, targetSize:number, x:number, y:number): void {
