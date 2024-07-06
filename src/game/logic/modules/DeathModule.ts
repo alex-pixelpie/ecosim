@@ -19,8 +19,6 @@ export class Health extends Component {
     }
 }
 
-export class Mortality extends Component {}
-
 export class Corpse extends Component {
     public maxAge = 30;
     public age = 0;
@@ -31,7 +29,7 @@ export class Corpse extends Component {
 }
 
 export class Ruin extends Component {
-    public constructor(public type:BuildingType = BuildingType.Base, public x:number, public y:number) {
+    public constructor(public type:BuildingType = BuildingType.MobTower, public x:number, public y:number) {
         super();
     }
 }
@@ -135,7 +133,7 @@ class DropsSystem extends GameSystem {
 
         if (position && building && frameLog){
             const ruinEntity = this.game.ecs.addEntity();
-            this.game.ecs.addComponent(ruinEntity, new Ruin(building.type, position.x, position.y));
+            this.game.ecs.addComponent(ruinEntity, new Ruin(building.config.type, position.x, position.y));
             this.game.ecs.addComponent(ruinEntity, new Observable());
 
             // Copy the frame log to the ruin
@@ -159,10 +157,10 @@ class DropsSystem extends GameSystem {
 }
 
 class DeathSystem extends GameSystem {
-    public componentsRequired: Set<Function> = new Set([Mortality]);
+    public componentsRequired: Set<Function> = new Set([Health]);
 
     protected init(): void {
-        this.componentsRequired = new Set([Mortality]);
+        this.componentsRequired = new Set([Health]);
     }
 
     update(entities: Set<number>, _:number): void {
@@ -176,7 +174,6 @@ class DeathSystem extends GameSystem {
             }
 
             game.ecs.addComponent(entity, new Dead());
-            game.ecs.removeComponent(entity, Mortality);
             game.removePhysicalComponents(entity);
             game.mobs.delete(entity);
         }

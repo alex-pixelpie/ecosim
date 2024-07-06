@@ -47,8 +47,8 @@ class BuildingView {
 }
 
 enum BuildingKeys {
-    Base = "castle",
-    Lair = "lair",
+    PlayerTower = "castle",
+    MobTower = "lair",
 }
 
 const destructionStages = 4; // TODO - config this shit

@@ -5,7 +5,7 @@ import {Component} from "../../core/ECS.ts";
 import {GlideLocomotion} from "./LocomotionModule.ts";
 import {Steering} from "./SteeringModule.ts";
 import {Position} from "./PhaserPhysicsModule.ts";
-import {TargetOfAttack} from "./TargetingModule.ts";
+import {Attacker} from "./TargetingModule.ts";
 import {Configs} from "../../configs/Configs.ts";
 
 export class GameOverAgent extends Component {
@@ -28,7 +28,7 @@ class SlowOnApproachSystem extends GameSystem {
     
     public update(entities: Set<number>, _: number): void {
         entities.forEach(entity => {
-            const attackTarget = this.game.ecs.getComponent(entity, TargetOfAttack);
+            const attackTarget = this.game.ecs.getComponent(entity, Attacker);
             const locomotion = this.game.ecs.getComponent(entity, GlideLocomotion);
             const position = this.game.ecs.getComponent(entity, Position);
             const slowOnApproach = this.game.ecs.getComponent(entity, SlowOnApproach);
@@ -84,7 +84,7 @@ export class GameOverModule extends GameLogicModule {
 
         game.ecs.addComponent(entity, new GameOverAgent(victory));
 
-        const targetSelection = new TargetOfAttack(2);
+        const targetSelection = new Attacker(2);
         targetSelection.x = targetPosition.x * 32;
         targetSelection.y = targetPosition.y * 32;
         targetSelection.targetSize = 16;

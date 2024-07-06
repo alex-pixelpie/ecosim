@@ -7,6 +7,7 @@ import {Targetable, TargetGroup, Targeting} from "./TargetingModule.ts";
 import {Lootable} from "./LootModule.ts";
 import {Configs} from "../../configs/Configs.ts";
 import {GroupType} from "./MobsModule.ts";
+import {Conquerable} from "./BuildingsModule.ts";
 
 export class GroupAwarenessRef extends Component {
     public constructor(public awareness: GroupAwareness) {
@@ -18,6 +19,7 @@ export class GroupAwareness extends Component {
     public enemies: Set<number> = new Set();
     public allies: Set<number> = new Set();
     public loot: Set<number> = new Set();
+    public conquests: Map<number, number> = new Map();
     public lootDibs: Map<number, number> = new Map();
     public positions = new Map<number, Pos>();
     
@@ -69,6 +71,12 @@ export class GroupAwareness extends Component {
                 this.positions.delete(loot);
             }
         });
+        
+        this.conquests.forEach((_, entity) => {
+            if (!ecs.hasEntity(entity)) {
+                this.conquests.delete(entity);
+            }
+        });
     }
 
     clearInvisible(ecs: ECS) {
@@ -79,6 +87,7 @@ export class GroupAwareness extends Component {
                 this.enemies.delete(entity);
                 this.allies.delete(entity);
                 this.loot.delete(entity);
+                this.conquests.delete(entity);
             }
         });
     }
@@ -174,12 +183,14 @@ class SensorySystem extends GameSystem {
                 
                 if (distance < senses.range) {
                     if (group.id == GroupType.Green) SensorySystem.updateObserved(game, otherEntity, group.id);
-                    
                     awareness.positions.set(otherEntity, {...otherPosition});
 
                     const targetable = game.ecs.getComponent(otherEntity, Targetable);
                     if (targetable) {
                         const targetGroup = game.ecs.getComponent(otherEntity, TargetGroup);
+                        if (!targetGroup) {
+                            return;
+                        }
                         const bucket = targeting.targetGroups.has(targetGroup?.id) ? awareness.enemies : awareness.allies;
                         bucket.add(otherEntity);
                         return;
@@ -188,6 +199,12 @@ class SensorySystem extends GameSystem {
                     const lootable = game.ecs.getComponent(otherEntity, Lootable);
                     if (lootable) {
                         awareness.loot.add(otherEntity);
+                        return;
+                    }
+                    
+                    const conquerable = game.ecs.getComponent(otherEntity, Conquerable);
+                    if (conquerable && conquerable.group != group.id) {
+                        awareness.conquests.set(otherEntity, conquerable.conquestPoints);
                         return;
                     }
                 }

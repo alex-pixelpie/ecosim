@@ -1,49 +1,55 @@
 import {
-    DropDefinition,
-    DropType,
     MobSpawnDefinition,
 } from "./MobsConfig.ts";
 
 export enum BuildingType {
-    Base = "Base",
-    Lair = "Lair",
+    MobTower = "MobTower",
+    PlayerTower = "PlayerTower",
+}
+
+export interface ConquestConfig {
+    cost: number;
+    replaceWith: BuildingType;
+}
+
+export interface SpawnMobsConfig {
+    maxMobs: number;
+    spawnIntervalSeconds: number;
+    mobConfig: MobSpawnDefinition;
 }
 
 export interface BuildingConfig {
-    drops: DropDefinition[];
-    health: number;
-    spawn?: MobSpawnDefinition[];
+    spawn?: SpawnMobsConfig;
+    conquest?: ConquestConfig;
+    type: BuildingType;
     size: number;
-    type?: BuildingType;
 }
 
-const enemyBaseConfig: BuildingConfig = {
-    health: 1000,
-    drops: [{ type: DropType.Ruin }],
-    size: 140
+const mobTowerConfig: BuildingConfig = {
+    size: 25,
+    type: BuildingType.MobTower,
+    conquest: {
+        cost: 1000,
+        replaceWith: BuildingType.PlayerTower
+    }
 };
 
 const playerBaseConfig: BuildingConfig = {
-    health: 1000,
-    drops: [{ type: DropType.Ruin }],
-    size: 140
-};
-
-const lairConfig: BuildingConfig = {
-    health: 1000,
-    spawn: [],
-    drops: [{ type: DropType.Ruin }],
     size: 25,
-    type: BuildingType.Lair
+    type: BuildingType.PlayerTower,
+    conquest: {
+        cost: 1000,
+        replaceWith: BuildingType.MobTower
+    }
 };
 
 export class BuildingsConfig {
     public getConfig(type: BuildingType): BuildingConfig {
         switch (type) {
-            case BuildingType.Base:
-                return enemyBaseConfig;
-            case BuildingType.Lair:
-                return lairConfig;
+            case BuildingType.MobTower:
+                return mobTowerConfig;
+            case BuildingType.PlayerTower:
+                return playerBaseConfig;
             default:
                 return playerBaseConfig;
         }

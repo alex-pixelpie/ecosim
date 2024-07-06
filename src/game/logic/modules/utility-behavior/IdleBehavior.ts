@@ -6,7 +6,7 @@ export class IdleBehavior implements IUtilityBehavior {
     group: number;
 
     public updateState(game: GameLogic, entity: number, state: State): void {
-        // Do nothing
+        
     }
 
     public getUtility(game: GameLogic, entity: number, state: State): number {

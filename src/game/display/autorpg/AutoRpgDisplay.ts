@@ -6,7 +6,7 @@ import {Corpse, Health, Ruin} from "../../logic/modules/DeathModule.ts";
 import {Building} from "../../logic/modules/BuildingsModule.ts";
 import {GameOverAgent} from "../../logic/modules/GameOverModule.ts";
 import {MapPosition, PhysicsBody, Position} from "../../logic/modules/PhaserPhysicsModule.ts";
-import {TargetGroup, TargetOfAttack} from "../../logic/modules/TargetingModule.ts";
+import {TargetGroup, Attacker} from "../../logic/modules/TargetingModule.ts";
 import {DisplayModule} from "../DisplayModule.ts";
 import {Tile} from "../../logic/modules/TilesModule.ts";
 import {Configs} from "../../configs/Configs.ts";
@@ -231,7 +231,7 @@ export class AutoRpgDisplay {
         const mobs = entities.map(entity => {
             const body = this.ecs.getComponent(entity, PhysicsBody)?.body;
             const mob = this.ecs.getComponent(entity, Mob);
-            const targeting = this.ecs.getComponent(entity, TargetOfAttack);
+            const targeting = this.ecs.getComponent(entity, Attacker);
             const health = this.ecs.getComponent(entity, Health);
             const log = this.ecs.getComponent(entity, FrameLog);
             const group = this.ecs.getComponent(entity, TargetGroup);
@@ -345,7 +345,7 @@ export class AutoRpgDisplay {
                 id: entity,
                 x: position?.x || 0,
                 y: position?.y || 0,
-                subtype: building?.type || 'castle',
+                subtype: building?.config.type || 'castle',
                 health: health?.value || 'N/A',
                 maxHealth: health?.maxValue,
                 group: group?.id || 0,

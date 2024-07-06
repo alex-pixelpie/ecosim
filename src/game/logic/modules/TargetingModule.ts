@@ -4,7 +4,7 @@ import {GameLogic, GameSystem} from "../GameLogic.ts";
 import {GameLogicModule } from "../GameLogicModule.ts";
 import {Position} from "./PhaserPhysicsModule.ts";
 
-export class TargetOfAttack implements Component {
+export class Attacker implements Component {
     get attacking(): boolean {
         return this.target !== null;
     }
@@ -63,15 +63,15 @@ export class TargetGroup extends Component {
 }
 
 export class UpdateTargetsSystem extends GameSystem {
-    public componentsRequired: Set<Function> = new Set([TargetOfAttack]);
+    public componentsRequired: Set<Function> = new Set([Attacker]);
 
     protected init(): void {
-        this.componentsRequired = new Set([TargetOfAttack]);
+        this.componentsRequired = new Set([Attacker]);
     }
 
     public update(entities: Set<number>, _: number): void {
         entities.forEach(entity => {
-            const attackTarget = this.game.ecs.getComponent<TargetOfAttack>(entity, TargetOfAttack);
+            const attackTarget = this.game.ecs.getComponent<Attacker>(entity, Attacker);
 
             if (!attackTarget.target) {
                 return;

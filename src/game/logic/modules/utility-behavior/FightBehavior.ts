@@ -3,7 +3,7 @@ import {GameLogic} from "../../GameLogic.ts";
 import {GroupAwareness} from "../SensoryModule.ts";
 import {Position, Size} from "../PhaserPhysicsModule.ts";
 import {MathUtils} from "../../../utils/Math.ts";
-import {TargetOfAttack} from "../TargetingModule.ts";
+import {Attacker} from "../TargetingModule.ts";
 import {Weapon} from "../weapons/Weapons.ts";
 import {Steering} from "../SteeringModule.ts";
 
@@ -20,10 +20,9 @@ export class FightBehavior implements IUtilityBehavior {
     }
     
     execute(game: GameLogic, entity: number, state: State): void {
-        const attackTarget = game.ecs.getComponent(entity, TargetOfAttack);
-        const ownPosition = game.ecs.getComponent(entity, Position);
+        const attack = game.ecs.getComponent(entity, Attacker);
         
-        if (!attackTarget || !ownPosition) {
+        if (!attack) {
             return;
         }
 
@@ -32,37 +31,42 @@ export class FightBehavior implements IUtilityBehavior {
             return;
         }
         
-        if (!attackTarget.target){
+        if (!attack.target){
             weapon.inUse = false;
-            FightBehavior.ChooseTarget(game, entity, attackTarget);
+            FightBehavior.ChooseTarget(game, entity, attack);
             return;
         }
         
-        if (!game.mobs.has(attackTarget.target)){
+        if (!game.mobs.has(attack.target)){
             weapon.inUse = false;
-            attackTarget.stopAttacking();
+            attack.stopAttacking();
             return;
         }
 
         const senses = GroupAwareness.getAwareness(game.ecs, entity);
-        const isVisible = senses?.enemies.has(attackTarget.target);
+        const isVisible = senses?.enemies.has(attack.target);
 
         if (isVisible){
-            const targetPosition = game.ecs.getComponent(attackTarget.target, Position);
+            const targetPosition = game.ecs.getComponent(attack.target, Position);
             if (!targetPosition){
                 return;
             }
-            attackTarget.x = targetPosition.x;
-            attackTarget.y = targetPosition.y;
+            attack.x = targetPosition.x;
+            attack.y = targetPosition.y;
         }
-        
-        if (attackTarget.inRange(ownPosition)){
+
+        const ownPosition = game.ecs.getComponent(entity, Position);
+        if (!ownPosition){
+            return;
+        }
+
+        if (attack.inRange(ownPosition)){
             if (isVisible){
                 weapon.inUse = true;
                 return;
             }
             weapon.inUse = false;
-            attackTarget.stopAttacking();
+            attack.stopAttacking();
         }
         
         // Steering
@@ -71,8 +75,8 @@ export class FightBehavior implements IUtilityBehavior {
             return;
         }
         
-        const tooClose = attackTarget.tooClose(ownPosition);
-        const vectorToTarget = MathUtils.normalize(tooClose ? MathUtils.subtract(ownPosition, attackTarget) : MathUtils.subtract(attackTarget, ownPosition));
+        const tooClose = attack.tooClose(ownPosition);
+        const vectorToTarget = MathUtils.normalize(tooClose ? MathUtils.subtract(ownPosition, attack) : MathUtils.subtract(attack, ownPosition));
         const impulseToTarget = MathUtils.multiply(vectorToTarget, 1);
         
         steering.impulses.push(impulseToTarget);
@@ -84,10 +88,10 @@ export class FightBehavior implements IUtilityBehavior {
             return;
         }
         state.seeEnemies = senses?.enemies.size > 0;
-        state.attacking = game.ecs.getComponent(entity, TargetOfAttack)?.attacking || false;
+        state.attacking = game.ecs.getComponent(entity, Attacker)?.attacking || false;
     }
 
-    private static ChooseTarget(game: GameLogic, entity: number, attackTarget: TargetOfAttack) {
+    private static ChooseTarget(game: GameLogic, entity: number, attackTarget: Attacker) {
         const senses = GroupAwareness.getAwareness(game.ecs, entity);
         if (!senses) {
             return;

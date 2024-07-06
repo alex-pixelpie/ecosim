@@ -16,11 +16,16 @@ export const AttackState = {
     attacking: "attacking"
 } as const;
 
+export const ConquestState = {
+    seeConquests: "seeConquests",
+    conquering: "conquering"
+} as const;
+
 export const ExploreState = {
     exploring: "exploring"
 } as const;
 
-export const StateConst = {...LootState, ...PatrolState, ...AttackState, ...ExploreState} as const;
+export const StateConst = {...LootState, ...PatrolState, ...AttackState, ...ExploreState, ...ConquestState} as const;
 
 export type StateKey = keyof typeof StateConst;
 
@@ -37,7 +42,7 @@ export interface IUtilityBehavior {
     
     updateState(game: GameLogic, entity: number, state:State): void;
     getUtility(game: GameLogic, entity: number, state:State): number;
-    execute(game: GameLogic, entity: number, state:State): void;
+    execute(game: GameLogic, entity: number, state:State, delta:number): void;
     stop?(game: GameLogic, entity: number, state:State): void;
 }
 
@@ -82,7 +87,7 @@ class UtilityBehaviorSystem extends GameSystem {
             utilityBehavior.currentBehavior = bestBehavior;
             
             if (bestBehavior) {
-                bestBehavior.execute(this.game, entity, utilityBehavior.state);
+                bestBehavior.execute(this.game, entity, utilityBehavior.state, delta);
             }
         });
     }

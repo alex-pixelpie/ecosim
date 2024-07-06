@@ -6,14 +6,18 @@ import {Steering, WallsAvoider} from "./SteeringModule.ts";
 import {FrameLog} from "./FrameLogModule.ts";
 import {GlideLocomotion} from "./LocomotionModule.ts";
 import {OverwhelmComponent} from "./OverwhelmModule.ts";
-import {DieAndDrop, Health, Mortality} from "./DeathModule.ts";
-import {Targeting, Targetable, Targeted, TargetGroup, TargetOfAttack} from "./TargetingModule.ts";
+import {DieAndDrop, Health} from "./DeathModule.ts";
+import {Targeting, Targetable, Targeted, TargetGroup, Attacker} from "./TargetingModule.ts";
 import {MobSpawnDefinition, MobType, WeaponConfig} from "../../configs/MobsConfig.ts";
 import {Observable, Observed, Senses} from "./SensoryModule.ts";
 import {Inventory, Looter} from "./LootModule.ts";
 import {Patrol, PatrolBehavior} from "./utility-behavior/PatrolBehavior.ts";
 import {IdleBehavior} from "./utility-behavior/IdleBehavior.ts";
 import {IUtilityBehavior, UtilityBehavior} from "./utility-behavior/UtilityBehaviorModule.ts";
+import {FightBehavior} from "./utility-behavior/FightBehavior.ts";
+import {LootBehavior} from "./utility-behavior/LootBehavior.ts";
+import {ConquerBehavior} from "./utility-behavior/ConquerBehavior.ts";
+import {Conqueror} from "./BuildingsModule.ts";
 
 export enum GroupType {
     Red = 0,
@@ -30,11 +34,14 @@ export class Mob extends Component {
 
 const behaviorsMap = new Map<string, Function>([
     [PatrolBehavior.name, PatrolBehavior],
-    [IdleBehavior.name, IdleBehavior]
+    [IdleBehavior.name, IdleBehavior],
+    [FightBehavior.name, FightBehavior],
+    [LootBehavior.name, LootBehavior],
+    [ConquerBehavior.name, ConquerBehavior]
 ]);
 
 export class MobsFactory {
-    static makeMob(game: GameLogic, {config,x, y, group, patrol, looting, behaviors}:MobSpawnDefinition) {
+    static makeMob(game: GameLogic, {config,x, y, group}:MobSpawnDefinition) {
         const mob = game.ecs.addEntity();
         
         game.ecs.addComponent(mob, new Mob(config.type));
@@ -60,17 +67,21 @@ export class MobsFactory {
         // Physics
         MobsFactory.addPhysics(game, mob, x, y, config.size);
 
-        if (patrol){
-            game.ecs.addComponent(mob, new Patrol(patrol, config.size));
+        if (config.patrol){
+            game.ecs.addComponent(mob, new Patrol(config.patrol, config.size));
         }
         
-        if (looting){
+        if (config.looting){
             game.ecs.addComponent(mob, new Looter(config.size));
             game.ecs.addComponent(mob, new Inventory());
         }
         
-        if (behaviors){
-            game.ecs.addComponent(mob, new UtilityBehavior(behaviors.map(behaviorName => new (behaviorsMap.get(behaviorName) as any)() as IUtilityBehavior), group));
+        if (config.behaviors){
+            game.ecs.addComponent(mob, new UtilityBehavior(config.behaviors.map(behaviorName => new (behaviorsMap.get(behaviorName) as any)() as IUtilityBehavior), group));
+        }
+        
+        if (config.conquestPointsPerSecond) {
+            game.ecs.addComponent(mob, new Conqueror(config.conquestPointsPerSecond, config.size));
         }
         
         game.mobs.add(mob);
@@ -82,7 +93,7 @@ export class MobsFactory {
         // Targeting all groups except own
         game.ecs.addComponent(entity, new Senses(sensoryRange));
 
-        game.ecs.addComponent(entity, new TargetOfAttack(size/2));
+        game.ecs.addComponent(entity, new Attacker(size/2));
         game.ecs.addComponent(entity, new Targeted());
         game.ecs.addComponent(entity, new Targetable());
         game.ecs.addComponent(entity, new Targeting(groupTypeValues.filter(group => group !== ownGroup).reduce((acc, group) => acc.add(group), new Set<number>()) as Set<number>));
@@ -97,7 +108,6 @@ export class MobsFactory {
     static addCombat(game: GameLogic, entity: number, health:number, weaponConfig: WeaponConfig){
         game.ecs.addComponent(entity, new Health(health));
         game.ecs.addComponent(entity, new Weapon(weaponConfig));
-        game.ecs.addComponent(entity, new Mortality());
     }
     
     static addPhysics(game: GameLogic, entity: number, x:number, y:number, size:number) {

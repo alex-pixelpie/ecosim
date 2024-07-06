@@ -39,6 +39,8 @@ export interface MobConfig {
     behaviors?: string[];
     patrol?:PatrolConfig;
     avoidWalls?: boolean;
+    looting?: boolean;
+    conquestPointsPerSecond?: number;
 }
 
 export interface MobSpawnDefinition {
@@ -46,9 +48,6 @@ export interface MobSpawnDefinition {
     x: number;
     y: number;
     group: number;
-    behaviors?: string[];
-    patrol?:PatrolConfig;
-    looting?: boolean;
 }
 
 export enum WeaponEffect {
