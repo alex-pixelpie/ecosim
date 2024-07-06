@@ -5,6 +5,9 @@ import {MapDisplay} from "../MapDisplay.ts";
 import {Pos} from "../../utils/Math.ts";
 
 export class TilePaintingModule extends DisplayModule<AutoRpgDisplay> {
+    public destroy(): void {
+    }
+    
     private hoverMarker: Phaser.GameObjects.Graphics;
     private selectedIndicator: Phaser.GameObjects.Graphics;
     private scene : Phaser.Scene;

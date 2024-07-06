@@ -30,6 +30,8 @@ export class Preloader extends Scene
 
         this.load.image('grassland-tiles', 'grassland-tiles.png');
 
+        this.load.image('ground', 'ground.png');
+
         this.load.image('group-ring', 'group-ring.png');
         
         this.load.image('circle', 'circle.png');
