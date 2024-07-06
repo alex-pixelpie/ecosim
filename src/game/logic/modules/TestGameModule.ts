@@ -30,7 +30,7 @@ export class TestGameModule extends GameLogicModule {
         const config = {...Configs.mobsConfig.getMobConfig(MobType.Skeleton)};
         config.patrol = {maxFrequency: 10, minFrequency: 5, range:500, targetRadius: 200, targetPosition: {x: centerPos, y: centerPos}};
         config.weaponConfig.damageMax = 1000;
-        config.sensoryRange = 250;
+        config.sensoryRange = 2150;
         config.looting = true;
         config.behaviors = [LootBehavior.name, PatrolBehavior.name, IdleBehavior.name, FightBehavior.name, ConquerBehavior.name];
         config.conquestPointsPerSecond = 100;

@@ -15,6 +15,6 @@ export class MapDisplay {
         this.map = new Phaser.Tilemaps.Tilemap(scene, mapData);
 
         // Add tilesets to the map
-        this.tileset = this.map.addTilesetImage('grassland-tiles', 'grassland-tiles')!;
+        this.tileset = this.map.addTilesetImage('ground', 'ground')!;
     }
 }

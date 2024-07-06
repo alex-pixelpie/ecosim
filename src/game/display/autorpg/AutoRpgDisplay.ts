@@ -8,7 +8,7 @@ import {GameOverAgent} from "../../logic/modules/GameOverModule.ts";
 import {MapPosition, PhysicsBody, Position} from "../../logic/modules/PhaserPhysicsModule.ts";
 import {TargetGroup, Attacker} from "../../logic/modules/TargetingModule.ts";
 import {DisplayModule} from "../DisplayModule.ts";
-import {Tile} from "../../logic/modules/TilesModule.ts";
+import {ChanceOfSpawn, Tile} from "../../logic/modules/TilesModule.ts";
 import {Configs} from "../../configs/Configs.ts";
 import {GroupAwareness, Observed, Senses} from "../../logic/modules/SensoryModule.ts";
 import OutlinePipelinePlugin from "phaser3-rex-plugins/plugins/outlinepipeline-plugin";
@@ -20,6 +20,7 @@ export type AutoRpgDisplayModule = DisplayModule<AutoRpgDisplay>;
 
 export type TileDisplayData  = {
     position: {x: number, y: number};
+    chanceOfSpawn: number;
 } & ObservableData;
 
 export enum DisplayEntityType {
@@ -131,7 +132,8 @@ export class AutoRpgDisplay {
         this.tiles = Array.from({length: mapConfig.tilesInMapSide}, () => Array.from({length: mapConfig.tilesInMapSide}, () => {
             return {
                 position: {x: 0, y: 0},
-                isObserved: false
+                isObserved: false,
+                chanceOfSpawn: 0
             };
         }));
         modules.forEach(module => module.init(this));
@@ -218,10 +220,12 @@ export class AutoRpgDisplay {
             const position = this.ecs.getComponent(entity, MapPosition);
             const observed = this.ecs.getComponent(entity, Observed);
             const isObserved = !!(observed?.alwaysOn || observed?.visibleToGroup.get(GroupType.Green));
+            const chanceOfSpawn = this.ecs.getComponent(entity, ChanceOfSpawn);
             
             this.tiles[position.x][position.y] = {
                 position: {x: position.x, y: position.y},
-                isObserved
+                isObserved,
+                chanceOfSpawn: chanceOfSpawn?.value || 0
             };
         });
     }

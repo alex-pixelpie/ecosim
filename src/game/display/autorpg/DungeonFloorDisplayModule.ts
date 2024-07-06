@@ -1,13 +1,8 @@
 import {DisplayModule} from "../DisplayModule.ts";
-import {AutoRpgDisplay} from "../autorpg/AutoRpgDisplay.ts";
+import {AutoRpgDisplay} from "./AutoRpgDisplay.ts";
 
 
-enum GroundVisualState {
-    None = -1,
-    Dry = 0,
-    Normal = 1,
-    Rich = 2
-}
+const maxFrame = 16;
 
 export class DungeonFloorDisplayModule extends DisplayModule<AutoRpgDisplay> {
     protected layer: Phaser.Tilemaps.TilemapLayer;
@@ -31,7 +26,7 @@ export class DungeonFloorDisplayModule extends DisplayModule<AutoRpgDisplay> {
                     return;
                 }
 
-                let displayValue = GroundVisualState.Rich;
+                let displayValue = 0;
                 
                 mapTile.setAlpha(tile.isObserved ? 1 : 0);
                 mapTile.index = displayValue;
@@ -44,7 +39,9 @@ export class DungeonFloorDisplayModule extends DisplayModule<AutoRpgDisplay> {
         this.display.tiles.forEach((column, x) => {
             column.forEach((tile, y) => {
                 const mapTile = this.layer.getTileAt(x, y, false);
+                mapTile.index = Math.round(tile.chanceOfSpawn * maxFrame);
                 mapTile.setAlpha(tile.isObserved ? 1 : 0);
+                this.layer.putTileAt(mapTile, x, y, false);
             });
         });
     }
