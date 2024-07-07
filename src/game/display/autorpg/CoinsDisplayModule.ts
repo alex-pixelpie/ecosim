@@ -36,6 +36,10 @@ export class CoinsDisplayModule extends DisplayModule<AutoRpgDisplay> {
             if (!view) {
                 view = new CoinView(this.display, coin.id, coin.x, coin.y, coin.subtype);
                 view.sprite.play("coin", true);
+                const frames = view.sprite.anims.currentAnim!.frames;
+                const randomFrameIndex = Math.round(Math.random() * (frames.length-1));
+                const frame = frames[randomFrameIndex];
+                view.sprite.anims.setCurrentFrame(frame);
                 this.coins.set(coin.id, view);
             }
             

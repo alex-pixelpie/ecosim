@@ -7,15 +7,15 @@ import {FrameLogModule} from "../logic/modules/FrameLogModule.ts";
 import {CameraModule} from "../display/autorpg/CameraModule.ts";
 import {DungeonFloorDisplayModule} from "../display/autorpg/DungeonFloorDisplayModule.ts";
 import {TilesModule} from "../logic/modules/TilesModule.ts";
-import {TilePaintingModule} from "../display/tools-modules/TilesPaintingModule.ts";
+import {TowerPlacementModule} from "../display/tools-modules/TowerPlacementModule.ts";
 
-export class TilesPaintingScene extends Scene {
+export class SpawnChanceConfigScene extends Scene {
 
     private gameLogic: GameLogic;
     private gameDisplay: AutoRpgDisplay;
 
     constructor () {
-        super('TilesPainting');
+        super('SpawnChanceConfigScene');
     }
 
     update(time: number, delta: number) {
@@ -43,7 +43,7 @@ export class TilesPaintingScene extends Scene {
         this.gameDisplay = new AutoRpgDisplay(this, ecs, [
             new CameraModule(),
             new DungeonFloorDisplayModule(),
-            new TilePaintingModule(),
+            new TowerPlacementModule(),
         ]);
 
         EventBus.emit('current-scene-ready', this);
@@ -51,6 +51,6 @@ export class TilesPaintingScene extends Scene {
 
     changeScene () {
         EventBus.off(GameEvents.GameStart, this.changeScene, this);
-        this.scene.start('TilesPainting');
+        this.scene.start('SpawnChanceConfigScene');
     }
 }

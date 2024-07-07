@@ -18,6 +18,7 @@ import {FightBehavior} from "./utility-behavior/FightBehavior.ts";
 import {LootBehavior} from "./utility-behavior/LootBehavior.ts";
 import {ConquerBehavior} from "./utility-behavior/ConquerBehavior.ts";
 import {Conqueror} from "./BuildingsModule.ts";
+import {ExploreBehavior, Explorer} from "./utility-behavior/ExploreBehavior.ts";
 
 export enum GroupType {
     Red = 0,
@@ -37,7 +38,8 @@ const behaviorsMap = new Map<string, Function>([
     [IdleBehavior.name, IdleBehavior],
     [FightBehavior.name, FightBehavior],
     [LootBehavior.name, LootBehavior],
-    [ConquerBehavior.name, ConquerBehavior]
+    [ConquerBehavior.name, ConquerBehavior],
+    [ExploreBehavior.name, ExploreBehavior]
 ]);
 
 export class MobsFactory {
@@ -67,6 +69,8 @@ export class MobsFactory {
         // Physics
         MobsFactory.addPhysics(game, mob, x, y, config.size);
 
+        game.ecs.addComponent(mob, new Explorer(config.size));
+        
         if (config.patrol){
             game.ecs.addComponent(mob, new Patrol(config.patrol, config.size));
         }

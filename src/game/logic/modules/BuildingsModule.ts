@@ -4,7 +4,7 @@ import {Component, Entity} from "../../core/ECS.ts";
 import {BuildingConfig} from "../../configs/BuildingsConfig.ts";
 import {Position} from "./PhaserPhysicsModule.ts";
 import {FrameLog} from "./FrameLogModule.ts";
-import {Observable, Senses} from "./SensoryModule.ts";
+import {Observable, Observed, Senses} from "./SensoryModule.ts";
 import {GroupType, groupTypeValues, LairMobsSpawner} from "./MobsModule.ts";
 import {TargetGroup, Targeting} from "./TargetingModule.ts";
 import {Configs} from "../../configs/Configs.ts";
@@ -27,6 +27,11 @@ export class BuildingsFactory {
         game.ecs.addComponent(building, new FrameLog());
         game.ecs.addComponent(building, new Observable());
         game.ecs.addComponent(building, new TargetGroup(ownGroup));
+        
+        const observed = new Observed();
+        observed.alwaysOn = ownGroup == GroupType.Green;
+        
+        game.ecs.addComponent(building, observed);
         
         game.addPhysicalComponents({entity: building, x, y, radius: config.size, isStatic: true});
         

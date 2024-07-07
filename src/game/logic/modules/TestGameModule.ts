@@ -15,12 +15,14 @@ import {FightBehavior} from "./utility-behavior/FightBehavior.ts";
 import {EventBus, GameEvents} from "../../EventBus.ts";
 import {Observable} from "./SensoryModule.ts";
 import {ConquerBehavior} from "./utility-behavior/ConquerBehavior.ts";
+import {ExploreBehavior} from "./utility-behavior/ExploreBehavior.ts";
 
 export class TestGameModule extends GameLogicModule {
     init(game: GameLogic): void {
         const mapSize = Configs.mapConfig.pixelsSize;
         const centerPos = mapSize/2;
-        
+
+        this.addPlayerTower(game, centerPos);
         this.addMobTower(game, centerPos);
         this.addHero(game, centerPos);
         this.addCoins(game, centerPos);
@@ -30,9 +32,9 @@ export class TestGameModule extends GameLogicModule {
         const config = {...Configs.mobsConfig.getMobConfig(MobType.Skeleton)};
         config.patrol = {maxFrequency: 10, minFrequency: 5, range:500, targetRadius: 200, targetPosition: {x: centerPos, y: centerPos}};
         config.weaponConfig.damageMax = 1000;
-        config.sensoryRange = 2150;
+        config.sensoryRange = 250;
         config.looting = true;
-        config.behaviors = [LootBehavior.name, PatrolBehavior.name, IdleBehavior.name, FightBehavior.name, ConquerBehavior.name];
+        config.behaviors = [LootBehavior.name, IdleBehavior.name, FightBehavior.name, ConquerBehavior.name, ExploreBehavior.name];
         config.conquestPointsPerSecond = 100;
         
         const greenSkeletonConfig:MobSpawnDefinition = {
@@ -64,13 +66,15 @@ export class TestGameModule extends GameLogicModule {
     }
     
     private addMobTower(game: GameLogic, centerPos: number) {
+        const pos = MathUtils.randomPointOnCircumference({x: centerPos, y: centerPos}, 1000);
+
         const spawnConfig:MobSpawnDefinition = {
             config: {...Configs.mobsConfig.getMobConfig(MobType.Skeleton)},
-            x:centerPos,
-            y:centerPos,
+            x:pos.x,
+            y:pos.y,
             group:GroupType.Red
         };
-        spawnConfig.config.patrol = {maxFrequency: 10, minFrequency: 5, range:500, targetRadius: 200, targetPosition: {x: centerPos, y: centerPos}};
+        spawnConfig.config.patrol = {maxFrequency: 10, minFrequency: 5, range:500, targetRadius: 200, targetPosition: {x: pos.x, y: pos.y}};
         spawnConfig.config.behaviors = [PatrolBehavior.name, IdleBehavior.name];
         spawnConfig.config.speed = 500;
         spawnConfig.config.sensoryRange = 500;
@@ -83,10 +87,23 @@ export class TestGameModule extends GameLogicModule {
         }
         
         BuildingsFactory.makeBuilding(game, {
-            x:centerPos,
-            y:centerPos,
+            x:pos.x,
+            y:pos.y,
             config: buildingConfig,
             group:GroupType.Red
+        });
+    }
+
+    private addPlayerTower(game: GameLogic, centerPos: number) {
+        const pos = {x: centerPos, y: centerPos};
+
+        const buildingConfig = {...Configs.buildingsConfig.getConfig(BuildingType.PlayerTower)};
+
+        BuildingsFactory.makeBuilding(game, {
+            x:pos.x,
+            y:pos.y,
+            config: buildingConfig,
+            group:GroupType.Green
         });
     }
 }

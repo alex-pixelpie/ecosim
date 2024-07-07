@@ -219,7 +219,7 @@ export class AutoRpgDisplay {
         entities.forEach(entity => {
             const position = this.ecs.getComponent(entity, MapPosition);
             const observed = this.ecs.getComponent(entity, Observed);
-            const isObserved = !!(observed?.alwaysOn || observed?.visibleToGroup.get(GroupType.Green));
+            const isObserved = (observed?.alwaysOn || observed?.visibleToGroup.get(GroupType.Green)) ?? false;
             const chanceOfSpawn = this.ecs.getComponent(entity, ChanceOfSpawn);
             
             this.tiles[position.x][position.y] = {
@@ -264,7 +264,7 @@ export class AutoRpgDisplay {
             const inventory = this.ecs.getComponent(entity, Inventory);
             const behavior = this.ecs.getComponent(entity, UtilityBehavior);
             const observed = this.ecs.getComponent(entity, Observed);
-            const isObserved = !!(observed?.alwaysOn || observed?.visibleToGroup.get(GroupType.Green));
+            const isObserved = (observed?.alwaysOn || observed?.visibleToGroup.get(GroupType.Green)) ?? false;
             
             return {
                 id: entity,
@@ -311,7 +311,7 @@ export class AutoRpgDisplay {
             const maxAge = corpse.maxAge;
             const rotFactor = 1 - (currentAge / maxAge);
             const observed = this.ecs.getComponent(entity, Observed);
-            const isObserved = !!(observed?.alwaysOn || observed?.visibleToGroup.get(GroupType.Green));
+            const isObserved = (observed?.alwaysOn || observed?.visibleToGroup.get(GroupType.Green)) ?? false;
             
             return {
                 id: entity,
@@ -345,7 +345,7 @@ export class AutoRpgDisplay {
             const criticalMultiplier = log?.logs.reduce((acc, log) => log.type === FrameLogType.TakeCriticalDamage ? log.value : acc, 0);
             
             const observed = this.ecs.getComponent(entity, Observed);
-            const isObserved = !!(observed?.alwaysOn || observed?.visibleToGroup.get(GroupType.Green));
+            const isObserved = (observed?.alwaysOn || observed?.visibleToGroup.get(GroupType.Green)) ?? false;
             
             return {
                 id: entity,
@@ -374,7 +374,7 @@ export class AutoRpgDisplay {
             const ruin = this.ecs.getComponent(entity, Ruin);
 
             const observed = this.ecs.getComponent(entity, Observed);
-            const isObserved = !!(observed?.alwaysOn || observed?.visibleToGroup.get(GroupType.Green));
+            const isObserved = (observed?.alwaysOn || observed?.visibleToGroup.get(GroupType.Green)) ?? false;
             
             return {
                 id: entity,
@@ -397,7 +397,7 @@ export class AutoRpgDisplay {
             const position = this.ecs.getComponent(entity, Position);
 
             const observed = this.ecs.getComponent(entity, Observed);
-            const isObserved = !!(observed?.alwaysOn || observed?.visibleToGroup.get(GroupType.Green));
+            const isObserved = (observed?.alwaysOn || observed?.visibleToGroup.get(GroupType.Green)) ?? false;
             
             return {
                 id: entity,

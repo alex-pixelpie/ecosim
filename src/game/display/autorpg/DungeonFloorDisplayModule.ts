@@ -30,6 +30,7 @@ export class DungeonFloorDisplayModule extends DisplayModule<AutoRpgDisplay> {
                 
                 mapTile.setAlpha(tile.isObserved ? 1 : 0);
                 mapTile.index = displayValue;
+                mapTile.rotation = Math.floor(Math.random() * 4) * Math.PI;
                 this.layer.putTileAt(mapTile, x, y, false);
             });
         });
