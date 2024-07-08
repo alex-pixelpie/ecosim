@@ -2,7 +2,7 @@ import {GameLogic, GameSystem} from "../GameLogic.ts";
 import {GameLogicModule } from "../GameLogicModule.ts";
 import {Component, Entity} from "../../core/ECS.ts";
 import {BuildingConfig} from "../../configs/BuildingsConfig.ts";
-import {Position} from "./PhaserPhysicsModule.ts";
+import {Position, Size} from "./PhaserPhysicsModule.ts";
 import {FrameLog} from "./FrameLogModule.ts";
 import {Observable, Observed, Senses} from "./SensoryModule.ts";
 import {GroupType, groupTypeValues, LairMobsSpawner} from "./MobsModule.ts";
@@ -17,6 +17,12 @@ export interface BuildingSpawnDefinition {
     group:GroupType;
 }
 
+export class LootReturnTarget extends Component {
+    constructor(public group: GroupType) {
+        super();
+    }
+}
+
 export class BuildingsFactory {
     static makeBuilding(game: GameLogic, {config, x, y, group:ownGroup}: BuildingSpawnDefinition) : Entity {
         const building = game.ecs.addEntity();
@@ -24,14 +30,18 @@ export class BuildingsFactory {
         game.ecs.addComponent(building, new Building(config));
         config.conquest && game.ecs.addComponent(building, new Conquerable(config.conquest.cost, ownGroup));
         game.ecs.addComponent(building, new Position(x, y));
+        game.ecs.addComponent(building, new Size(config.size));
         game.ecs.addComponent(building, new FrameLog());
         game.ecs.addComponent(building, new Observable());
         game.ecs.addComponent(building, new TargetGroup(ownGroup));
         
+        const isPlayer = ownGroup == GroupType.Green;
         const observed = new Observed();
-        observed.alwaysOn = ownGroup == GroupType.Green;
-        
+        observed.alwaysOn = isPlayer;
         game.ecs.addComponent(building, observed);
+
+        const lootReturnTarget = new LootReturnTarget(ownGroup);
+        game.ecs.addComponent(building, lootReturnTarget);
         
         game.addPhysicalComponents({entity: building, x, y, radius: config.size, isStatic: true});
         
@@ -49,6 +59,37 @@ export class BuildingsFactory {
 export class Building extends Component {
     constructor(public config: BuildingConfig) {
         super();
+    }
+}
+
+export class LootReturner extends Component {
+    get returningLoot(): boolean {
+        return this.target !== null;
+    }
+
+    target: number | null = null;
+    x: number = 0;
+    y: number = 0;
+    targetSize: number = 0;
+
+    constructor(public ownSize:number) {
+        super();
+    }
+
+    startReturningLootTo(target: number, targetSize:number, x:number, y:number): void {
+        this.target = target;
+        this.targetSize = targetSize + 1;
+        this.x = x;
+        this.y = y;
+    }
+
+    finishReturningLoot(){
+        this.target = null;
+    }
+
+    inRange(from: Pos): boolean {
+        let distance = MathUtils.distance(from, this) - this.targetSize - this.ownSize;
+        return distance <= 0;
     }
 }
 

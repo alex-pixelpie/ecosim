@@ -11,7 +11,7 @@ export class LootBehavior implements IUtilityBehavior {
     group: number;
     
     getUtility(game: GameLogic, entity: number, state: State): number {
-        return state.seeLoot ? 3 : -100;
+        return state.seeLoot ? 5 : -100;
     }
     
     execute(game: GameLogic, entity: number, state: State): void {

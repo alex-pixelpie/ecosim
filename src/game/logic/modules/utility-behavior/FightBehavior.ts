@@ -16,7 +16,7 @@ export class FightBehavior implements IUtilityBehavior {
             return 10;
         }
         
-        return state.seeEnemies ? 6 : -100;
+        return state.seeEnemies ? 7 : -100;
     }
     
     execute(game: GameLogic, entity: number, state: State): void {

@@ -25,7 +25,13 @@ export const ExploreState = {
     exploring: "exploring"
 } as const;
 
-export const StateConst = {...LootState, ...PatrolState, ...AttackState, ...ExploreState, ...ConquestState} as const;
+export const ReturnLootState = {
+    hasEnoughLoot: "hasEnoughLoot",
+    returningLoot: "returningLoot",
+    seeReturnLootTargets: "seeReturnLootTarget"
+} as const;
+
+export const StateConst = {...LootState, ...PatrolState, ...AttackState, ...ExploreState, ...ConquestState, ...ReturnLootState} as const;
 
 export type StateKey = keyof typeof StateConst;
 

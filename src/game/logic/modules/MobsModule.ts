@@ -17,8 +17,9 @@ import {IUtilityBehavior, UtilityBehavior} from "./utility-behavior/UtilityBehav
 import {FightBehavior} from "./utility-behavior/FightBehavior.ts";
 import {LootBehavior} from "./utility-behavior/LootBehavior.ts";
 import {ConquerBehavior} from "./utility-behavior/ConquerBehavior.ts";
-import {Conqueror} from "./BuildingsModule.ts";
+import {Conqueror, LootReturner} from "./BuildingsModule.ts";
 import {ExploreBehavior, Explorer} from "./utility-behavior/ExploreBehavior.ts";
+import {ReturnLootBehavior} from "./utility-behavior/ReturnLootBehavior.ts";
 
 export enum GroupType {
     Red = 0,
@@ -39,7 +40,8 @@ const behaviorsMap = new Map<string, Function>([
     [FightBehavior.name, FightBehavior],
     [LootBehavior.name, LootBehavior],
     [ConquerBehavior.name, ConquerBehavior],
-    [ExploreBehavior.name, ExploreBehavior]
+    [ExploreBehavior.name, ExploreBehavior],
+    [ReturnLootBehavior.name, ReturnLootBehavior]
 ]);
 
 export class MobsFactory {
@@ -78,6 +80,7 @@ export class MobsFactory {
         if (config.looting){
             game.ecs.addComponent(mob, new Looter(config.size));
             game.ecs.addComponent(mob, new Inventory());
+            game.ecs.addComponent(mob, new LootReturner(config.size));
         }
         
         if (config.behaviors){

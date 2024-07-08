@@ -4,12 +4,69 @@ import {Component, ECS, Entity} from "../../core/ECS.ts";
 import {Position, Size} from "./PhaserPhysicsModule.ts";
 import {MathUtils, Pos} from "../../utils/Math.ts";
 import {Targetable, TargetGroup, Targeting} from "./TargetingModule.ts";
-import {Lootable} from "./LootModule.ts";
+import {Inventory, Lootable} from "./LootModule.ts";
 import {Configs} from "../../configs/Configs.ts";
 import {GroupType} from "./MobsModule.ts";
-import {Conquerable} from "./BuildingsModule.ts";
+import {Conquerable, LootReturnTarget} from "./BuildingsModule.ts";
 
-export class GroupAwarenessRef extends Component {
+class GroupLootRef extends Component {
+    public constructor(public groupLoot: GroupLoot) {
+        super();
+    }
+}
+
+export class GroupLoot extends Component {
+    coins: number = 0;
+    
+    public constructor(public group: GroupType) {
+        super();
+    }
+    
+    public returnLoot(from:Inventory) {
+        this.coins += from.coins;
+        from.coins = 0;
+    }
+    
+    public static getGroupLoot = (ecs: ECS, entity: number): GroupLoot => {
+        const groupLootRef = ecs.getComponent(entity, GroupLootRef);
+        if (groupLootRef) {
+            return groupLootRef.groupLoot;
+        }
+        
+        const group = ecs.getComponent(entity, TargetGroup);
+        let groupLoot = 
+            ecs.getEntitiesWithComponent(GroupLoot)
+            .map(entity => ecs.getComponent(entity, GroupLoot))
+            .find(groupLoot => groupLoot.group === group.id);
+
+        if (!groupLoot) {
+            groupLoot = new GroupLoot(group.id);
+            const groupLootEntity = ecs.addEntity();
+            ecs.addComponent(groupLootEntity, groupLoot);
+        }
+        
+        ecs.addComponent(entity, new GroupLootRef(groupLoot));
+        
+        return groupLoot;
+    }
+    
+    public static getGroupLootByGroup = (ecs: ECS, group: GroupType): GroupLoot => {
+        let groupLoot = 
+            ecs.getEntitiesWithComponent(GroupLoot)
+            .map(entity => ecs.getComponent(entity, GroupLoot))
+            .find(groupLoot => groupLoot.group === group);
+        
+        if (!groupLoot) {
+            groupLoot = new GroupLoot(group);
+            const groupLootEntity = ecs.addEntity();
+            ecs.addComponent(groupLootEntity, groupLoot);        
+        }
+        
+        return groupLoot;
+    }
+}
+
+class GroupAwarenessRef extends Component {
     public constructor(public awareness: GroupAwareness) {
         super();
     }
@@ -21,6 +78,7 @@ export class GroupAwareness extends Component {
     public loot: Set<number> = new Set();
     public conquests: Map<number, number> = new Map();
     public lootDibs: Map<number, number> = new Map();
+    public lootReturnTargets: Set<number> = new Set();
     public positions = new Map<number, Pos>();
     
     public constructor(public group: GroupType) {
@@ -77,6 +135,18 @@ export class GroupAwareness extends Component {
                 this.conquests.delete(entity);
             }
         });
+        
+        this.lootDibs.forEach((_, entity) => {
+            if (!ecs.hasEntity(entity)) {
+                this.lootDibs.delete(entity);
+            }
+        });
+        
+        this.lootReturnTargets.forEach((_, entity) => {
+            if (!ecs.hasEntity(entity)) {
+                this.lootReturnTargets.delete(entity);
+            }
+        });
     }
 
     clearInvisible(ecs: ECS) {
@@ -88,6 +158,8 @@ export class GroupAwareness extends Component {
                 this.allies.delete(entity);
                 this.loot.delete(entity);
                 this.conquests.delete(entity);
+                this.lootDibs.delete(entity);
+                this.lootReturnTargets.delete(entity);
             }
         });
     }
@@ -170,10 +242,6 @@ class SensorySystem extends GameSystem {
             const pos = {x: hs + position.x, y:hs + position.y};
             
             game.ecs.getEntitiesWithComponents([Observable]).forEach(otherEntity => {
-                if (entity === otherEntity) {
-                    return;
-                }
-                
                 const otherPosition = game.ecs.getComponent(otherEntity, Position);
                 if (!otherPosition) {
                     return;
@@ -183,6 +251,7 @@ class SensorySystem extends GameSystem {
                 
                 if (distance < senses.range) {
                     if (group.id == GroupType.Green) SensorySystem.updateObserved(game, otherEntity, group.id);
+                    
                     awareness.positions.set(otherEntity, {...otherPosition});
 
                     const targetable = game.ecs.getComponent(otherEntity, Targetable);
@@ -205,6 +274,12 @@ class SensorySystem extends GameSystem {
                     const conquerable = game.ecs.getComponent(otherEntity, Conquerable);
                     if (conquerable && conquerable.group != group.id) {
                         awareness.conquests.set(otherEntity, conquerable.conquestPoints);
+                        return;
+                    }
+                    
+                    const lootReturnTarget = game.ecs.getComponent(otherEntity, LootReturnTarget);
+                    if (lootReturnTarget && lootReturnTarget.group == group.id) {
+                        awareness.lootReturnTargets.add(otherEntity);
                         return;
                     }
                 }

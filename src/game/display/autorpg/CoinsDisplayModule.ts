@@ -25,13 +25,13 @@ export class CoinsDisplayModule extends DisplayModule<AutoRpgDisplay> {
 
     public update(_: number): void {
         this.coins.forEach((view, entity) => {
-            if (!this.display.coins.find(data => data.id === entity)) {
+            if (!this.display.loot.find(data => data.id === entity)) {
                 view.destroy();
                 this.coins.delete(entity);
             }
         });
         
-        this.display.coins.forEach(coin => {
+        this.display.loot.forEach(coin => {
             let view = this.coins.get(coin.id);
             if (!view) {
                 view = new CoinView(this.display, coin.id, coin.x, coin.y, coin.subtype);

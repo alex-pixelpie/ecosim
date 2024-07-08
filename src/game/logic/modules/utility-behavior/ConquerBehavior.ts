@@ -21,7 +21,7 @@ export class ConquerBehavior implements IUtilityBehavior {
 
     public getUtility(game: GameLogic, entity: number, state: State): number {
         if (state.seeConquests) {
-            return state.conquering ? 10 : 5;    
+            return state.conquering ? 10 : 4;    
         }
         
         return -100;

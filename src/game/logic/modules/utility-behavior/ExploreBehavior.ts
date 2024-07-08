@@ -108,7 +108,7 @@ export class ExploreBehavior implements IUtilityBehavior {
     private getTileUnexplored(game: GameLogic, position: Position, numRows: number, numCols: number, tileSize: number, group:number): boolean {
         const col = Math.floor(position.x / tileSize);
         const row = Math.floor(position.y / tileSize);
-        const exploreOffset = 10;
+        const exploreOffset = 30;
         
         if (col >= exploreOffset && col < numCols-1 && row >= exploreOffset && row < numRows-exploreOffset) {
             const tile = game.ecs.getComponent(game.tiles[col][row], Observed);

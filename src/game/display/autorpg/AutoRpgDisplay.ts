@@ -10,13 +10,17 @@ import {TargetGroup, Attacker} from "../../logic/modules/TargetingModule.ts";
 import {DisplayModule} from "../DisplayModule.ts";
 import {ChanceOfSpawn, Tile} from "../../logic/modules/TilesModule.ts";
 import {Configs} from "../../configs/Configs.ts";
-import {GroupAwareness, Observed, Senses} from "../../logic/modules/SensoryModule.ts";
+import {GroupAwareness, GroupLoot, Observed, Senses} from "../../logic/modules/SensoryModule.ts";
 import OutlinePipelinePlugin from "phaser3-rex-plugins/plugins/outlinepipeline-plugin";
 import {EventBus, GameEvents, UiEvents} from "../../EventBus.ts";
 import {Inventory, Loot} from "../../logic/modules/LootModule.ts";
 import {UtilityBehavior} from "../../logic/modules/utility-behavior/UtilityBehaviorModule.ts";
 
 export type AutoRpgDisplayModule = DisplayModule<AutoRpgDisplay>;
+
+export type PlayerDisplayData = {
+    coins: number;
+}
 
 export type TileDisplayData  = {
     position: {x: number, y: number};
@@ -104,7 +108,7 @@ export class AutoRpgDisplay {
     buildings: BuildingData[] = [];
     ruins: RuinData[] = [];
     gameOverAgents:GameOverAgentData[] = [];
-    coins: LootData[] = [];
+    loot: LootData[] = [];
     
     // Layers
     mobUi: Phaser.GameObjects.Container;
@@ -179,19 +183,24 @@ export class AutoRpgDisplay {
         this.updateBuildings();
         this.updateRuins();
         this.updateGameOverAgents();
-        this.updateCoins();
+        this.updateLoot();
         
         this.modules.forEach(module => module.update(delta));
 
         this.mobsLayer.sort('y');
 
-        const selected = [...this.mobs,
+        const selected = [
+            ...this.mobs,
             ...this.corpses,
             ...this.buildings,
             ...this.ruins,
-            ...this.gameOverAgents].find(entity => entity.id == this.selectedEntity);
+            ...this.gameOverAgents
+        ].find(entity => entity.id == this.selectedEntity);
 
         EventBus.emit(UiEvents.EntitySelected, {selected});
+        
+        const loot = GroupLoot.getGroupLootByGroup(this.ecs, GroupType.Green);
+        EventBus.emit(GameEvents.PlayerStateUpdated, {...loot});
     }
     
     private updateGameOverAgents() {
@@ -390,10 +399,10 @@ export class AutoRpgDisplay {
         this.ruins = ruins;
     }
 
-    private updateCoins() {
+    private updateLoot() {
         const entities = this.ecs.getEntitiesWithComponent(Loot);
         
-        const coins = entities.map(entity => {
+        const loot = entities.map(entity => {
             const position = this.ecs.getComponent(entity, Position);
 
             const observed = this.ecs.getComponent(entity, Observed);
@@ -410,6 +419,6 @@ export class AutoRpgDisplay {
             } as LootData;
         });
         
-        this.coins = coins;
+        this.loot = loot;
     }
 }
