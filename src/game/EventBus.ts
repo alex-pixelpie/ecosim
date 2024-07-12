@@ -21,4 +21,5 @@ export const enum GameEvents {
     EntityTap = 'entity-tap',
     FollowSpriteSelected = 'follow-sprite-selected',
     PlayerStateUpdated = 'player-state-updated',
+    RightClick = 'right-click',
 }

@@ -26,7 +26,8 @@ class CorpseView {
 
 enum DeathKeys {
     ElfArcher = "elf-archer-death",
-    Skeleton = "skeleton-death"
+    Skeleton = "skeleton-death",
+    BlueKing = "blue-king-death"
 }
 
 export class CorpsesDisplayModule extends DisplayModule<AutoRpgDisplay> {
@@ -68,10 +69,17 @@ export class CorpsesDisplayModule extends DisplayModule<AutoRpgDisplay> {
             frameRate: 6,
             repeat: 0
         });
-        
+
         scene.anims.create({
             key: DeathKeys.ElfArcher,
             frames: scene.anims.generateFrameNumbers(DeathKeys.ElfArcher, {start: 0, end: 9}),
+            frameRate: 12,
+            repeat: 0
+        });
+        
+        scene.anims.create({
+            key: DeathKeys.BlueKing,
+            frames: scene.anims.generateFrameNumbers(DeathKeys.BlueKing, {start: 0, end: 5}),
             frameRate: 12,
             repeat: 0
         });

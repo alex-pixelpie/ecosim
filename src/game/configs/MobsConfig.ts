@@ -57,7 +57,8 @@ export enum WeaponEffect {
 
 export enum MobType {
     Skeleton = 'Skeleton',
-    ElfArcher = 'ElfArcher'
+    ElfArcher = 'ElfArcher',
+    BlueKing = 'BlueKing',
 }
 
 export enum DropType {
@@ -89,6 +90,31 @@ export const SkeletonConfig: MobConfig = {
     avoidWalls: true
 };
 
+export const BlueKingConfig: MobConfig = {
+    type: MobType.BlueKing,
+    weaponConfig: {
+        damageMax: 20,
+        damageMin: 10,
+        cooldownSeconds: 0.1,
+        rangeMax: 50,
+        rangeMin: 20,
+        swingSeconds: 0.5,
+        attackDuration: 0.75,
+        criticalChance: 0.1,
+        criticalMultiplier: 2,
+        effect: WeaponEffect.DirectDamage
+    },
+    conquestPointsPerSecond: 100,
+    health: 200,
+    speed: 250,
+    size: 16,
+    sensoryRange: 300,
+    survivalSecondsToOverwhelm: 0,
+    drops: [{ type: DropType.Corpse }],
+    avoidWalls: true,
+    looting: true
+};
+
 export const ElfArcherConfig : MobConfig = {
     type: MobType.ElfArcher,
     weaponConfig: {
@@ -113,12 +139,16 @@ export const ElfArcherConfig : MobConfig = {
 };
 
 export class MobsConfig {
+    public maxLootBeforeReturn = 10;
+    
     public getMobConfig(type: MobType): MobConfig {
         switch (type) {
             case MobType.Skeleton:
                 return SkeletonConfig;
             case MobType.ElfArcher:
                 return ElfArcherConfig;
+            case MobType.BlueKing:
+                return BlueKingConfig;
         }
     }
 }

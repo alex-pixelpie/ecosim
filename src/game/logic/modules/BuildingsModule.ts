@@ -29,7 +29,8 @@ export class BuildingsFactory {
         
         game.ecs.addComponent(building, new Building(config));
         config.conquest && game.ecs.addComponent(building, new Conquerable(config.conquest.cost, ownGroup));
-        game.ecs.addComponent(building, new Position(x, y));
+        const position = new Position(x, y);
+        game.ecs.addComponent(building, position);
         game.ecs.addComponent(building, new Size(config.size));
         game.ecs.addComponent(building, new FrameLog());
         game.ecs.addComponent(building, new Observable());
@@ -50,6 +51,10 @@ export class BuildingsFactory {
         if (ownGroup == GroupType.Green && config.sensoryRange){
             game.ecs.addComponent(building, new Senses(config.sensoryRange));
             game.ecs.addComponent(building, new Targeting(groupTypeValues.filter(group => group !== ownGroup).reduce((acc, group) => acc.add(group), new Set<number>()) as Set<number>));
+
+            const observed = new Observed();
+            observed.lastSeen.set(ownGroup, game.time)
+            game.ecs.addComponent(building, observed);
         }
         
         return building;

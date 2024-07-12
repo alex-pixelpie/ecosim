@@ -8,12 +8,12 @@ import {MobSpawnDefinition, MobType} from "../../configs/MobsConfig.ts";
 import {Loot, Lootable, LootType} from "./LootModule.ts";
 import {Position} from "./PhaserPhysicsModule.ts";
 import {MathUtils} from "../../utils/Math.ts";
-import {LootBehavior} from "./utility-behavior/LootBehavior.ts";
 import {PatrolBehavior} from "./utility-behavior/PatrolBehavior.ts";
 import {IdleBehavior} from "./utility-behavior/IdleBehavior.ts";
 import {FightBehavior} from "./utility-behavior/FightBehavior.ts";
 import {EventBus, GameEvents} from "../../EventBus.ts";
 import {Observable} from "./SensoryModule.ts";
+import {LootBehavior} from "./utility-behavior/LootBehavior.ts";
 import {ConquerBehavior} from "./utility-behavior/ConquerBehavior.ts";
 import {ExploreBehavior} from "./utility-behavior/ExploreBehavior.ts";
 import {ReturnLootBehavior} from "./utility-behavior/ReturnLootBehavior.ts";
@@ -30,23 +30,19 @@ export class TestGameModule extends GameLogicModule {
     }
 
     private addHero(game: GameLogic, centerPos: number) {
-        const config = {...Configs.mobsConfig.getMobConfig(MobType.Skeleton)};
-        config.patrol = {maxFrequency: 10, minFrequency: 5, range:500, targetRadius: 200, targetPosition: {x: centerPos, y: centerPos}};
-        config.weaponConfig.damageMax = 1000;
-        config.sensoryRange = 250;
-        config.looting = true;
+        const config = {...Configs.mobsConfig.getMobConfig(MobType.BlueKing)};
+        config.weaponConfig = {...config.weaponConfig};
         config.behaviors = [LootBehavior.name, IdleBehavior.name, FightBehavior.name, ConquerBehavior.name, ExploreBehavior.name, ReturnLootBehavior.name];
-        config.conquestPointsPerSecond = 100;
-        
-        const greenSkeletonConfig:MobSpawnDefinition = {
+
+        const heroConfig:MobSpawnDefinition = {
             config,
             x:centerPos-450,
             y:centerPos,
             group:GroupType.Green
         };
 
-        MobsFactory.makeMob(game, greenSkeletonConfig);
-        const hero = MobsFactory.makeMob(game, greenSkeletonConfig);
+        // MobsFactory.makeMob(game, heroConfig);
+        const hero = MobsFactory.makeMob(game, heroConfig);
 
         // Select this motherfucker
         game.scene.time.delayedCall(100, () => {
@@ -68,24 +64,29 @@ export class TestGameModule extends GameLogicModule {
     
     private addMobTower(game: GameLogic, centerPos: number) {
         const pos = MathUtils.randomPointOnCircumference({x: centerPos, y: centerPos}, 1000);
+        
+        const skeletonConfig = {...Configs.mobsConfig.getMobConfig(MobType.Skeleton)};
+        skeletonConfig.patrol = {maxFrequency: 10, minFrequency: 5, range:500, targetRadius: 200, targetPosition: {x: pos.x, y: pos.y}};
+        skeletonConfig.behaviors = [PatrolBehavior.name, IdleBehavior.name, FightBehavior.name];
+        skeletonConfig.speed = 100;
+        skeletonConfig.sensoryRange = 100;
+        skeletonConfig.weaponConfig = {...skeletonConfig.weaponConfig};
+        skeletonConfig.weaponConfig.damageMax = 30;
+        skeletonConfig.weaponConfig.damageMin = 10;
 
         const spawnConfig:MobSpawnDefinition = {
-            config: {...Configs.mobsConfig.getMobConfig(MobType.Skeleton)},
+            config: skeletonConfig,
             x:pos.x,
             y:pos.y,
             group:GroupType.Red
         };
-        spawnConfig.config.patrol = {maxFrequency: 10, minFrequency: 5, range:500, targetRadius: 200, targetPosition: {x: pos.x, y: pos.y}};
-        spawnConfig.config.behaviors = [PatrolBehavior.name, IdleBehavior.name];
-        spawnConfig.config.speed = 500;
-        spawnConfig.config.sensoryRange = 500;
 
         const buildingConfig = {...Configs.buildingsConfig.getConfig(BuildingType.MobTower)};
-        // buildingConfig.spawn = {
-        //     mobConfig:spawnConfig,
-        //     maxMobs: 10,
-        //     spawnIntervalSeconds: 2
-        // }
+        buildingConfig.spawn = {
+            mobConfig:spawnConfig,
+            maxMobs: 10,
+            spawnIntervalSeconds: 2
+        }
         
         BuildingsFactory.makeBuilding(game, {
             x:pos.x,

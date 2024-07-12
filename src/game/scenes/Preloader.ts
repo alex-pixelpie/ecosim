@@ -45,6 +45,12 @@ export class Preloader extends Scene
         this.load.spritesheet('bat-0', './menu/bat-0.png', { frameWidth: 32, frameHeight: 32 });
 
         this.load.spritesheet('coin', 'coin.png', { frameWidth: 32, frameHeight: 32 });
+        
+        // Blue King
+        this.load.spritesheet('blue-king-idle', './characters/blue-king/idle.png', { frameWidth: 160, frameHeight: 111 });
+        this.load.spritesheet('blue-king-walk', './characters/blue-king/walk.png', { frameWidth: 160, frameHeight: 111 });
+        this.load.spritesheet('blue-king-attack', './characters/blue-king/attack-0.png', { frameWidth: 160, frameHeight: 111 });
+        this.load.spritesheet('blue-king-death', './characters/blue-king/death.png', { frameWidth: 160, frameHeight: 111 });
 
         // Skeleton
         this.load.spritesheet('skeleton-idle', './characters/skeleton/idle.png', { frameWidth: 150, frameHeight: 150 });

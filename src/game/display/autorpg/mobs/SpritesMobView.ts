@@ -16,6 +16,8 @@ export class SpritesMobView extends MobView {
     walkAnimName: string;
     attackAnimName: string;
     idleAnimName: string;
+    width:number = 40;
+    height:number = 40;
     
     protected init(x: number, y: number): void {
         if (this.sprites) {
@@ -24,7 +26,7 @@ export class SpritesMobView extends MobView {
 
         this.sprites = new Map();
         this.container = this.display.scene.add.container(x, y);
-        this.container.setSize(40, 40); // TODO - get proper size from sprite
+        this.container.setSize(this.width, this.height); // TODO - get proper size from sprite
         
         this.sprites.set(this.attackAnimName, this.display.scene.add.sprite(x, y, this.attackAnimName).setVisible(false));
         this.sprites.set(this.idleAnimName, this.display.scene.add.sprite(x, y, this.idleAnimName).setVisible(false));

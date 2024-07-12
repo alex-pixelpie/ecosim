@@ -30,6 +30,8 @@ import {LootModule} from "../logic/modules/LootModule.ts";
 import {TestGameModule} from "../logic/modules/TestGameModule.ts";
 import {UtilityBehaviorModule} from "../logic/modules/utility-behavior/UtilityBehaviorModule.ts";
 import {Configs} from "../configs/Configs.ts";
+import {PlayerInteractionModule} from "../logic/modules/PlayerInteractionModule.ts";
+import {RightClickEmittingModule} from "../display/autorpg/RightClickEmittingModule.ts";
 
 export class AutoRpg extends Scene
 {
@@ -75,7 +77,8 @@ export class AutoRpg extends Scene
             new BuildingsModule(),
             new LootModule(),
             new TestGameModule(),
-            new GameOverModule()
+            new GameOverModule(),
+            new PlayerInteractionModule()
         ]);
         
         this.gameDisplay = new AutoRpgDisplay(this, ecs, [
@@ -87,13 +90,16 @@ export class AutoRpg extends Scene
             new CorpsesDisplayModule(),
             new CoinsDisplayModule(),
             new FloatingNumbersDisplay(),
-            new GameOverDisplayModule()
+            new GameOverDisplayModule(),
+            new RightClickEmittingModule()
         ]);
 
         const gd = this.gameDisplay;
+        const gl = this.gameLogic;
         
         this.events.once('destroy', function () {
             gd.destroy();
+            gl.destroy();
         }, this);
     
         EventBus.emit('current-scene-ready', this);

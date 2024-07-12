@@ -48,7 +48,8 @@ export class GameLogic {
     scene: Phaser.Scene;
     time: number = 0;
     mobs: Set<number> = new Set();
-
+    modules: GameLogicModule[];
+    
     // Populated by the PhaserPhysicsModule
     addPhysicalComponents:(data:PhysicalComponentCreationData)=>void = () => {};
 
@@ -61,11 +62,17 @@ export class GameLogic {
     constructor(ecs: ECS, scene:Scene, modules: GameLogicModule[]) {
         this.scene = scene;
         this.ecs = ecs;
+        this.modules = modules;
         modules.forEach(module => module.init(this));
     }
     
     update(delta: number) {
         this.time += delta;
         this.ecs.update(delta);
+        this.modules.forEach(module => module.update(delta));
+    }
+    
+    destroy() {
+        this.modules.forEach(module => module.destroy());
     }
 }

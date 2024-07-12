@@ -6,8 +6,7 @@ import {LootReturner} from "../BuildingsModule.ts";
 import {Steering} from "../SteeringModule.ts";
 import {MathUtils} from "../../../utils/Math.ts";
 import { Inventory } from "../LootModule.ts";
-
-const MAX_LOOT = 5;
+import {Configs} from "../../../configs/Configs.ts";
 
 export class ReturnLootBehavior implements IUtilityBehavior {
     name: string = "Returning Loot";
@@ -22,7 +21,7 @@ export class ReturnLootBehavior implements IUtilityBehavior {
         state.seeReturnLootTargets = senses.lootReturnTargets.size > 0;
         
         const inventory = game.ecs.getComponent(entity, Inventory);
-        state.hasEnoughLoot = inventory?.coins >= MAX_LOOT;
+        state.hasEnoughLoot = inventory?.coins >= Configs.mobsConfig.maxLootBeforeReturn;
     }
 
     public getUtility(game: GameLogic, entity: number, state: State): number {

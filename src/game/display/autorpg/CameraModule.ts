@@ -37,6 +37,10 @@ class ControlledCamera {
     }
 
     private handlePointerDown() {
+        if (this.scene.input.manager.activePointer.rightButtonDown()) {
+            return;
+        }
+        
         this.isDown = true;
 
         clearTimeout(this.timeout);
@@ -51,6 +55,10 @@ class ControlledCamera {
     }
 
     private handlePointerUp() {
+        if (this.scene.input.manager.activePointer.rightButtonDown()) {
+            return;
+        }
+        
         this.isDown = false;
 
         if (this.isCountingClicks) {

@@ -39,6 +39,7 @@ const config: Phaser.Types.Core.GameConfig = {
             debug: true
         }
     },
+    disableContextMenu: true
 };
 
 const StartGame = (parent: string) => {
